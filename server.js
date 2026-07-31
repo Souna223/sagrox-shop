@@ -15,6 +15,16 @@ app
   .prepare()
   .then(() => {
     createServer((req, res) => {
+      // Nunca deixar o CDN cachear páginas HTML (conteúdo dinâmico + idioma por cookie).
+      // Assets imutáveis em /_next/static/* continuam com cache normal.
+      const accept = req.headers.accept || "";
+      if (req.method === "GET" && accept.includes("text/html")) {
+        const originalWriteHead = res.writeHead.bind(res);
+        res.writeHead = (status, headers) => {
+          res.setHeader("Cache-Control", "no-store");
+          return originalWriteHead(status, headers);
+        };
+      }
       handle(req, res);
     }).listen(port, hostname, () => {
       console.log(`> Ready on http://${hostname}:${port} (${dev ? "development" : "production"})`);
