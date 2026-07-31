@@ -1,6 +1,7 @@
 // Seed de produção: cria/atualiza SOMENTE o administrador e as configurações padrão.
 // Não cria dados de demonstração (catálogo, cupons, FAQs etc.).
 // Uso: npm run db:seed:admin  (exige ADMIN_EMAIL e ADMIN_PASSWORD no ambiente)
+import "dotenv/config";
 import { PrismaClient } from "../generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";

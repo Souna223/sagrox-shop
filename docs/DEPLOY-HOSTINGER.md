@@ -56,7 +56,7 @@ nano .env
 Preencha no mínimo:
 
 ```env
-DATABASE_URL="postgresql://user:password@host:5432/wbsite?sslmode=require"
+DATABASE_URL="postgresql://user:password@host:5432/wbsite?sslmode=verify-full"
 NEXT_PUBLIC_APP_URL="https://seudominio.com.br"
 NEXT_PUBLIC_SITE_URL="https://seudominio.com.br"
 AUTH_URL="https://seudominio.com.br"
