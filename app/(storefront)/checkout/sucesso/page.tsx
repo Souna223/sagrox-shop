@@ -7,10 +7,15 @@ import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/format";
 import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { getDictionary } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Pedido confirmado",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.orderConfirmedTitle,
+  };
+}
 
 type PageProps = {
   searchParams: Promise<{ order?: string }>;
@@ -22,6 +27,8 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
   const orderNumber = Number(order);
   if (Number.isNaN(orderNumber)) notFound();
+
+  const t = await getDictionary();
 
   const data = await prisma.order.findUnique({
     where: { number: orderNumber },
@@ -67,30 +74,30 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
         <div className="flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40">
           <CheckCircle2 className="size-9" />
         </div>
-        <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Pedido recebido!</h1>
+        <h1 className="mt-4 text-2xl font-bold sm:text-3xl">{t.success.orderReceived}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Obrigado, {data.customerName}! O pedido <strong>#{data.number}</strong> foi registrado.
+          {fmt(t.success.thanks, { name: data.customerName, number: data.number })}
         </p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Enviamos a confirmação para <strong>{data.email}</strong>.
+          {fmt(t.success.confirmationSent, { email: data.email })}
         </p>
       </div>
 
       <div className="mt-8 rounded-xl border">
         <div className="flex flex-wrap items-center justify-between gap-3 border-b p-4">
           <div>
-            <p className="text-xs text-muted-foreground">Pedido</p>
+            <p className="text-xs text-muted-foreground">{t.success.orderLabel}</p>
             <p className="font-bold">#{data.number}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Status do pagamento</p>
+            <p className="text-xs text-muted-foreground">{t.success.paymentStatus}</p>
             <p className="font-bold">
               {paymentStatusLabel}
               {payment?.method ? ` • ${PAYMENT_METHOD[payment.method as keyof typeof PAYMENT_METHOD]}` : ""}
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Data</p>
+            <p className="text-xs text-muted-foreground">{t.success.date}</p>
             <p className="font-bold">
               {new Date(data.createdAt).toLocaleDateString("pt-BR", {
                 day: "2-digit",
@@ -105,7 +112,7 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
         <div className="border-b p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <Package className="size-4" /> Produtos
+            <Package className="size-4" /> {t.success.products}
           </h2>
           <ul className="space-y-3">
             {data.items.map((item) => (
@@ -130,11 +137,13 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
         <div className="grid gap-6 border-b p-4 sm:grid-cols-2">
           <div>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Package className="size-4" /> Entrega
+              <Package className="size-4" /> {t.success.delivery}
             </h2>
             <p className="text-sm text-muted-foreground">
               {data.shippingService}
-              {data.shippingEstimateDays ? ` — ${data.shippingEstimateDays} dia${data.shippingEstimateDays === 1 ? "" : "s"} estimado${data.shippingEstimateDays === 1 ? "" : "s"}` : ""}
+              {data.shippingEstimateDays
+                ? ` — ${fmt(t.success.estimatedDays, { n: data.shippingEstimateDays ?? 0 })}`
+                : ""}
             </p>
             <p className="mt-2 text-sm">
               {address.street}, {address.number}
@@ -142,49 +151,49 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
               <br />
               {address.neighborhood} — {address.city}/{address.state}
               <br />
-              CEP {address.zip}
+              {fmt(t.account.cepLabel, { zip: address.zip ?? "" })}
             </p>
           </div>
           <div>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Clock className="size-4" /> Pagamento
+              <Clock className="size-4" /> {t.success.payment}
             </h2>
             {payment?.method === "PIX" ? (
               <p className="text-sm text-muted-foreground">
-                Após a confirmação do Pix, seu pedido será processado. O status será atualizado em sua conta.
+                {t.success.pixProcessing}
               </p>
             ) : payment?.method === "BOLETO" ? (
               <p className="text-sm text-muted-foreground">
-                O boleto será enviado por e-mail. O pedido é processado após a compensação (até 2 dias úteis).
+                {t.success.boletoProcessing}
               </p>
             ) : (
               <p className="text-sm text-muted-foreground">
-                O pagamento será confirmado pela operadora do cartão.
+                {t.success.cardProcessing}
               </p>
             )}
             <p className="mt-2 text-sm">
-              Status: <strong>{paymentStatusLabel}</strong>
+              {t.success.status} <strong>{paymentStatusLabel}</strong>
             </p>
           </div>
         </div>
 
         <dl className="space-y-2 p-4 text-sm">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t.success.subtotal}</dt>
             <dd>{formatBRL(data.subtotal)}</dd>
           </div>
           {Number(data.discount) > 0 ? (
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Desconto</dt>
+              <dt className="text-muted-foreground">{t.success.discount}</dt>
               <dd className="text-emerald-600">-{formatBRL(data.discount)}</dd>
             </div>
           ) : null}
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Frete</dt>
-            <dd>{Number(data.shippingFee) === 0 ? "Grátis" : formatBRL(data.shippingFee)}</dd>
+            <dt className="text-muted-foreground">{t.success.shipping}</dt>
+            <dd>{Number(data.shippingFee) === 0 ? t.success.free : formatBRL(data.shippingFee)}</dd>
           </div>
           <div className="flex justify-between border-t pt-2 text-base">
-            <dt className="font-bold">Total</dt>
+            <dt className="font-bold">{t.success.total}</dt>
             <dd className="text-xl font-bold">{formatBRL(data.total)}</dd>
           </div>
         </dl>
@@ -192,10 +201,10 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
 
       <div className="mt-8 flex flex-col items-center gap-3">
         <Button size="lg" render={<Link href="/" />}>
-          <Home className="size-4" /> Voltar para a loja
+          <Home className="size-4" /> {t.success.backToStore}
         </Button>
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Mail className="size-3.5" /> Dúvidas sobre o pedido? Entre em contato com nosso suporte.
+          <Mail className="size-3.5" /> {t.success.questionsContact}
         </p>
       </div>
     </div>

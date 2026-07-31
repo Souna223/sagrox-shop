@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { onlyDigits } from "@/lib/br";
+import { useI18n } from "@/lib/i18n/provider";
 
 function formatCpf(value: string) {
   const d = onlyDigits(value).slice(0, 11);
@@ -30,6 +31,7 @@ function formatPhone(value: string) {
 
 export function RegisterForm() {
   const router = useRouter();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -42,11 +44,11 @@ export function RegisterForm() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres.");
+      toast.error(t.auth.passwordMin);
       return;
     }
     if (password !== confirm) {
-      toast.error("As senhas não coincidem.");
+      toast.error(t.auth.passwordMismatch);
       return;
     }
 
@@ -67,7 +69,7 @@ export function RegisterForm() {
       const data = (await res.json()) as { ok: boolean; error?: string };
 
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao criar a conta.");
+        toast.error(data.error ?? t.auth.createAccountError);
         return;
       }
 
@@ -77,12 +79,12 @@ export function RegisterForm() {
         redirect: false,
       });
       if (signInRes?.error) {
-        toast.success("Conta criada! Faça login para continuar.");
+        toast.success(t.auth.accountCreatedLogin);
         router.push("/login");
         return;
       }
 
-      toast.success("Conta criada com sucesso!");
+      toast.success(t.auth.accountCreated);
       router.push("/conta");
       router.refresh();
     } finally {
@@ -93,31 +95,31 @@ export function RegisterForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="name">Nome completo</Label>
+        <Label htmlFor="name">{t.auth.name}</Label>
         <Input
           id="name"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder="Seu nome"
+          placeholder={t.auth.namePlaceholder}
           autoComplete="name"
           required
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="email">E-mail</Label>
+        <Label htmlFor="email">{t.auth.email}</Label>
         <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@exemplo.com"
+          placeholder={t.auth.emailPlaceholder}
           autoComplete="email"
           required
         />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="phone">Celular <span className="text-muted-foreground">(opcional)</span></Label>
+          <Label htmlFor="phone">{t.auth.phone} <span className="text-muted-foreground">{t.auth.optional}</span></Label>
           <Input
             id="phone"
             inputMode="tel"
@@ -128,7 +130,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="cpf">CPF <span className="text-muted-foreground">(opcional)</span></Label>
+          <Label htmlFor="cpf">{t.auth.cpf} <span className="text-muted-foreground">{t.auth.optional}</span></Label>
           <Input
             id="cpf"
             inputMode="numeric"
@@ -141,7 +143,7 @@ export function RegisterForm() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="password">Senha</Label>
+          <Label htmlFor="password">{t.auth.password}</Label>
           <Input
             id="password"
             type="password"
@@ -152,7 +154,7 @@ export function RegisterForm() {
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="confirm">Confirmar senha</Label>
+          <Label htmlFor="confirm">{t.auth.confirmPassword}</Label>
           <Input
             id="confirm"
             type="password"
@@ -170,18 +172,18 @@ export function RegisterForm() {
           className="mt-0.5"
         />
         <span>
-          Quero receber novidades e ofertas exclusivas por e-mail.
+          {t.auth.newsletterOptIn}
         </span>
       </label>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4" />}
-        Criar conta
+        {t.auth.createAccount}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
-        Já tem conta?{" "}
+        {t.auth.haveAccount}{" "}
         <Link href="/login" className="font-medium text-primary hover:underline">
-          Entrar
+          {t.auth.signInLink}
         </Link>
       </p>
     </form>

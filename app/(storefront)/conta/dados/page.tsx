@@ -3,14 +3,20 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api";
 import { ProfileForm } from "@/components/conta/profile-form";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Dados pessoais",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.personalDataTitle,
+  };
+}
 
 export default async function ProfilePage() {
   const sessionUser = await getSessionUser();
   if (!sessionUser) redirect("/login");
+
+  const t = await getDictionary();
 
   const user = await prisma.user.findUnique({
     where: { id: sessionUser.id },
@@ -29,7 +35,7 @@ export default async function ProfilePage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Dados pessoais</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t.account.personalDataTitle}</h1>
       <ProfileForm
         initial={{
           name: user.name,

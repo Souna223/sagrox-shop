@@ -17,6 +17,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { onlyDigits } from "@/lib/br";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 type ProfileData = {
   name: string;
@@ -45,14 +47,15 @@ function formatCpf(value: string) {
 }
 
 const GENDERS = [
-  { value: "F", label: "Feminino" },
-  { value: "M", label: "Masculino" },
-  { value: "O", label: "Outro" },
-  { value: "N", label: "Prefiro não informar" },
-];
+  { value: "F", labelKey: "genderF" },
+  { value: "M", labelKey: "genderM" },
+  { value: "O", labelKey: "genderO" },
+  { value: "N", labelKey: "genderN" },
+] as const;
 
 export function ProfileForm({ initial }: { initial: ProfileData }) {
   const { update } = useSession();
+  const { t } = useI18n();
   const [name, setName] = useState(initial.name);
   const [phone, setPhone] = useState(initial.phone ?? "");
   const [cpf, setCpf] = useState(initial.cpf ?? "");
@@ -84,11 +87,11 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao salvar os dados.");
+        toast.error(data.error ?? t.account.profileSaveError);
         return;
       }
       await update({ name });
-      toast.success("Dados atualizados com sucesso!");
+      toast.success(t.account.profileSaved);
     } finally {
       setSavingProfile(false);
     }
@@ -97,11 +100,11 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
   const savePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword.length < 6) {
-      toast.error("A nova senha deve ter no mínimo 6 caracteres.");
+      toast.error(t.account.newPasswordMin);
       return;
     }
     if (newPassword !== confirmPassword) {
-      toast.error("As senhas não coincidem.");
+      toast.error(t.auth.passwordMismatch);
       return;
     }
     setSavingPassword(true);
@@ -116,13 +119,13 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao alterar a senha.");
+        toast.error(data.error ?? t.account.passwordChangeError);
         return;
       }
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-      toast.success("Senha alterada com sucesso!");
+      toast.success(t.account.passwordChanged);
     } finally {
       setSavingPassword(false);
     }
@@ -132,14 +135,14 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Dados pessoais</CardTitle>
-          <CardDescription>Seus dados ficam protegidos e são usados apenas na sua compra.</CardDescription>
+          <CardTitle>{t.account.personalDataTitle}</CardTitle>
+          <CardDescription>{t.account.profileDataDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={saveProfile} className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="name">Nome completo</Label>
+                <Label htmlFor="name">{t.auth.name}</Label>
                 <Input
                   id="name"
                   value={name}
@@ -148,11 +151,11 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="email">E-mail</Label>
+                <Label htmlFor="email">{t.auth.email}</Label>
                 <Input id="email" value={initial.email} disabled className="opacity-70" />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="phone">Celular</Label>
+                <Label htmlFor="phone">{t.auth.phone}</Label>
                 <Input
                   id="phone"
                   inputMode="tel"
@@ -162,7 +165,7 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="cpf">CPF</Label>
+                <Label htmlFor="cpf">{t.auth.cpf}</Label>
                 <Input
                   id="cpf"
                   inputMode="numeric"
@@ -172,7 +175,7 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="birthDate">Data de nascimento</Label>
+                <Label htmlFor="birthDate">{t.account.birthDate}</Label>
                 <Input
                   id="birthDate"
                   type="date"
@@ -181,21 +184,23 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="gender">Gênero</Label>
+                <Label htmlFor="gender">{t.account.gender}</Label>
                 <Select
                   value={gender}
                   onValueChange={(v) => setGender(v ?? "")}
-                  items={GENDERS.map((g) => ({ label: g.label, value: g.value }))}
+                  items={GENDERS.map((g) => ({ label: t.account[g.labelKey], value: g.value }))}
                 >
                   <SelectTrigger className="h-9 w-full">
                     <SelectValue className="pr-6">
-                      {GENDERS.find((g) => g.value === gender)?.label ?? "Selecione"}
+                      {GENDERS.find((g) => g.value === gender)?.labelKey
+                        ? t.account[GENDERS.find((g) => g.value === gender)!.labelKey]
+                        : t.account.selectPlaceholder}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {GENDERS.map((g) => (
                       <SelectItem key={g.value} value={g.value}>
-                        {g.label}
+                        {t.account[g.labelKey]}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -207,11 +212,11 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 checked={newsletter}
                 onCheckedChange={(v) => setNewsletter(!!v)}
               />
-              Receber novidades e ofertas por e-mail
+              {t.account.newsletterOptInProfile}
             </label>
             <Button type="submit" disabled={savingProfile}>
               {savingProfile ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Salvar alterações
+              {t.account.saveChanges}
             </Button>
           </form>
         </CardContent>
@@ -219,13 +224,13 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Alterar senha</CardTitle>
-          <CardDescription>Recomendamos uma senha forte, com letras, números e símbolos.</CardDescription>
+          <CardTitle>{t.account.changePasswordTitle}</CardTitle>
+          <CardDescription>{t.account.changePasswordDesc}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={savePassword} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="currentPassword">Senha atual</Label>
+              <Label htmlFor="currentPassword">{t.account.currentPassword}</Label>
               <Input
                 id="currentPassword"
                 type="password"
@@ -237,7 +242,7 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="newPassword">Nova senha</Label>
+                <Label htmlFor="newPassword">{t.auth.newPassword}</Label>
                 <Input
                   id="newPassword"
                   type="password"
@@ -248,7 +253,7 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="confirmPassword">Confirmar nova senha</Label>
+                <Label htmlFor="confirmPassword">{t.auth.confirmNewPassword}</Label>
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -261,7 +266,7 @@ export function ProfileForm({ initial }: { initial: ProfileData }) {
             </div>
             <Button type="submit" disabled={savingPassword} variant="outline">
               {savingPassword ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-              Alterar senha
+              {t.account.changePassword}
             </Button>
           </form>
         </CardContent>

@@ -1,11 +1,15 @@
 import type { Metadata } from "next";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ResetPasswordForm } from "@/components/auth/reset-password-form";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Redefinir senha",
-  description: "Defina uma nova senha para sua conta.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.resetPasswordTitle,
+    description: t.pages.resetPasswordDescription,
+  };
+}
 
 type PageProps = {
   searchParams: Promise<{ token?: string }>;
@@ -13,19 +17,20 @@ type PageProps = {
 
 export default async function ResetPasswordPage({ searchParams }: PageProps) {
   const { token } = await searchParams;
+  const t = await getDictionary();
 
   return (
     <AuthShell
-      title="Redefinir senha"
-      description="Defina uma nova senha para acessar sua conta."
+      title={t.auth.resetPasswordTitle}
+      description={t.auth.resetPasswordDescription}
     >
       {token ? (
         <ResetPasswordForm token={token} />
       ) : (
         <p className="text-sm text-muted-foreground">
-          Link de redefinição inválido.{" "}
+          {t.auth.invalidResetLink}{" "}
           <a href="/recuperar-senha" className="font-medium text-primary hover:underline">
-            Solicite um novo link
+            {t.auth.requestNewLink}
           </a>
           .
         </p>

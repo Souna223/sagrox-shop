@@ -14,10 +14,15 @@ import {
 } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getDictionary } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Detalhes do pedido",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.orderDetailTitle,
+  };
+}
 
 type PageProps = {
   params: Promise<{ number: string }>;
@@ -30,6 +35,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
   const { number } = await params;
   const orderNumber = Number(number);
   if (Number.isNaN(orderNumber)) notFound();
+
+  const t = await getDictionary();
 
   const data = await prisma.order.findFirst({
     where: { number: orderNumber, userId: sessionUser.id },
@@ -82,22 +89,25 @@ export default async function OrderDetailPage({ params }: PageProps) {
     <div className="space-y-6">
       <div>
         <Button variant="ghost" className="mb-2 -ml-3 text-muted-foreground" render={<Link href="/conta/pedidos" />}>
-          <ArrowLeft className="size-4" /> Voltar para pedidos
+          <ArrowLeft className="size-4" /> {t.account.backToOrders}
         </Button>
         <div className="flex flex-wrap items-center gap-3">
-          <h1 className="text-2xl font-bold">Pedido #{data.number}</h1>
+          <h1 className="text-2xl font-bold">
+            {fmt(t.account.orderNumber, { number: data.number })}
+          </h1>
           <Badge className={ORDER_STATUS_STYLES[data.status]}>
             {ORDER_STATUS[data.status]}
           </Badge>
         </div>
         <p className="mt-1 text-sm text-muted-foreground">
-          Realizado em{" "}
-          {new Date(data.createdAt).toLocaleDateString("pt-BR", {
-            day: "2-digit",
-            month: "long",
-            year: "numeric",
-            hour: "2-digit",
-            minute: "2-digit",
+          {fmt(t.account.orderPlacedOn, {
+            date: new Date(data.createdAt).toLocaleDateString("pt-BR", {
+              day: "2-digit",
+              month: "long",
+              year: "numeric",
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
           })}
         </p>
       </div>
@@ -105,7 +115,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
       <div className="rounded-xl border">
         <div className="border-b p-4">
           <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-            <Package className="size-4" /> Produtos
+            <Package className="size-4" /> {t.account.products}
           </h2>
           <ul className="space-y-3">
             {data.items.map((item) => (
@@ -137,12 +147,12 @@ export default async function OrderDetailPage({ params }: PageProps) {
         <div className="grid gap-6 border-b p-4 sm:grid-cols-2">
           <div>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Truck className="size-4" /> Entrega
+              <Truck className="size-4" /> {t.account.delivery}
             </h2>
             <p className="text-sm text-muted-foreground">
               {data.shippingService}
               {data.shippingEstimateDays
-                ? ` — ${data.shippingEstimateDays} dia${data.shippingEstimateDays === 1 ? "" : "s"} estimado${data.shippingEstimateDays === 1 ? "" : "s"}`
+                ? ` — ${fmt(t.account.shippingEstimateDays, { n: data.shippingEstimateDays ?? 0 })}`
                 : ""}
             </p>
             <p className="mt-2 text-sm">
@@ -151,11 +161,11 @@ export default async function OrderDetailPage({ params }: PageProps) {
               <br />
               {address.neighborhood} — {address.city}/{address.state}
               <br />
-              CEP {address.zip}
+              {fmt(t.account.cepLabel, { zip: address.zip ?? "" })}
             </p>
             {data.trackingCode ? (
               <p className="mt-3 text-sm">
-                Código de rastreio:{" "}
+                {t.account.trackingCode}{" "}
                 {data.trackingUrl ? (
                   <a
                     href={data.trackingUrl}
@@ -173,21 +183,23 @@ export default async function OrderDetailPage({ params }: PageProps) {
           </div>
           <div>
             <h2 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-              <Clock className="size-4" /> Pagamento
+              <Clock className="size-4" /> {t.account.payment}
             </h2>
             <p className="text-sm text-muted-foreground">
               {payment?.method ? PAYMENT_METHOD[payment.method] : "—"}
               {payment?.installments ? ` em ${payment.installments}x` : ""}
             </p>
             <p className="mt-1 text-sm">
-              Status:{" "}
+              {t.account.statusLabel}{" "}
               <strong>
                 {payment ? PAYMENT_STATUS[payment.status] : PAYMENT_STATUS.PENDING}
               </strong>
             </p>
             {data.paidAt ? (
               <p className="mt-1 text-xs text-muted-foreground">
-                Pago em {new Date(data.paidAt).toLocaleDateString("pt-BR")}
+                {fmt(t.account.paidOn, {
+                  date: new Date(data.paidAt).toLocaleDateString("pt-BR"),
+                })}
               </p>
             ) : null}
           </div>
@@ -195,29 +207,29 @@ export default async function OrderDetailPage({ params }: PageProps) {
 
         <dl className="space-y-2 p-4 text-sm">
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Subtotal</dt>
+            <dt className="text-muted-foreground">{t.success.subtotal}</dt>
             <dd>{formatBRL(data.subtotal)}</dd>
           </div>
           {Number(data.discount) > 0 ? (
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Desconto</dt>
+              <dt className="text-muted-foreground">{t.success.discount}</dt>
               <dd className="text-emerald-600">-{formatBRL(data.discount)}</dd>
             </div>
           ) : null}
           <div className="flex justify-between">
-            <dt className="text-muted-foreground">Frete</dt>
-            <dd>{Number(data.shippingFee) === 0 ? "Grátis" : formatBRL(data.shippingFee)}</dd>
+            <dt className="text-muted-foreground">{t.success.shipping}</dt>
+            <dd>{Number(data.shippingFee) === 0 ? t.success.free : formatBRL(data.shippingFee)}</dd>
           </div>
           <div className="flex justify-between border-t pt-2 text-base">
-            <dt className="font-bold">Total</dt>
+            <dt className="font-bold">{t.success.total}</dt>
             <dd className="text-xl font-bold">{formatBRL(data.total)}</dd>
           </div>
         </dl>
       </div>
 
       <div className="flex flex-wrap gap-3">
-        <Button render={<Link href="/produtos" />}>Continuar comprando</Button>
-        <Button variant="outline" render={<Link href="/contato" />}>Precisa de ajuda?</Button>
+        <Button render={<Link href="/produtos" />}>{t.account.continueShopping}</Button>
+        <Button variant="outline" render={<Link href="/contato" />}>{t.account.needHelp}</Button>
       </div>
     </div>
   );

@@ -8,14 +8,21 @@ import { ORDER_STATUS, ORDER_STATUS_STYLES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { getDictionary } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Meus pedidos",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.ordersTitle,
+  };
+}
 
 export default async function OrdersPage() {
   const sessionUser = await getSessionUser();
   if (!sessionUser) return null;
+
+  const t = await getDictionary();
 
   const orders = await prisma.order.findMany({
     where: { userId: sessionUser.id },
@@ -33,9 +40,9 @@ export default async function OrdersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Meus pedidos</h1>
+        <h1 className="text-2xl font-bold">{t.account.myOrdersPage}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Acompanhe o status e o histórico das suas compras.
+          {t.account.myOrdersDesc}
         </p>
       </div>
 
@@ -44,12 +51,12 @@ export default async function OrdersPage() {
           <CardContent className="flex flex-col items-center gap-3 py-12 text-center">
             <Package className="size-10 text-muted-foreground/50" />
             <div>
-              <p className="font-medium">Nenhum pedido ainda</p>
+              <p className="font-medium">{t.account.noOrders}</p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Quando você fizer uma compra, ela aparecerá aqui.
+                {t.account.noOrdersDesc}
               </p>
             </div>
-            <Button render={<Link href="/produtos" />}>Explorar produtos</Button>
+            <Button render={<Link href="/produtos" />}>{t.account.exploreProducts}</Button>
           </CardContent>
         </Card>
       ) : (
@@ -66,10 +73,12 @@ export default async function OrdersPage() {
                     <Package className="size-5 text-muted-foreground" />
                   </div>
                   <div>
-                    <p className="text-sm font-semibold">Pedido #{order.number}</p>
+                    <p className="text-sm font-semibold">
+                      {fmt(t.account.orderNumber, { number: order.number })}
+                    </p>
                     <p className="text-xs text-muted-foreground">
                       {new Date(order.createdAt).toLocaleDateString("pt-BR")} •{" "}
-                      {order._count.items} item{order._count.items === 1 ? "" : "s"}
+                      {fmt(t.account.itemsCount, { n: order._count.items })}
                     </p>
                   </div>
                 </div>

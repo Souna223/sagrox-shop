@@ -25,9 +25,12 @@ import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { toast } from "sonner";
 import type { ProductDetailData } from "@/lib/products";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 export function ProductDetail({ product }: { product: ProductDetailData }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariationId, setSelectedVariationId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -54,7 +57,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
   const handleAddToCart = (buyNow = false) => {
     if (soldOut) {
-      toast.error("Produto esgotado");
+      toast.error(t.productDetail.outOfStock);
       return;
     }
     addItem(
@@ -72,7 +75,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
       },
       quantity,
     );
-    toast.success("Produto adicionado ao carrinho");
+    toast.success(t.productDetail.addedToCart);
     if (buyNow) router.push("/checkout");
   };
 
@@ -91,7 +94,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             />
           ) : (
             <div className="flex h-full items-center justify-center text-muted-foreground">
-              Sem imagem
+              {t.productDetail.noImage}
             </div>
           )}
           {info.hasDiscount ? (
@@ -111,7 +114,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                 className={`relative aspect-square w-20 shrink-0 overflow-hidden rounded-lg border bg-muted ${
                   i === selectedImage ? "ring-2 ring-primary" : ""
                 }`}
-                aria-label={`Ver imagem ${i + 1}`}
+                aria-label={fmt(t.productDetail.viewImage, { n: i + 1 })}
               >
                 <Image
                   src={img.url}
@@ -143,7 +146,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             size="icon"
             className={`shrink-0 ${inWishlist ? "bg-rose-500 text-white hover:bg-rose-500" : ""}`}
             onClick={() => toggleWishlist(product.id)}
-            aria-label={inWishlist ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+            aria-label={inWishlist ? t.productDetail.removeFromFavorites : t.productDetail.addToFavorites}
           >
             <Heart className={`size-5 ${inWishlist ? "fill-current" : ""}`} />
           </Button>
@@ -157,7 +160,9 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             </span>
           </span>
           <span className="text-muted-foreground">
-            ({product.ratingCount > 0 ? product.ratingCount : 0} avaliaç{product.ratingCount === 1 ? "ão" : "ões"})
+            {fmt(t.productDetail.reviewsCount, {
+              n: product.ratingCount > 0 ? product.ratingCount : 0,
+            })}
           </span>
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">SKU: {sku}</span>
@@ -170,21 +175,29 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           <div className="flex items-end gap-3">
             <p className="text-4xl font-bold">{formatBRL(price)}</p>
             {info.hasDiscount ? (
-              <Badge variant="secondary">Economize {formatBRL(price - (compareAtPrice ?? price))}</Badge>
+              <Badge variant="secondary">
+                {fmt(t.productDetail.economy, {
+                  value: formatBRL((compareAtPrice ?? price) - price),
+                })}
+              </Badge>
             ) : null}
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            em até {info.installment}x de {formatBRL(info.installmentValue)} sem juros
+            {fmt(t.productDetail.installmentNoInterest, {
+              x: info.installment,
+              y: formatBRL(info.installmentValue),
+            })}
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            <span className="font-medium text-emerald-600">Pix com 5% de desconto</span> ou boleto à vista
+            <span className="font-medium text-emerald-600">{t.productDetail.pixDiscount}</span> {t.productDetail.orBoleto}
           </p>
         </div>
 
         {product.variations.length > 0 ? (
           <div className="mt-6">
             <p className="mb-2 text-sm font-semibold">
-              Opções: <span className="font-normal text-muted-foreground">{variation?.name ?? "Selecione"}</span>
+              {t.productDetail.options}{" "}
+              <span className="font-normal text-muted-foreground">{variation?.name ?? t.productDetail.select}</span>
             </p>
             <div className="flex flex-wrap gap-2">
               {product.variations.map((v) => {
@@ -206,7 +219,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     }`}
                   >
                     {v.name}
-                    {unavailable ? " (esgotado)" : ""}
+                    {unavailable ? ` ${t.productDetail.soldOut}` : ""}
                   </button>
                 );
               })}
@@ -222,7 +235,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               className="size-9"
               onClick={() => setQuantity((q) => Math.max(1, q - 1))}
               disabled={soldOut}
-              aria-label="Diminuir quantidade"
+              aria-label={t.productDetail.decreaseQty}
             >
               <Minus className="size-4" />
             </Button>
@@ -233,44 +246,44 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               className="size-9"
               onClick={() => setQuantity((q) => Math.min(stock, q + 1))}
               disabled={soldOut}
-              aria-label="Aumentar quantidade"
+              aria-label={t.productDetail.increaseQty}
             >
               <Plus className="size-4" />
             </Button>
           </div>
 
           <Button size="lg" className="flex-1 sm:flex-none" onClick={() => handleAddToCart()} disabled={soldOut}>
-            <ShoppingCart className="size-4" /> Adicionar ao carrinho
+            <ShoppingCart className="size-4" /> {t.productDetail.addToCart}
           </Button>
           <Button size="lg" variant="secondary" className="flex-1 sm:flex-none" onClick={() => handleAddToCart(true)} disabled={soldOut}>
-            <Zap className="size-4" /> Comprar agora
+            <Zap className="size-4" /> {t.productDetail.buyNow}
           </Button>
         </div>
 
         {soldOut ? (
-          <p className="mt-3 text-sm font-medium text-destructive">Produto esgotado no momento.</p>
+          <p className="mt-3 text-sm font-medium text-destructive">{t.productDetail.soldOutNow}</p>
         ) : stock <= 10 ? (
           <p className="mt-3 text-sm font-medium text-orange-600">
-            Restam apenas {stock} unidade{stock === 1 ? "" : "s"} em estoque!
+            {fmt(t.productDetail.onlyLeft, { n: stock })}
           </p>
         ) : null}
 
         <div className="mt-6 grid gap-2 rounded-xl border p-4 text-sm sm:grid-cols-2">
           <div className="flex items-center gap-2">
             <Truck className="size-4 text-primary" />
-            <span>{product.freeShipping ? "Frete grátis para todo o Brasil" : "Consulte o frete no checkout"}</span>
+            <span>{product.freeShipping ? t.productDetail.freeShippingBrazil : t.productDetail.checkShippingAtCheckout}</span>
           </div>
           <div className="flex items-center gap-2">
             <ShieldCheck className="size-4 text-primary" />
-            <span>Compra 100% segura e protegida</span>
+            <span>{t.productDetail.securePurchase}</span>
           </div>
           <div className="flex items-center gap-2">
             <PackageCheck className="size-4 text-primary" />
-            <span>Enviamos para todo o Brasil</span>
+            <span>{t.productDetail.weShipBrazil}</span>
           </div>
           <div className="flex items-center gap-2">
             <RotateCcw className="size-4 text-primary" />
-            <span>Troca fácil em até 7 dias</span>
+            <span>{t.productDetail.easyExchange}</span>
           </div>
         </div>
 
@@ -293,6 +306,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 }
 
 export function ProductDescriptionTabs({ product }: { product: ProductDetailData }) {
+  const { t } = useI18n();
   const hasAttributes = product.attributes && Object.keys(product.attributes).length > 0;
 
   const ratingCounts = useMemo(() => {
@@ -304,10 +318,10 @@ export function ProductDescriptionTabs({ product }: { product: ProductDetailData
   return (
     <Tabs defaultValue="description" className="mt-12">
       <TabsList>
-        <TabsTrigger value="description">Descrição</TabsTrigger>
-        {hasAttributes ? <TabsTrigger value="specs">Especificações</TabsTrigger> : null}
+        <TabsTrigger value="description">{t.productDetail.description}</TabsTrigger>
+        {hasAttributes ? <TabsTrigger value="specs">{t.productDetail.specs}</TabsTrigger> : null}
         <TabsTrigger value="reviews">
-          Avaliações ({product.ratingCount > 0 ? product.ratingCount : product.reviews.length})
+          {t.productDetail.reviews} ({product.ratingCount > 0 ? product.ratingCount : product.reviews.length})
         </TabsTrigger>
       </TabsList>
 
@@ -320,7 +334,7 @@ export function ProductDescriptionTabs({ product }: { product: ProductDetailData
               </p>
             ))
           ) : (
-            <p>Nenhuma descrição disponível para este produto.</p>
+            <p>{t.productDetail.noDescription}</p>
           )}
         </div>
       </TabsContent>
@@ -345,7 +359,7 @@ export function ProductDescriptionTabs({ product }: { product: ProductDetailData
       <TabsContent value="reviews" className="pt-4">
         {product.reviews.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Este produto ainda não possui avaliações. Seja o primeiro a avaliar!
+            {t.productDetail.noReviewsYet}
           </p>
         ) : (
           <div className="grid gap-8 md:grid-cols-[220px_1fr]">
@@ -385,7 +399,7 @@ export function ProductDescriptionTabs({ product }: { product: ProductDetailData
                         {(review.userName ?? "C").slice(0, 1).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{review.userName ?? "Cliente"}</p>
+                        <p className="text-sm font-medium">{review.userName ?? t.productDetail.customer}</p>
                         <p className="text-xs text-muted-foreground">
                           {new Date(review.createdAt).toLocaleDateString("pt-BR")}
                         </p>

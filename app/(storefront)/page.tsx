@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck, Truck, CreditCard, Headset } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
@@ -12,12 +13,16 @@ import {
 } from "@/lib/products";
 import { prisma } from "@/lib/prisma";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
+import { getDictionary } from "@/lib/i18n/server";
+import { fmt, type Dictionary } from "@/lib/i18n/dictionaries";
 
-export const metadata = {
-  title: "Início",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return { title: t.pages.homeTitle };
+}
 
 export default async function HomePage() {
+  const t = await getDictionary();
   const [featured, bestSellers, newProducts, discounted, flashSales, categories] =
     await Promise.all([
       getFeaturedProducts(8),
@@ -35,15 +40,15 @@ export default async function HomePage() {
 
   return (
     <div>
-      <Hero />
+      <Hero t={t} />
 
       <section className="mx-auto max-w-7xl px-4 py-8">
-        <TrustBar />
+        <TrustBar t={t} />
       </section>
 
       {categories.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-12">
-          <SectionHeader title="Categorias" href="/produtos" linkLabel="Ver tudo" />
+          <SectionHeader title={t.home.categories} href="/produtos" linkLabel={t.home.viewAll} />
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
             {categories.map((category) => (
               <Link
@@ -70,7 +75,7 @@ export default async function HomePage() {
                 <div className="p-3 text-center">
                   <p className="text-sm font-semibold">{category.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {category._count.products} produto{category._count.products === 1 ? "" : "s"}
+                    {category._count.products} {t.home.productsCount}
                   </p>
                 </div>
               </Link>
@@ -82,7 +87,7 @@ export default async function HomePage() {
       {flashSales.length > 0 ? (
         <section className="bg-destructive/5 py-12">
           <div className="mx-auto max-w-7xl px-4">
-            <SectionHeader title="⚡ Ofertas relâmpago" href="/promocoes" linkLabel="Ver ofertas" />
+            <SectionHeader title={t.home.flashSales} href="/promocoes" linkLabel={t.home.seeDeals} />
             {flashSales.map((flashSale) => (
               <div key={flashSale.id}>
                 <h3 className="mb-4 text-lg font-semibold">{flashSale.title}</h3>
@@ -99,14 +104,14 @@ export default async function HomePage() {
 
       {featured.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader title="Destaques" href="/produtos" linkLabel="Ver todos" />
+          <SectionHeader title={t.home.featured} href="/produtos" linkLabel={t.home.viewAll} />
           <ProductGrid products={featured} />
         </section>
       ) : null}
 
       {discounted.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-12">
-          <SectionHeader title="Promoções" href="/promocoes" linkLabel="Ver ofertas" />
+          <SectionHeader title={t.home.promotions} href="/promocoes" linkLabel={t.home.seeDeals} />
           <ProductGrid products={discounted} />
         </section>
       ) : null}
@@ -114,7 +119,7 @@ export default async function HomePage() {
       {bestSellers.length > 0 ? (
         <section className="bg-muted/40 py-12">
           <div className="mx-auto max-w-7xl px-4">
-            <SectionHeader title="Mais vendidos" href="/mais-vendidos" linkLabel="Ver todos" />
+            <SectionHeader title={t.home.bestSellers} href="/mais-vendidos" linkLabel={t.home.viewAll} />
             <ProductGrid products={bestSellers} />
           </div>
         </section>
@@ -122,7 +127,7 @@ export default async function HomePage() {
 
       {newProducts.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader title="Novidades" href="/lancamentos" linkLabel="Ver todos" />
+          <SectionHeader title={t.home.newProducts} href="/lancamentos" linkLabel={t.home.viewAll} />
           <ProductGrid products={newProducts} />
         </section>
       ) : null}
@@ -134,24 +139,23 @@ export default async function HomePage() {
   );
 }
 
-function Hero() {
+function Hero({ t }: { t: Dictionary }) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-16 lg:grid-cols-2 lg:py-24">
         <div>
           <p className="mb-3 inline-flex items-center rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-medium">
-            Frete grátis acima de R$ 299
+            {fmt(t.home.freeShippingOver, { value: "R$ 299" })}
           </p>
           <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
-            As melhores ofertas para você comprar online
+            {t.home.heroTitle}
           </h1>
           <p className="mt-4 max-w-lg text-primary-foreground/80">
-            Pagamento em até 12x, Pix com desconto e entrega para todo o Brasil.
-            Compre com segurança e receba no conforto da sua casa.
+            {t.home.heroSubtitle}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Button size="lg" variant="secondary" render={<Link href="/produtos" />}>
-              Comprar agora <ArrowRight className="ml-2 size-4" />
+              {t.home.buyNow} <ArrowRight className="ml-2 size-4" />
             </Button>
             <Button
               size="lg"
@@ -159,7 +163,7 @@ function Hero() {
               className="border-primary-foreground/30 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
               render={<Link href="/promocoes" />}
             >
-              Ver ofertas
+              {t.home.seeOffers}
             </Button>
           </div>
         </div>
@@ -168,10 +172,10 @@ function Hero() {
             <div className="absolute -inset-4 rounded-3xl bg-primary-foreground/10 blur-2xl" />
             <div className="relative grid grid-cols-2 gap-4">
               {[
-                { label: "Pagamento em até", value: "12x" },
-                { label: "Pix com", value: "5% off" },
-                { label: "Entrega", value: "Todo Brasil" },
-                { label: "Compra", value: "100% segura" },
+                { label: t.home.paymentUpTo, value: t.home.upTo12x },
+                { label: t.home.pixWith, value: t.home.pix5off },
+                { label: t.home.delivery, value: t.home.allBrazil },
+                { label: t.home.purchase, value: t.home.secure100 },
               ].map((item) => (
                 <div
                   key={item.label}
@@ -189,12 +193,12 @@ function Hero() {
   );
 }
 
-function TrustBar() {
+function TrustBar({ t }: { t: Dictionary }) {
   const items = [
-    { icon: ShieldCheck, title: "Compra segura", subtitle: "Pagamento criptografado" },
-    { icon: Truck, title: "Entrega rápida", subtitle: "Para todo o Brasil" },
-    { icon: CreditCard, title: "12x sem juros", subtitle: "Pix, boleto e cartão" },
-    { icon: Headset, title: "Suporte", subtitle: "Atendimento humano" },
+    { icon: ShieldCheck, title: t.home.secureTitle, subtitle: t.home.secureSubtitle },
+    { icon: Truck, title: t.home.fastTitle, subtitle: t.home.fastSubtitle },
+    { icon: CreditCard, title: t.home.installmentsTitle, subtitle: t.home.installmentsSubtitle },
+    { icon: Headset, title: t.home.supportTitle, subtitle: t.home.supportSubtitle },
   ];
   return (
     <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">

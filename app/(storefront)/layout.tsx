@@ -2,6 +2,7 @@ import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
+import { I18nProvider } from "@/lib/i18n/provider";
 
 export default async function StorefrontLayout({
   children,
@@ -26,14 +27,16 @@ export default async function StorefrontLayout({
   ]);
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <Header
-        categories={categories}
-        announcement={announcement?.message ?? (settings.announcement || null)}
-        storeName={settings.storeName}
-      />
-      <main className="flex-1">{children}</main>
-      <Footer settings={settings} />
-    </div>
+    <I18nProvider>
+      <div className="flex min-h-screen flex-col">
+        <Header
+          categories={categories}
+          announcement={announcement?.message ?? (settings.announcement || null)}
+          storeName={settings.storeName}
+        />
+        <main className="flex-1">{children}</main>
+        <Footer settings={settings} />
+      </div>
+    </I18nProvider>
   );
 }

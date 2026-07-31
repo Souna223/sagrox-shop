@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/dialog";
 import { BR_STATE_NAMES } from "@/lib/constants";
 import { onlyDigits } from "@/lib/br";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 type Address = {
   id: string;
@@ -59,6 +61,7 @@ const EMPTY_FORM: AddressForm = {
 
 export function AddressList({ initial }: { initial: Address[] }) {
   const router = useRouter();
+  const { t } = useI18n();
   const [addresses, setAddresses] = useState(initial);
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState<AddressForm>(EMPTY_FORM);
@@ -122,30 +125,30 @@ export function AddressList({ initial }: { initial: Address[] }) {
       });
       const data = (await res.json()) as { ok: boolean; error?: string; data?: Address };
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao salvar o endereço.");
+        toast.error(data.error ?? t.account.addressSaveError);
         return;
       }
       setOpen(false);
       router.refresh();
-      toast.success(form.id ? "Endereço atualizado!" : "Endereço adicionado!");
+      toast.success(form.id ? t.account.addressUpdated : t.account.addressAdded);
     } finally {
       setSaving(false);
     }
   };
 
   const remove = async (address: Address) => {
-    if (!window.confirm(`Remover o endereço "${address.label}"?`)) return;
+    if (!window.confirm(fmt(t.account.confirmRemoveAddress, { label: address.label }))) return;
     setDeletingId(address.id);
     try {
       const res = await fetch(`/api/account/addresses/${address.id}`, { method: "DELETE" });
       const data = (await res.json()) as { ok: boolean; error?: string };
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao remover o endereço.");
+        toast.error(data.error ?? t.account.addressRemoveError);
         return;
       }
       setAddresses((list) => list.filter((a) => a.id !== address.id));
       router.refresh();
-      toast.success("Endereço removido.");
+      toast.success(t.account.addressRemoved);
     } finally {
       setDeletingId(null);
     }
@@ -155,11 +158,10 @@ export function AddressList({ initial }: { initial: Address[] }) {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          {addresses.length} endereço{addresses.length === 1 ? "" : "s"} cadastrado
-          {addresses.length === 1 ? "" : "s"}
+          {fmt(t.account.addressCount, { n: addresses.length })}
         </p>
         <Button onClick={openCreate}>
-          <Plus className="size-4" /> Adicionar endereço
+          <Plus className="size-4" /> {t.account.addAddress}
         </Button>
       </div>
 
@@ -167,9 +169,9 @@ export function AddressList({ initial }: { initial: Address[] }) {
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed py-12 text-center">
           <MapPin className="size-10 text-muted-foreground/50" />
           <div>
-            <p className="font-medium">Nenhum endereço cadastrado</p>
+            <p className="font-medium">{t.account.noAddresses}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Adicione um endereço para agilizar suas próximas compras.
+              {t.account.noAddressesDesc}
             </p>
           </div>
         </div>
@@ -182,7 +184,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
             >
               {address.isDefault ? (
                 <span className="absolute right-3 top-3 flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary">
-                  <Star className="size-3 fill-current" /> Principal
+                  <Star className="size-3 fill-current" /> {t.account.defaultAddress}
                 </span>
               ) : null}
               <p className="pr-20 text-sm font-semibold">{address.label}</p>
@@ -192,11 +194,11 @@ export function AddressList({ initial }: { initial: Address[] }) {
                 <br />
                 {address.neighborhood} — {address.city}/{address.state}
                 <br />
-                CEP {address.zip}
+                {fmt(t.account.cepLabel, { zip: address.zip })}
               </p>
               <div className="mt-3 flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => openEdit(address)}>
-                  <Pencil className="size-3.5" /> Editar
+                  <Pencil className="size-3.5" /> {t.account.edit}
                 </Button>
                 <Button
                   variant="ghost"
@@ -210,7 +212,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
                   ) : (
                     <Trash2 className="size-3.5" />
                   )}
-                  Remover
+                  {t.account.remove}
                 </Button>
               </div>
             </li>
@@ -221,21 +223,21 @@ export function AddressList({ initial }: { initial: Address[] }) {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{form.id ? "Editar endereço" : "Novo endereço"}</DialogTitle>
-            <DialogDescription>Preencha os dados do endereço de entrega.</DialogDescription>
+            <DialogTitle>{form.id ? t.account.editAddress : t.account.newAddress}</DialogTitle>
+            <DialogDescription>{t.account.addressDialogDesc}</DialogDescription>
           </DialogHeader>
           <form onSubmit={submit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="label">Apelido</Label>
+              <Label htmlFor="label">{t.account.nickname}</Label>
               <Input
                 id="label"
                 value={form.label}
                 onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-                placeholder="Ex.: Casa, Trabalho"
+                placeholder={t.account.nicknamePlaceholder}
               />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="zip">CEP</Label>
+              <Label htmlFor="zip">{t.account.cep}</Label>
               <div className="flex gap-2">
                 <Input
                   id="zip"
@@ -250,7 +252,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="street">Rua</Label>
+              <Label htmlFor="street">{t.account.street}</Label>
               <Input
                 id="street"
                 value={form.street}
@@ -260,7 +262,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="number">Número</Label>
+                <Label htmlFor="number">{t.account.number}</Label>
                 <Input
                   id="number"
                   value={form.number}
@@ -269,17 +271,17 @@ export function AddressList({ initial }: { initial: Address[] }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="complement">Complemento</Label>
+                <Label htmlFor="complement">{t.account.complement}</Label>
                 <Input
                   id="complement"
                   value={form.complement}
                   onChange={(e) => setForm((f) => ({ ...f, complement: e.target.value }))}
-                  placeholder="Apto, bloco..."
+                  placeholder={t.account.complementPlaceholder}
                 />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="neighborhood">Bairro</Label>
+              <Label htmlFor="neighborhood">{t.account.neighborhood}</Label>
               <Input
                 id="neighborhood"
                 value={form.neighborhood}
@@ -289,7 +291,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label htmlFor="city">Cidade</Label>
+                <Label htmlFor="city">{t.account.city}</Label>
                 <Input
                   id="city"
                   value={form.city}
@@ -298,7 +300,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="state">Estado</Label>
+                <Label htmlFor="state">{t.account.state}</Label>
                 <Input
                   id="state"
                   value={form.state}
@@ -308,7 +310,7 @@ export function AddressList({ initial }: { initial: Address[] }) {
                   required
                 />
                 <p className="text-xs text-muted-foreground">
-                  {BR_STATE_NAMES[form.state] ?? "Ex.: SP, RJ, MG"}
+                  {BR_STATE_NAMES[form.state] ?? t.account.stateHint}
                 </p>
               </div>
             </div>
@@ -317,15 +319,15 @@ export function AddressList({ initial }: { initial: Address[] }) {
                 checked={form.isDefault}
                 onCheckedChange={(v) => setForm((f) => ({ ...f, isDefault: !!v }))}
               />
-              Usar como endereço principal
+              {t.account.useAsDefault}
             </label>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancelar
+                {t.account.cancel}
               </Button>
               <Button type="submit" disabled={saving}>
                 {saving ? <Loader2 className="size-4 animate-spin" /> : null}
-                Salvar
+                {t.account.save}
               </Button>
             </DialogFooter>
           </form>

@@ -3,11 +3,15 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/lib/api";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { LoginForm } from "@/components/auth/login-form";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Entrar",
-  description: "Acesse sua conta para acompanhar pedidos, endereços e muito mais.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.loginTitle,
+    description: t.pages.loginDescription,
+  };
+}
 
 type PageProps = {
   searchParams: Promise<{ callbackUrl?: string; error?: string }>;
@@ -16,6 +20,7 @@ type PageProps = {
 export default async function LoginPage({ searchParams }: PageProps) {
   const { callbackUrl, error } = await searchParams;
   const user = await getSessionUser();
+  const t = await getDictionary();
 
   if (user) {
     const target = callbackUrl?.startsWith("/") ? callbackUrl : "/conta";
@@ -23,7 +28,7 @@ export default async function LoginPage({ searchParams }: PageProps) {
   }
 
   return (
-    <AuthShell title="Entrar na sua conta" description="Acompanhe seus pedidos e aproveite ofertas exclusivas.">
+    <AuthShell title={t.auth.loginTitle} description={t.auth.loginDescription}>
       <LoginForm callbackUrl={callbackUrl?.startsWith("/") ? callbackUrl : "/conta"} error={error} />
     </AuthShell>
   );

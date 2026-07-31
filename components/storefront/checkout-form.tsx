@@ -33,6 +33,8 @@ import { formatBRL } from "@/lib/format";
 import { getMaxInstallments } from "@/lib/prices";
 import { toast } from "sonner";
 import { PixIcon, BoletoIcon } from "@/components/icons";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 type CheckoutUser = {
   id: string;
@@ -56,13 +58,14 @@ type CheckoutFormProps = {
 type Step = "identification" | "delivery" | "payment";
 
 const PAYMENT_METHODS = [
-  { id: "PIX", label: "Pix", sub: "Aprovação imediata", icon: QrCode },
-  { id: "CREDIT_CARD", label: "Cartão de crédito", sub: "Em até 12x", icon: CreditCard },
-  { id: "BOLETO", label: "Boleto", sub: "Compensação em até 2 dias úteis", icon: Barcode },
+  { id: "PIX", labelKey: "pix", subKey: "pixSub", icon: QrCode },
+  { id: "CREDIT_CARD", labelKey: "creditCard", subKey: "creditCardSub", icon: CreditCard },
+  { id: "BOLETO", labelKey: "boleto", subKey: "boletoSub", icon: Barcode },
 ] as const;
 
 export function CheckoutForm({ user }: CheckoutFormProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const items = useCartStore((s) => s.items);
   const clear = useCartStore((s) => s.clear);
 
@@ -117,7 +120,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
   const lookupCep = async () => {
     const digits = zip.replace(/\D/g, "");
     if (digits.length !== 8) {
-      toast.error("Informe um CEP válido.");
+      toast.error(t.checkout.invalidCep);
       return;
     }
     setLookingUpCep(true);
@@ -125,7 +128,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       const res = await fetch(`/api/cep?cep=${digits}`);
       const json = await res.json();
       if (!json.ok) {
-        toast.error(json.error ?? "CEP não encontrado.");
+        toast.error(json.error ?? t.checkout.cepNotFound);
         return;
       }
       const a = json.data;
@@ -136,7 +139,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       setComplement(a.complement ?? "");
       await loadShipping(a.zip);
     } catch {
-      toast.error("Erro ao consultar o CEP.");
+      toast.error(t.checkout.errorLookingCep);
     } finally {
       setLookingUpCep(false);
     }
@@ -161,13 +164,13 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       });
       const json = await res.json();
       if (!json.ok) {
-        toast.error(json.error ?? "Não foi possível calcular o frete.");
+        toast.error(json.error ?? t.checkout.shippingError);
         return;
       }
       setShippingOptions(json.data);
       setShippingCode(json.data[0]?.code ?? null);
     } catch {
-      toast.error("Erro ao calcular o frete.");
+      toast.error(t.checkout.errorCalculatingShipping);
     } finally {
       setLoadingShipping(false);
     }
@@ -184,13 +187,13 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       });
       const json = await res.json();
       if (!json.ok) {
-        toast.error(json.error ?? "Cupom inválido.");
+        toast.error(json.error ?? t.checkout.couponInvalid);
         return;
       }
       setAppliedCoupon(json.data);
-      toast.success(`Cupom ${json.data.code} aplicado!`);
+      toast.success(fmt(t.checkout.couponApplied, { code: json.data.code }));
     } catch {
-      toast.error("Erro ao validar o cupom.");
+      toast.error(t.checkout.errorValidatingCoupon);
     } finally {
       setValidatingCoupon(false);
     }
@@ -239,7 +242,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       });
       const json = await res.json();
       if (!json.ok) {
-        setError(json.error ?? "Não foi possível finalizar o pedido.");
+        setError(json.error ?? t.checkout.orderError);
         setSubmitting(false);
         return;
       }
@@ -247,7 +250,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       clear();
       router.push(`/checkout/sucesso?order=${json.data.orderNumber}`);
     } catch {
-      setError("Erro de conexão. Tente novamente.");
+      setError(t.checkout.connectionError);
       setSubmitting(false);
     }
   };
@@ -258,23 +261,23 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
         <div className="flex size-20 items-center justify-center rounded-full bg-muted">
           <ShoppingBag className="size-10 text-muted-foreground" />
         </div>
-        <h1 className="text-2xl font-bold">Seu carrinho está vazio</h1>
-        <Button render={<Link href="/produtos" />}>Ir para a loja</Button>
+        <h1 className="text-2xl font-bold">{t.checkout.emptyCart}</h1>
+        <Button render={<Link href="/produtos" />}>{t.checkout.goToStore}</Button>
       </div>
     );
   }
 
   const steps: { id: Step; label: string }[] = [
-    { id: "identification", label: "Identificação" },
-    { id: "delivery", label: "Entrega" },
-    { id: "payment", label: "Pagamento" },
+    { id: "identification", label: t.checkout.identification },
+    { id: "delivery", label: t.checkout.delivery },
+    { id: "payment", label: t.checkout.payment },
   ];
 
   const stepIndex = steps.findIndex((s) => s.id === step);
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="mb-6 text-2xl font-bold sm:text-3xl">Checkout</h1>
+      <h1 className="mb-6 text-2xl font-bold sm:text-3xl">{t.checkout.checkout}</h1>
 
       <ol className="mb-8 flex items-center gap-2">
         {steps.map((s, i) => (
@@ -299,7 +302,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
           {error ? (
             <div className="mb-4 flex items-start justify-between rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive">
               <span>{error}</span>
-              <button type="button" onClick={() => setError(null)} aria-label="Fechar">
+              <button type="button" onClick={() => setError(null)} aria-label={t.checkout.close}>
                 <X className="size-4" />
               </button>
             </div>
@@ -307,27 +310,27 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
           {step === "identification" ? (
             <section className="space-y-4 rounded-xl border p-6">
-              <h2 className="text-lg font-bold">Identificação</h2>
+              <h2 className="text-lg font-bold">{t.checkout.identification}</h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">E-mail</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.email}</label>
                   <Input
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu@email.com"
+                    placeholder={t.checkout.yourEmail}
                   />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Nome completo</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.fullName}</label>
                   <Input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Seu nome"
+                    placeholder={t.checkout.yourName}
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">CPF</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.cpf}</label>
                   <Input
                     value={cpf}
                     onChange={(e) => setCpf(e.target.value)}
@@ -336,7 +339,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                   />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Telefone</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.phone}</label>
                   <Input
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
@@ -347,7 +350,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
               </div>
               <div className="flex justify-end">
                 <Button onClick={() => setStep("delivery")} disabled={!canIdentification}>
-                  Continuar <ArrowRight className="ml-2 size-4" />
+                  {t.checkout.continue} <ArrowRight className="ml-2 size-4" />
                 </Button>
               </div>
             </section>
@@ -356,9 +359,9 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
           {step === "delivery" ? (
             <section className="space-y-5 rounded-xl border p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Endereço de entrega</h2>
+                <h2 className="text-lg font-bold">{t.checkout.deliveryAddress}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setStep("identification")}>
-                  <ArrowLeft className="mr-1 size-4" /> Voltar
+                  <ArrowLeft className="mr-1 size-4" /> {t.checkout.back}
                 </Button>
               </div>
 
@@ -366,57 +369,57 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                 <Input
                   value={zip}
                   onChange={(e) => setZip(e.target.value.replace(/\D/g, "").slice(0, 8))}
-                  placeholder="CEP (apenas números)"
+                  placeholder={t.checkout.zip}
                   inputMode="numeric"
                 />
                 <Button variant="secondary" onClick={lookupCep} disabled={lookingUpCep || zip.replace(/\D/g, "").length !== 8}>
                   {lookingUpCep ? <Loader2 className="size-4 animate-spin" /> : <MapPin className="size-4" />}
-                  Buscar
+                  {t.checkout.search}
                 </Button>
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Rua</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.street}</label>
                   <Input value={street} onChange={(e) => setStreet(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Número</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.number}</label>
                   <Input value={number} onChange={(e) => setNumber(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Complemento</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.complement}</label>
                   <Input value={complement} onChange={(e) => setComplement(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Bairro</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.neighborhood}</label>
                   <Input value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium">Cidade</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.city}</label>
                   <Input value={city} onChange={(e) => setCity(e.target.value)} />
                 </div>
                 <div className="sm:col-span-2">
-                  <label className="mb-1.5 block text-sm font-medium">Estado</label>
+                  <label className="mb-1.5 block text-sm font-medium">{t.checkout.state}</label>
                   <Input
                     value={state}
                     onChange={(e) => setState(e.target.value.toUpperCase().slice(0, 2))}
-                    placeholder="UF"
+                    placeholder={t.checkout.ufPlaceholder}
                   />
                 </div>
               </div>
 
               <div>
                 <h3 className="mb-2 flex items-center gap-2 text-sm font-semibold">
-                  <Truck className="size-4 text-primary" /> Opções de entrega
+                  <Truck className="size-4 text-primary" /> {t.checkout.deliveryOptions}
                 </h3>
                 {loadingShipping ? (
                   <div className="flex items-center gap-2 rounded-xl border p-4 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> Calculando frete...
+                    <Loader2 className="size-4 animate-spin" /> {t.checkout.calculatingShipping}
                   </div>
                 ) : shippingOptions.length === 0 ? (
                   <p className="rounded-xl border p-4 text-sm text-muted-foreground">
-                    Busque o CEP para ver as opções de entrega.
+                    {t.checkout.searchCepForOptions}
                   </p>
                 ) : (
                   <div className="space-y-2">
@@ -438,7 +441,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                           <span>
                             <span className="block text-sm font-medium">{o.service}</span>
                             <span className="block text-xs text-muted-foreground">
-                              {o.deliveryDays} dia{o.deliveryDays === 1 ? "" : "s"} estimado{o.deliveryDays === 1 ? "" : "s"}
+                              {fmt(t.checkout.estimatedDays, { n: o.deliveryDays })}
                             </span>
                           </span>
                         </span>
@@ -450,7 +453,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                           onChange={() => setShippingCode(o.code)}
                         />
                         <span className="text-sm font-bold">
-                          {o.price === 0 ? "Grátis" : formatBRL(o.price)}
+                          {o.price === 0 ? t.checkout.free : formatBRL(o.price)}
                         </span>
                       </label>
                     ))}
@@ -460,7 +463,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
               <div className="flex justify-end">
                 <Button onClick={() => setStep("payment")} disabled={!canDelivery}>
-                  Continuar <ArrowRight className="ml-2 size-4" />
+                  {t.checkout.continue} <ArrowRight className="ml-2 size-4" />
                 </Button>
               </div>
             </section>
@@ -469,9 +472,9 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
           {step === "payment" ? (
             <section className="space-y-6 rounded-xl border p-6">
               <div className="flex items-center justify-between">
-                <h2 className="text-lg font-bold">Pagamento</h2>
+                <h2 className="text-lg font-bold">{t.checkout.paymentMethod}</h2>
                 <Button variant="ghost" size="sm" onClick={() => setStep("delivery")}>
-                  <ArrowLeft className="mr-1 size-4" /> Voltar
+                  <ArrowLeft className="mr-1 size-4" /> {t.checkout.back}
                 </Button>
               </div>
 
@@ -492,8 +495,8 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                     />
                     <m.icon className="size-5 text-primary" />
                     <span className="flex-1">
-                      <span className="block text-sm font-medium">{m.label}</span>
-                      <span className="block text-xs text-muted-foreground">{m.sub}</span>
+                      <span className="block text-sm font-medium">{t.checkout[m.labelKey]}</span>
+                      <span className="block text-xs text-muted-foreground">{t.checkout[m.subKey]}</span>
                     </span>
                     <span
                       className={`flex size-4 items-center justify-center rounded-full border ${
@@ -509,76 +512,86 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
               {paymentMethod === "CREDIT_CARD" ? (
                 <div className="grid gap-4 rounded-xl bg-muted/40 p-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium">Número do cartão</label>
+                    <label className="mb-1.5 block text-sm font-medium">{t.checkout.cardNumber}</label>
                     <Input placeholder="0000 0000 0000 0000" inputMode="numeric" />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium">Nome impresso no cartão</label>
-                    <Input placeholder="Como está no cartão" />
+                    <label className="mb-1.5 block text-sm font-medium">{t.checkout.cardName}</label>
+                    <Input placeholder={t.checkout.cardNamePlaceholder} />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">Validade</label>
+                    <label className="mb-1.5 block text-sm font-medium">{t.checkout.expiry}</label>
                     <Input placeholder="MM/AA" inputMode="numeric" />
                   </div>
                   <div>
-                    <label className="mb-1.5 block text-sm font-medium">CVV</label>
+                    <label className="mb-1.5 block text-sm font-medium">{t.checkout.cvv}</label>
                     <Input placeholder="123" inputMode="numeric" maxLength={4} />
                   </div>
                   <div className="sm:col-span-2">
-                    <label className="mb-1.5 block text-sm font-medium">Parcelamento</label>
+                    <label className="mb-1.5 block text-sm font-medium">{t.checkout.installments}</label>
                     <Select
                       value={String(cardInstallments)}
                       onValueChange={(v) => setInstallments(Number(v))}
                       items={Array.from({ length: maxInstallments }, (_, i) => ({
-                        label: `${i + 1}x de ${formatBRL(total / (i + 1))}${i === 0 ? " (à vista)" : i + 1 > 1 ? " sem juros" : ""}`,
+                        label: `${i + 1}x de ${formatBRL(total / (i + 1))}${
+                          i === 0
+                            ? ` ${t.checkout.atSight}`
+                            : i + 1 > 1
+                              ? ` ${t.checkout.noInterest}`
+                              : ""
+                        }`,
                         value: String(i + 1),
                       }))}
                     >
                       <SelectTrigger className="h-10 w-full">
                         <SelectValue className="pr-6">
                           {cardInstallments}x de {formatBRL(total / cardInstallments)}
-                          {cardInstallments === 1 ? " (à vista)" : " sem juros"}
+                          {cardInstallments === 1
+                            ? ` ${t.checkout.atSight}`
+                            : ` ${t.checkout.noInterest}`}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {Array.from({ length: maxInstallments }, (_, i) => (
                           <SelectItem key={i} value={String(i + 1)}>
                             {i + 1}x de {formatBRL(total / (i + 1))}
-                            {i === 0 ? " (à vista)" : " sem juros"}
+                            {i === 0 ? ` ${t.checkout.atSight}` : ` ${t.checkout.noInterest}`}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <p className="flex items-center gap-2 text-xs text-muted-foreground sm:col-span-2">
-                    <Lock className="size-3.5" /> O pagamento é processado com segurança pela Appmax.
+                    <Lock className="size-3.5" /> {t.checkout.secureProcessed}
                   </p>
                 </div>
               ) : paymentMethod === "PIX" ? (
                 <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-4 text-sm">
                   <PixIcon className="size-6 text-primary" />
                   <p className="text-muted-foreground">
-                    O código Pix (QR Code) será exibido após a confirmação do pedido.
+                    {t.checkout.pixQrCode}
                   </p>
                 </div>
               ) : (
                 <div className="flex items-center gap-3 rounded-xl bg-muted/40 p-4 text-sm">
                   <BoletoIcon className="size-6 text-primary" />
                   <p className="text-muted-foreground">
-                    O boleto será gerado e enviado por e-mail após a confirmação.
+                    {t.checkout.boletoSent}
                   </p>
                 </div>
               )}
 
               <div className="rounded-xl border p-4">
                 <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                  <Ticket className="size-4 text-primary" /> Cupom de desconto
+                  <Ticket className="size-4 text-primary" /> {t.checkout.coupon}
                 </h3>
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
                     <span className="font-semibold">{appliedCoupon.code}</span>
                     <span className="flex items-center gap-2">
-                      {appliedCoupon.freeShipping ? "Frete grátis" : `-${formatBRL(appliedCoupon.discount)}`}
+                      {appliedCoupon.freeShipping
+                        ? t.checkout.freeShippingValue
+                        : `-${formatBRL(appliedCoupon.discount)}`}
                       <button
                         type="button"
                         onClick={() => {
@@ -586,7 +599,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                           setCouponCode("");
                         }}
                         className="text-muted-foreground hover:text-foreground"
-                        aria-label="Remover cupom"
+                        aria-label={t.checkout.removeCoupon}
                       >
                         <X className="size-4" />
                       </button>
@@ -597,10 +610,10 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                     <Input
                       value={couponCode}
                       onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                      placeholder="CUPOM10"
+                      placeholder={t.checkout.couponPlaceholder}
                     />
                     <Button variant="secondary" onClick={applyCoupon} disabled={validatingCoupon || !couponCode.trim()}>
-                      {validatingCoupon ? <Loader2 className="size-4 animate-spin" /> : "Aplicar"}
+                      {validatingCoupon ? <Loader2 className="size-4 animate-spin" /> : t.checkout.apply}
                     </Button>
                   </div>
                 )}
@@ -608,10 +621,12 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
               <Button size="lg" className="w-full" onClick={placeOrder} disabled={submitting}>
                 {submitting ? <Loader2 className="size-4 animate-spin" /> : <Lock className="size-4" />}
-                {submitting ? "Processando pedido..." : `Finalizar pedido — ${formatBRL(total)}`}
+                {submitting
+                  ? t.checkout.processingOrder
+                  : fmt(t.checkout.finalizeOrder, { value: formatBRL(total) })}
               </Button>
               <p className="text-center text-xs text-muted-foreground">
-                Ao finalizar, você concorda com nossos Termos de Uso e Política de Privacidade.
+                {t.checkout.agreeTerms}
               </p>
             </section>
           ) : null}
@@ -645,11 +660,12 @@ function OrderSummary({
   total: number;
   hasShipping: boolean;
 }) {
+  const { t } = useI18n();
   const count = items.reduce((s, i) => s + i.quantity, 0);
 
   return (
     <aside className="h-fit rounded-xl border p-5 lg:sticky lg:top-24">
-      <h2 className="text-lg font-bold">Resumo do pedido</h2>
+      <h2 className="text-lg font-bold">{t.checkout.orderSummary}</h2>
       <ul className="mt-4 space-y-3">
         {items.map((item) => (
           <li key={`${item.productId}:${item.variationId ?? ""}`} className="flex gap-3">
@@ -672,21 +688,21 @@ function OrderSummary({
 
       <dl className="mt-4 space-y-2 border-t pt-4 text-sm">
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Subtotal ({count} item{count === 1 ? "" : "s"})</dt>
+          <dt className="text-muted-foreground">{fmt(t.checkout.subtotalItems, { n: count })}</dt>
           <dd className="font-semibold">{formatBRL(subtotal)}</dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Desconto</dt>
+          <dt className="text-muted-foreground">{t.checkout.discount}</dt>
           <dd className={discount > 0 ? "font-semibold text-emerald-600" : "text-muted-foreground"}>
             {discount > 0 ? `-${formatBRL(discount)}` : "—"}
           </dd>
         </div>
         <div className="flex justify-between">
-          <dt className="text-muted-foreground">Frete</dt>
-          <dd className="font-semibold">{hasShipping ? (shippingFee === 0 ? "Grátis" : formatBRL(shippingFee)) : "—"}</dd>
+          <dt className="text-muted-foreground">{t.checkout.shipping}</dt>
+          <dd className="font-semibold">{hasShipping ? (shippingFee === 0 ? t.checkout.free : formatBRL(shippingFee)) : "—"}</dd>
         </div>
         <div className="flex justify-between border-t pt-3 text-base">
-          <dt className="font-bold">Total</dt>
+          <dt className="font-bold">{t.checkout.total}</dt>
           <dd className="text-xl font-bold">{formatBRL(total)}</dd>
         </div>
       </dl>

@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
 import { getPublicProducts, getCatalogCategories, getCatalogBrands } from "@/lib/products";
 import { CatalogView, type CatalogResult } from "@/components/storefront/catalog-view";
+import { getDictionary } from "@/lib/i18n/server";
+import { fmt } from "@/lib/i18n/dictionaries";
 
-export const metadata: Metadata = {
-  title: "Produtos",
-  description: "Confira todos os produtos da nossa loja. Compre online com entrega para todo o Brasil.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.productsTitle,
+    description: t.pages.productsDescription,
+  };
+}
 
 type PageProps = {
   searchParams: Promise<{
@@ -25,6 +30,7 @@ type PageProps = {
 
 export default async function ProductsPage({ searchParams }: PageProps) {
   const sp = await searchParams;
+  const t = await getDictionary();
 
   const min = parseFloat((sp.min ?? "").replace(",", "."));
   const max = parseFloat((sp.max ?? "").replace(",", "."));
@@ -63,8 +69,8 @@ export default async function ProductsPage({ searchParams }: PageProps) {
 
   return (
     <CatalogView
-      title={sp.q ? `Resultados para "${sp.q}"` : "Produtos"}
-      description={sp.q ? undefined : "Encontre produtos com ótimos preços, parcelamento em até 12x e entrega para todo o Brasil."}
+      title={sp.q ? fmt(t.catalog.resultsFor, { q: sp.q }) : t.catalog.productsTitle}
+      description={sp.q ? undefined : t.catalog.productsDescription}
       basePath="/produtos"
       categories={categories}
       brands={brands}

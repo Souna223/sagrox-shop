@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { formatBRL } from "@/lib/format";
+import { useI18n } from "@/lib/i18n/provider";
 
 export function CartSheet({
   open,
@@ -15,6 +16,7 @@ export function CartSheet({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useI18n();
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -26,7 +28,7 @@ export function CartSheet({
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <ShoppingBag className="size-5" />
-            Meu carrinho
+            {t.cart.myCart}
           </SheetTitle>
         </SheetHeader>
 
@@ -36,11 +38,11 @@ export function CartSheet({
               <ShoppingBag className="size-8 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-medium">Seu carrinho está vazio</p>
-              <p className="text-sm text-muted-foreground">Adicione produtos para continuar.</p>
+              <p className="font-medium">{t.cart.cartEmpty}</p>
+              <p className="text-sm text-muted-foreground">{t.cart.addProducts}</p>
             </div>
             <Button render={<Link href="/produtos" />} onClick={() => onOpenChange(false)}>
-              Ver produtos
+              {t.cart.seeProducts}
             </Button>
           </div>
         ) : (
@@ -75,7 +77,7 @@ export function CartSheet({
                           size="icon"
                           className="size-7 text-muted-foreground"
                           onClick={() => removeItem(item.productId, item.variationId)}
-                          aria-label="Remover item"
+                          aria-label={t.cart.removeItem}
                         >
                           <Trash2 className="size-4" />
                         </Button>
@@ -92,7 +94,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(item.productId, item.variationId, item.quantity - 1)
                             }
-                            aria-label="Diminuir"
+                            aria-label={t.cart.decrease}
                           >
                             <Minus className="size-3.5" />
                           </Button>
@@ -104,7 +106,7 @@ export function CartSheet({
                             onClick={() =>
                               updateQuantity(item.productId, item.variationId, item.quantity + 1)
                             }
-                            aria-label="Aumentar"
+                            aria-label={t.cart.increase}
                           >
                             <Plus className="size-3.5" />
                           </Button>
@@ -119,14 +121,14 @@ export function CartSheet({
 
             <div className="border-t pt-4">
               <div className="mb-1 flex justify-between text-sm">
-                <span className="text-muted-foreground">Subtotal</span>
+                <span className="text-muted-foreground">{t.cart.subtotal}</span>
                 <span className="font-semibold">{formatBRL(subtotal)}</span>
               </div>
               <p className="mb-4 text-xs text-muted-foreground">
-                Frete e descontos calculados no checkout.
+                {t.cart.shippingAtCheckout}
               </p>
               <Button className="w-full" render={<Link href="/checkout" />} onClick={() => onOpenChange(false)}>
-                Finalizar compra <ArrowRight className="ml-2 size-4" />
+                {t.cart.checkout} <ArrowRight className="ml-2 size-4" />
               </Button>
               <Button
                 variant="link"
@@ -134,7 +136,7 @@ export function CartSheet({
                 render={<Link href="/carrinho" />}
                 onClick={() => onOpenChange(false)}
               >
-                Ver carrinho completo
+                {t.cart.viewFullCart}
               </Button>
             </div>
           </>

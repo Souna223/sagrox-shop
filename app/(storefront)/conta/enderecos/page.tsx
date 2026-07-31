@@ -3,14 +3,20 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getSessionUser } from "@/lib/api";
 import { AddressList } from "@/components/conta/address-list";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Meus endereços",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.addressesTitle,
+  };
+}
 
 export default async function AddressesPage() {
   const sessionUser = await getSessionUser();
   if (!sessionUser) redirect("/login");
+
+  const t = await getDictionary();
 
   const addresses = await prisma.address.findMany({
     where: { userId: sessionUser.id },
@@ -19,9 +25,9 @@ export default async function AddressesPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-2xl font-bold">Endereços</h1>
+      <h1 className="mb-1 text-2xl font-bold">{t.account.addresses}</h1>
       <p className="mb-6 text-sm text-muted-foreground">
-        Gerencie os endereços usados na hora da entrega.
+        {t.account.addressesDesc}
       </p>
       <AddressList
         initial={addresses.map((a) => ({

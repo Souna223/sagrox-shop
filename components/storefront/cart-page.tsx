@@ -8,9 +8,12 @@ import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/lib/store/cart-store";
 import { formatBRL } from "@/lib/format";
 import { calcPriceInfo } from "@/lib/prices";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: number }) {
   const router = useRouter();
+  const { t } = useI18n();
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
@@ -28,12 +31,12 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
         <div className="flex size-20 items-center justify-center rounded-full bg-muted">
           <ShoppingBag className="size-10 text-muted-foreground" />
         </div>
-        <h1 className="text-2xl font-bold">Seu carrinho está vazio</h1>
+        <h1 className="text-2xl font-bold">{t.cart.cartEmpty}</h1>
         <p className="text-sm text-muted-foreground">
-          Adicione produtos para aproveitar nossas ofertas.
+          {t.cart.addProductsOffers}
         </p>
         <Button size="lg" render={<Link href="/produtos" />}>
-          Ver produtos
+          {t.cart.seeProducts}
         </Button>
       </div>
     );
@@ -42,7 +45,8 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
       <h1 className="mb-6 text-2xl font-bold sm:text-3xl">
-        Meu carrinho <span className="text-base font-normal text-muted-foreground">({count} item{count === 1 ? "" : "s"})</span>
+        {t.cart.myCart}{" "}
+        <span className="text-base font-normal text-muted-foreground">{fmt(t.cart.itemsCount, { n: count })}</span>
       </h1>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_320px]">
@@ -52,7 +56,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2 font-medium">
                   <Truck className="size-4 text-primary" />
-                  Faltam {formatBRL(remaining)} para ganhar <strong>frete grátis</strong>
+                  {fmt(t.cart.freeShippingProgress, { value: formatBRL(remaining) })}
                 </span>
                 <span>{Math.round(progress)}%</span>
               </div>
@@ -66,7 +70,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
           ) : freeShippingThreshold > 0 ? (
             <div className="mb-4 rounded-xl border bg-emerald-50 p-4 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
               <span className="flex items-center gap-2">
-                <Truck className="size-4" /> Você ganhou <strong>frete grátis</strong>!
+                <Truck className="size-4" /> {t.cart.youGotFreeShipping}
               </span>
             </div>
           ) : null}
@@ -99,7 +103,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
                         size="icon"
                         className="size-8 shrink-0 text-muted-foreground"
                         onClick={() => removeItem(item.productId, item.variationId)}
-                        aria-label="Remover item"
+                        aria-label={t.cart.removeItem}
                       >
                         <Trash2 className="size-4" />
                       </Button>
@@ -116,7 +120,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
                           onClick={() =>
                             updateQuantity(item.productId, item.variationId, item.quantity - 1)
                           }
-                          aria-label="Diminuir"
+                          aria-label={t.cart.decrease}
                         >
                           <Minus className="size-3.5" />
                         </Button>
@@ -128,7 +132,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
                           onClick={() =>
                             updateQuantity(item.productId, item.variationId, item.quantity + 1)
                           }
-                          aria-label="Aumentar"
+                          aria-label={t.cart.increase}
                         >
                           <Plus className="size-3.5" />
                         </Button>
@@ -150,35 +154,35 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
 
           <div className="mt-6 flex items-center justify-between">
             <Button variant="ghost" render={<Link href="/produtos" />}>
-              ← Continuar comprando
+              ← {t.cart.continueShopping}
             </Button>
             <Button variant="outline" onClick={() => router.push("/produtos?promocao=1")}>
-              Ver promoções
+              {t.cart.seePromotions}
             </Button>
           </div>
         </div>
 
         <aside className="h-fit rounded-xl border p-5 lg:sticky lg:top-24">
-          <h2 className="text-lg font-bold">Resumo</h2>
+          <h2 className="text-lg font-bold">{t.cart.summary}</h2>
           <dl className="mt-4 space-y-2 text-sm">
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Subtotal</dt>
+              <dt className="text-muted-foreground">{t.cart.subtotal}</dt>
               <dd className="font-semibold">{formatBRL(subtotal)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Frete</dt>
-              <dd className="text-muted-foreground">Calculado no checkout</dd>
+              <dt className="text-muted-foreground">{t.cart.shipping}</dt>
+              <dd className="text-muted-foreground">{t.cart.calculatedAtCheckout}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-muted-foreground">Descontos</dt>
-              <dd className="text-muted-foreground">Aplicados no checkout</dd>
+              <dt className="text-muted-foreground">{t.cart.discounts}</dt>
+              <dd className="text-muted-foreground">{t.cart.appliedAtCheckout}</dd>
             </div>
           </dl>
           <Button size="lg" className="mt-4 w-full" onClick={() => router.push("/checkout")}>
-            Finalizar compra <ArrowRight className="ml-2 size-4" />
+            {t.cart.checkout} <ArrowRight className="ml-2 size-4" />
           </Button>
           <p className="mt-3 text-center text-xs text-muted-foreground">
-            Pagamento seguro via Appmax — Pix, cartão e boleto.
+            {t.cart.securePayment}
           </p>
         </aside>
       </div>

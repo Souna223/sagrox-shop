@@ -13,20 +13,22 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-
-const LINKS = [
-  { href: "/conta", label: "Início", icon: Home, exact: true },
-  { href: "/conta/pedidos", label: "Meus pedidos", icon: Package },
-  { href: "/conta/desejos", label: "Lista de desejos", icon: Heart },
-  { href: "/conta/enderecos", label: "Endereços", icon: MapPin },
-  { href: "/conta/dados", label: "Dados pessoais", icon: UserRound },
-];
+import { useI18n } from "@/lib/i18n/provider";
 
 export function AccountNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
+
+  const LINKS = [
+    { href: "/conta", label: t.account.home, icon: Home, exact: true },
+    { href: "/conta/pedidos", label: t.account.myOrders, icon: Package },
+    { href: "/conta/desejos", label: t.account.wishlist, icon: Heart },
+    { href: "/conta/enderecos", label: t.account.addresses, icon: MapPin },
+    { href: "/conta/dados", label: t.account.personalData, icon: UserRound },
+  ];
 
   return (
-    <nav className="flex flex-col gap-1" aria-label="Menu da conta">
+    <nav className="flex flex-col gap-1" aria-label={t.account.accountMenu}>
       {LINKS.map((link) => {
         const active = link.exact
           ? pathname === link.href
@@ -50,7 +52,7 @@ export function AccountNav() {
         className="justify-start text-muted-foreground hover:bg-muted hover:text-destructive"
         onClick={() => signOut({ callbackUrl: "/" })}
       >
-        <LogOut className="size-4" /> Sair da conta
+        <LogOut className="size-4" /> {t.account.logout}
       </Button>
     </nav>
   );

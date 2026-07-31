@@ -7,8 +7,10 @@ import { CheckCircle2, Loader2, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/provider";
 
 export function ResetPasswordForm({ token }: { token: string }) {
+  const { t } = useI18n();
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
@@ -17,11 +19,11 @@ export function ResetPasswordForm({ token }: { token: string }) {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
-      toast.error("A senha deve ter no mínimo 6 caracteres.");
+      toast.error(t.auth.passwordMin);
       return;
     }
     if (password !== confirm) {
-      toast.error("As senhas não coincidem.");
+      toast.error(t.auth.passwordMismatch);
       return;
     }
 
@@ -35,7 +37,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       const data = (await res.json()) as { ok: boolean; error?: string };
 
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao redefinir a senha.");
+        toast.error(data.error ?? t.auth.resetPasswordError);
         return;
       }
       setDone(true);
@@ -51,10 +53,10 @@ export function ResetPasswordForm({ token }: { token: string }) {
           <CheckCircle2 className="size-8" />
         </div>
         <div>
-          <p className="font-semibold">Senha redefinida!</p>
-          <p className="mt-1 text-sm text-muted-foreground">Agora você já pode entrar com a nova senha.</p>
+          <p className="font-semibold">{t.auth.passwordResetTitle}</p>
+          <p className="mt-1 text-sm text-muted-foreground">{t.auth.passwordResetDesc}</p>
         </div>
-        <Button render={<Link href="/login" />}>Ir para o login</Button>
+        <Button render={<Link href="/login" />}>{t.auth.goToLogin}</Button>
       </div>
     );
   }
@@ -62,7 +64,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     <form onSubmit={submit} className="space-y-4">
       <div className="space-y-1.5">
-        <Label htmlFor="password">Nova senha</Label>
+        <Label htmlFor="password">{t.auth.newPassword}</Label>
         <Input
           id="password"
           type="password"
@@ -73,7 +75,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
         />
       </div>
       <div className="space-y-1.5">
-        <Label htmlFor="confirm">Confirmar nova senha</Label>
+        <Label htmlFor="confirm">{t.auth.confirmNewPassword}</Label>
         <Input
           id="confirm"
           type="password"
@@ -85,7 +87,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : <KeyRound className="size-4" />}
-        Redefinir senha
+        {t.auth.resetButton}
       </Button>
     </form>
   );

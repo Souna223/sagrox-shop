@@ -13,6 +13,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { getDictionary } from "@/lib/i18n/server";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -20,11 +21,12 @@ type PageProps = {
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { slug } = await params;
+  const t = await getDictionary();
   const product = await prisma.product.findFirst({
     where: { slug, status: "ACTIVE", visibility: "VISIBLE" },
     select: { name: true, shortDescription: true, seoTitle: true, seoDescription: true },
   });
-  if (!product) return { title: "Produto não encontrado" };
+  if (!product) return { title: t.productDetail.productNotFound };
   return {
     title: product.seoTitle ?? product.name,
     description: product.seoDescription ?? product.shortDescription ?? undefined,
@@ -33,6 +35,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
+  const t = await getDictionary();
 
   const [product, related] = await Promise.all([
     getProductDetail(slug),
@@ -54,11 +57,11 @@ export default async function ProductPage({ params }: PageProps) {
       <Breadcrumb className="mb-6">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/" />}>Início</BreadcrumbLink>
+            <BreadcrumbLink render={<Link href="/" />}>{t.account.home}</BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/produtos" />}>Produtos</BreadcrumbLink>
+            <BreadcrumbLink render={<Link href="/produtos" />}>{t.catalog.productsTitle}</BreadcrumbLink>
           </BreadcrumbItem>
           {product.category ? (
             <>
@@ -83,12 +86,12 @@ export default async function ProductPage({ params }: PageProps) {
       {relatedProducts.length > 0 ? (
         <section className="mt-16">
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-bold sm:text-2xl">Você também pode gostar</h2>
+            <h2 className="text-xl font-bold sm:text-2xl">{t.productDetail.relatedProducts}</h2>
             <Link
               href={`/categoria/${product.category?.slug ?? "produtos"}`}
               className="text-sm font-medium text-primary hover:underline"
             >
-              Ver mais
+              {t.productDetail.seeMore}
             </Link>
           </div>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">

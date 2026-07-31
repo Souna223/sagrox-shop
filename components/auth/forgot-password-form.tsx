@@ -6,8 +6,10 @@ import { Loader2, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n/provider";
 
 export function ForgotPasswordForm() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
@@ -24,7 +26,7 @@ export function ForgotPasswordForm() {
       const data = (await res.json()) as { ok: boolean; error?: string };
 
       if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao enviar o link.");
+        toast.error(data.error ?? t.auth.sendLinkError);
         return;
       }
       setSent(true);
@@ -36,10 +38,9 @@ export function ForgotPasswordForm() {
   if (sent) {
     return (
       <div className="rounded-lg border border-emerald-300/60 bg-emerald-50 p-4 text-sm text-emerald-800 dark:bg-emerald-950/40">
-        <p className="font-medium">Link de redefinição enviado!</p>
+        <p className="font-medium">{t.auth.linkSentTitle}</p>
         <p className="mt-1 text-emerald-700 dark:text-emerald-300">
-          Se o e-mail informado estiver cadastrado, você receberá um link para redefinir sua senha.
-          Verifique também a caixa de spam.
+          {t.auth.linkSentDesc}
         </p>
       </div>
     );
@@ -48,22 +49,22 @@ export function ForgotPasswordForm() {
   return (
     <form onSubmit={submit} className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Informe seu e-mail cadastrado. Enviaremos um link para redefinir sua senha.
+        {t.auth.forgotPasswordInfo}
       </p>
       <div className="space-y-1.5">
-        <Label htmlFor="email">E-mail</Label>
+        <Label htmlFor="email">{t.auth.email}</Label>
         <Input
           id="email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          placeholder="voce@exemplo.com"
+          placeholder={t.auth.emailPlaceholder}
           required
         />
       </div>
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
-        Enviar link
+        {t.auth.sendLink}
       </Button>
     </form>
   );

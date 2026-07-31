@@ -1,15 +1,20 @@
 import type { Metadata } from "next";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { ForgotPasswordForm } from "@/components/auth/forgot-password-form";
+import { getDictionary } from "@/lib/i18n/server";
 
-export const metadata: Metadata = {
-  title: "Recuperar senha",
-  description: "Envie um link para redefinir sua senha.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getDictionary();
+  return {
+    title: t.pages.forgotPasswordTitle,
+    description: t.pages.forgotPasswordDescription,
+  };
+}
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage() {
+  const t = await getDictionary();
   return (
-    <AuthShell title="Recuperar senha">
+    <AuthShell title={t.auth.forgotPasswordTitle}>
       <ForgotPasswordForm />
     </AuthShell>
   );

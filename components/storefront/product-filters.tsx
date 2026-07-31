@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { buildCatalogUrl } from "@/lib/catalog";
 import type { CategoryWithCount, BrandWithCount } from "@/lib/products";
+import { useI18n } from "@/lib/i18n/provider";
 
 type ProductFiltersProps = {
   categories: CategoryWithCount[];
@@ -25,14 +26,14 @@ type ProductFiltersProps = {
   total: number;
 };
 
-const SORT_OPTIONS = [
-  { value: "relevance", label: "Mais relevantes" },
-  { value: "newest", label: "Mais recentes" },
-  { value: "price_asc", label: "Menor preço" },
-  { value: "price_desc", label: "Maior preço" },
-  { value: "rating", label: "Melhor avaliação" },
-  { value: "bestseller", label: "Mais vendidos" },
-];
+const SORT_VALUES = [
+  "relevance",
+  "newest",
+  "price_asc",
+  "price_desc",
+  "rating",
+  "bestseller",
+] as const;
 
 function FilterRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -52,6 +53,16 @@ export function ProductFilters({
 }: ProductFiltersProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useI18n();
+
+  const sortOptions: { value: string; label: string }[] = [
+    { value: "relevance", label: t.catalog.sortRelevance },
+    { value: "newest", label: t.catalog.sortNewest },
+    { value: "price_asc", label: t.catalog.sortPriceAsc },
+    { value: "price_desc", label: t.catalog.sortPriceDesc },
+    { value: "rating", label: t.catalog.sortRating },
+    { value: "bestseller", label: t.catalog.sortBestseller },
+  ];
 
   const q = searchParams.get("q");
   const marca = searchParams.get("marca");
@@ -78,7 +89,7 @@ export function ProductFilters({
   const filterContent = (
     <div className="space-y-6">
       {q ? (
-        <FilterRow label="Busca">
+        <FilterRow label={t.catalog.search}>
           <p className="rounded-md bg-muted px-3 py-2 text-sm">
             &ldquo;{q}&rdquo;
             <button
@@ -86,14 +97,14 @@ export function ProductFilters({
               className="ml-2 inline-flex items-center gap-1 text-primary hover:underline"
               onClick={() => navigate({ q: null })}
             >
-              <X className="size-3" /> limpar
+              <X className="size-3" /> {t.catalog.clear}
             </button>
           </p>
         </FilterRow>
       ) : null}
 
       {topLevel.length > 0 ? (
-        <FilterRow label="Categorias">
+        <FilterRow label={t.catalog.categories}>
           <ul className="space-y-1">
             <li>
               <a
@@ -102,7 +113,7 @@ export function ProductFilters({
                   !currentCategory && !marca ? "font-semibold text-primary" : "text-muted-foreground"
                 }`}
               >
-                <span>Todos os produtos</span>
+                <span>{t.catalog.allProducts}</span>
                 <span className="text-xs">{total}</span>
               </a>
             </li>
@@ -130,7 +141,7 @@ export function ProductFilters({
       ) : null}
 
       {brands.length > 0 ? (
-        <FilterRow label="Marcas">
+        <FilterRow label={t.catalog.brands}>
           <div className="max-h-48 space-y-1 overflow-y-auto pr-1">
             {brands.map((b) => (
               <label
@@ -151,54 +162,54 @@ export function ProductFilters({
         </FilterRow>
       ) : null}
 
-      <FilterRow label="Preço">
+      <FilterRow label={t.catalog.price}>
         <div className="flex items-center gap-2">
           <Input
             inputMode="decimal"
-            placeholder="Min"
+            placeholder={t.catalog.min}
             value={min}
             onChange={(e) => setMin(e.target.value.replace(/[^\d,.]/g, ""))}
-            aria-label="Preço mínimo"
+            aria-label={t.catalog.min}
           />
           <span className="text-muted-foreground">—</span>
           <Input
             inputMode="decimal"
-            placeholder="Max"
+            placeholder={t.catalog.max}
             value={max}
             onChange={(e) => setMax(e.target.value.replace(/[^\d,.]/g, ""))}
-            aria-label="Preço máximo"
+            aria-label={t.catalog.max}
           />
         </div>
         <Button variant="secondary" size="sm" className="mt-2 w-full" onClick={applyPrice}>
-          Aplicar
+          {t.catalog.apply}
         </Button>
       </FilterRow>
 
-      <FilterRow label="Ofertas">
+      <FilterRow label={t.catalog.offers}>
         <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
           <Checkbox
             checked={promocao}
             onCheckedChange={(checked) => navigate({ promocao: checked ? "1" : null })}
           />
-          Com desconto
+          {t.catalog.withDiscount}
         </label>
         <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
           <Checkbox
             checked={frete}
             onCheckedChange={(checked) => navigate({ frete: checked ? "1" : null })}
           />
-          Frete grátis
+          {t.catalog.freeShipping}
         </label>
         <label className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted">
           <Checkbox
             checked={estoque}
             onCheckedChange={(checked) => navigate({ estoque: checked ? "1" : null })}
           />
-          Em estoque
+          {t.catalog.inStock}
         </label>
       </FilterRow>
 
-      <FilterRow label="Avaliação">
+      <FilterRow label={t.catalog.rating}>
         <ul className="space-y-1">
           {[4, 3].map((r) => (
             <li key={r}>
@@ -210,7 +221,7 @@ export function ProductFilters({
                   avaliacao === r ? "font-semibold text-primary" : "text-muted-foreground"
                 }`}
               >
-                {"★".repeat(r)}<span className="text-xs">e acima</span>
+                {"★".repeat(r)}<span className="text-xs">{t.catalog.andUp}</span>
               </a>
             </li>
           ))}
@@ -219,13 +230,13 @@ export function ProductFilters({
 
       {selectedBrand ? (
         <div className="flex items-center justify-between rounded-md bg-muted px-3 py-2 text-sm">
-          <span>Marca: {selectedBrand.name}</span>
+          <span>{t.catalog.brands}: {selectedBrand.name}</span>
           <button
             type="button"
             className="text-primary hover:underline"
             onClick={() => navigate({ marca: null })}
           >
-            remover
+            {t.catalog.remove}
           </button>
         </div>
       ) : null}
@@ -236,15 +247,15 @@ export function ProductFilters({
     <Select
       value={ordem}
       onValueChange={(value) => navigate({ ordem: value })}
-      items={SORT_OPTIONS.map((o) => ({ label: o.label, value: o.value }))}
+      items={sortOptions.map((o) => ({ label: o.label, value: o.value }))}
     >
       <SelectTrigger className="h-9 w-full sm:w-auto">
         <SelectValue className="pr-6">
-          {SORT_OPTIONS.find((o) => o.value === ordem)?.label}
+          {sortOptions.find((o) => o.value === ordem)?.label}
         </SelectValue>
       </SelectTrigger>
       <SelectContent align="end">
-        {SORT_OPTIONS.map((o) => (
+        {sortOptions.map((o) => (
           <SelectItem key={o.value} value={o.value}>
             {o.label}
           </SelectItem>
@@ -261,13 +272,13 @@ export function ProductFilters({
             <SheetTrigger
               render={
                 <Button variant="outline" size="sm">
-                  <SlidersHorizontal className="size-4" /> Filtros
+                  <SlidersHorizontal className="size-4" /> {t.catalog.filters}
                 </Button>
               }
             />
             <SheetContent side="left" className="w-80 overflow-y-auto">
               <SheetHeader>
-                <SheetTitle>Filtros</SheetTitle>
+                <SheetTitle>{t.catalog.filters}</SheetTitle>
               </SheetHeader>
               <div className="mt-4">{filterContent}</div>
             </SheetContent>
@@ -276,7 +287,7 @@ export function ProductFilters({
         <div className="hidden lg:block">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <SlidersHorizontal className="size-4" />
-            <span>{total} produto{total === 1 ? "" : "s"}</span>
+            <span>{total} {t.catalog.productsCount}</span>
           </div>
         </div>
         <div className="w-full max-w-56">{sortControl}</div>

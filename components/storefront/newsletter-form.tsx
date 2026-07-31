@@ -5,8 +5,10 @@ import { Send, MailCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n/provider";
 
 export function NewsletterForm() {
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [subscribed, setSubscribed] = useState(false);
@@ -23,9 +25,9 @@ export function NewsletterForm() {
       });
       if (!res.ok) throw new Error();
       setSubscribed(true);
-      toast.success("Inscrição realizada com sucesso!");
+      toast.success(t.newsletter.success);
     } catch {
-      toast.error("Não foi possível realizar a inscrição.");
+      toast.error(t.newsletter.error);
     } finally {
       setLoading(false);
     }
@@ -41,12 +43,10 @@ export function NewsletterForm() {
         )}
         <div>
           <h2 className="text-2xl font-bold sm:text-3xl">
-            {subscribed ? "Inscrição confirmada!" : "Receba ofertas exclusivas"}
+            {subscribed ? t.newsletter.confirmed : t.newsletter.title}
           </h2>
           <p className="mt-2 text-primary-foreground/80">
-            {subscribed
-              ? "Você receberá as melhores promoções direto no seu e-mail."
-              : "Cadastre seu e-mail e receba descontos, novidades e cupons em primeira mão."}
+            {subscribed ? t.newsletter.confirmedSubtitle : t.newsletter.subtitle}
           </p>
         </div>
         {!subscribed ? (
@@ -56,16 +56,16 @@ export function NewsletterForm() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="Seu melhor e-mail"
+              placeholder={t.newsletter.emailPlaceholder}
               className="border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground placeholder:text-primary-foreground/60"
             />
             <Button type="submit" variant="secondary" disabled={loading}>
-              {loading ? "Enviando..." : "Quero receber"}
+              {loading ? t.newsletter.sending : t.newsletter.subscribe}
             </Button>
           </form>
         ) : null}
         <p className="text-xs text-primary-foreground/60">
-          Ao se inscrever, você concorda com nossa política de privacidade (LGPD).
+          {t.newsletter.privacyNotice}
         </p>
       </div>
     </div>

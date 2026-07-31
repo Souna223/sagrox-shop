@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
@@ -32,6 +33,8 @@ import { useCartStore } from "@/lib/store/cart-store";
 import type { Category } from "@/generated/prisma/client";
 import { SITE_NAME } from "@/lib/constants";
 import { CartSheet } from "@/components/storefront/cart-sheet";
+import { LanguageSwitcher } from "@/components/storefront/language-switcher";
+import { useI18n } from "@/lib/i18n/provider";
 
 type HeaderProps = {
   categories: Category[];
@@ -43,6 +46,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
@@ -80,7 +84,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
                 render={
-                  <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Menu" />
+                  <Button variant="ghost" size="icon" className="lg:hidden" aria-label={t.header.menu} />
                 }
               >
                 <Menu className="size-5" />
@@ -108,7 +112,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                       />
                     }
                   >
-                    Todos os produtos
+                    {t.header.allProducts}
                   </SheetClose>
                   <SheetClose
                     render={
@@ -118,7 +122,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                       />
                     }
                   >
-                    Promoções
+                    {t.header.promotions}
                   </SheetClose>
                   <SheetClose
                     render={
@@ -128,19 +132,21 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                       />
                     }
                   >
-                    Contato
+                    {t.header.contact}
                   </SheetClose>
                 </nav>
               </SheetContent>
             </Sheet>
 
             <Link href="/" className="flex items-center gap-2" aria-label={storeName ?? SITE_NAME}>
-              <span className="flex size-9 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <ShoppingBag className="size-5" />
-              </span>
-              <span className="hidden text-xl font-bold tracking-tight sm:block">
-                {storeName ?? SITE_NAME}
-              </span>
+              <Image
+                src="/logo.png"
+                alt={storeName ?? SITE_NAME}
+                width={1406}
+                height={768}
+                className="h-9 w-auto object-contain"
+                priority
+              />
             </Link>
           </div>
 
@@ -150,9 +156,9 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar produtos..."
+                placeholder={t.header.searchPlaceholder}
                 className="pl-9"
-                aria-label="Buscar produtos"
+                aria-label={t.header.searchPlaceholder}
               />
             </div>
           </form>
@@ -162,7 +168,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
-                    <Button variant="ghost" size="icon" className="rounded-full" aria-label="Minha conta" />
+                    <Button variant="ghost" size="icon" className="rounded-full" aria-label={t.header.myAccount} />
                   }
                 >
                   <User className="size-5" />
@@ -174,22 +180,22 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem render={<Link href="/conta" />}>
-                    <Settings className="size-4" /> Minha conta
+                    <Settings className="size-4" /> {t.header.myAccount}
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/conta/pedidos" />}>
-                    <Package className="size-4" /> Meus pedidos
+                    <Package className="size-4" /> {t.header.myOrders}
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/conta/desejos" />}>
-                    <Heart className="size-4" /> Lista de desejos
+                    <Heart className="size-4" /> {t.header.wishlist}
                   </DropdownMenuItem>
                   <DropdownMenuItem render={<Link href="/conta/enderecos" />}>
-                    <MapPin className="size-4" /> Endereços
+                    <MapPin className="size-4" /> {t.header.addresses}
                   </DropdownMenuItem>
                   {["ADMIN", "MANAGER", "EMPLOYEE"].includes(session.user.role) ? (
                     <>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem render={<Link href="/admin" />}>
-                        <Settings className="size-4" /> Painel admin
+                        <Settings className="size-4" /> {t.header.adminPanel}
                       </DropdownMenuItem>
                     </>
                   ) : null}
@@ -198,7 +204,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                     onClick={() => signOut({ callbackUrl: "/" })}
                     className="text-destructive focus:text-destructive"
                   >
-                    <LogOut className="size-4" /> Sair
+                    <LogOut className="size-4" /> {t.header.logout}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -206,7 +212,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                aria-label="Entrar"
+                aria-label={t.header.signIn}
                 render={<Link href="/login" />}
               >
                 <User className="size-5" />
@@ -216,7 +222,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Lista de desejos"
+              aria-label={t.header.favorites}
               render={<Link href="/conta/desejos" />}
             >
               <Heart className="size-5" />
@@ -226,7 +232,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
               variant="ghost"
               size="icon"
               className="relative"
-              aria-label="Carrinho"
+              aria-label={t.header.cart}
               onClick={() => setCartOpen(true)}
             >
               <ShoppingBag className="size-5" />
@@ -236,10 +242,12 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                 </Badge>
               ) : null}
             </Button>
+
+            <LanguageSwitcher />
           </div>
         </div>
 
-        <nav className="hidden h-12 items-center gap-1 lg:flex" aria-label="Categorias">
+        <nav className="hidden h-12 items-center gap-1 lg:flex" aria-label={t.header.categories}>
           {activeCategories.map((c) => (
             <Link
               key={c.id}
@@ -255,20 +263,20 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             href="/promocoes"
             className="rounded-md px-3 py-1.5 text-sm font-medium text-destructive hover:bg-muted"
           >
-            Ofertas
+            {t.header.offers}
           </Link>
           <DropdownMenu>
             <DropdownMenuTrigger
               render={<Button variant="ghost" className="ml-auto text-sm" />}
             >
-              Mais <ChevronDown className="ml-1 size-3.5" />
+              {t.header.more} <ChevronDown className="ml-1 size-3.5" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem render={<Link href="/produtos" />}>Todos os produtos</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/mais-vendidos" />}>Mais vendidos</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/lancamentos" />}>Lançamentos</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/contato" />}>Contato</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/faq" />}>Dúvidas frequentes</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/produtos" />}>{t.header.allProducts}</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/mais-vendidos" />}>{t.header.bestSellers}</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/lancamentos" />}>{t.header.launches}</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/contato" />}>{t.header.contact}</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/faq" />}>{t.header.faq}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </nav>
@@ -279,9 +287,9 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar produtos..."
+              placeholder={t.header.searchPlaceholder}
               className="pl-9"
-              aria-label="Buscar produtos"
+              aria-label={t.header.searchPlaceholder}
             />
           </div>
         </form>

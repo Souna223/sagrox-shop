@@ -11,20 +11,16 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { useI18n } from "@/lib/i18n/provider";
 
 type LoginFormProps = {
   callbackUrl?: string;
   error?: string;
 };
 
-const ERROR_LABELS: Record<string, string> = {
-  CredentialsSignin: "E-mail ou senha incorretos.",
-  blocked: "Sua conta foi bloqueada. Entre em contato com o suporte.",
-  default: "Não foi possível entrar. Tente novamente.",
-};
-
 export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
   const router = useRouter();
+  const { t } = useI18n();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
@@ -40,10 +36,16 @@ export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
         redirect: false,
       });
       if (res?.error) {
-        toast.error(ERROR_LABELS[res.error] ?? ERROR_LABELS.default);
+        toast.error(
+          res.error === "blocked"
+            ? t.auth.errorBlocked
+            : res.error
+              ? t.auth.errorCredentials
+              : t.auth.errorDefault,
+        );
         return;
       }
-      toast.success("Login realizado com sucesso!");
+      toast.success(t.auth.loginSuccess);
       router.push(callbackUrl);
       router.refresh();
     } finally {
@@ -60,31 +62,31 @@ export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
     <div>
       {error ? (
         <div className="mb-4 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-          {ERROR_LABELS[error] ?? ERROR_LABELS.default}
+          {error === "blocked" ? t.auth.errorBlocked : t.auth.errorCredentials}
         </div>
       ) : null}
 
       <form onSubmit={submit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email">E-mail</Label>
+          <Label htmlFor="email">{t.auth.email}</Label>
           <Input
             id="email"
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="voce@exemplo.com"
+            placeholder={t.auth.emailPlaceholder}
             required
           />
         </div>
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password">Senha</Label>
+            <Label htmlFor="password">{t.auth.password}</Label>
             <Link
               href="/recuperar-senha"
               className="text-xs font-medium text-primary hover:underline"
             >
-              Esqueci minha senha
+              {t.auth.forgotPassword}
             </Link>
           </div>
           <Input
@@ -98,28 +100,28 @@ export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
         </div>
         <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <Checkbox checked={remember} onCheckedChange={(v) => setRemember(!!v)} />
-          Manter conectado
+          {t.auth.rememberMe}
         </label>
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
-          Entrar
+          {t.auth.signIn}
         </Button>
       </form>
 
       <div className="my-6 flex items-center gap-3">
         <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">ou continue com</span>
+        <span className="text-xs text-muted-foreground">{t.auth.orContinueWith}</span>
         <Separator className="flex-1" />
       </div>
 
       <Button type="button" variant="outline" className="w-full" onClick={googleLogin} disabled={loading}>
-        Entrar com Google
+        {t.auth.signInGoogle}
       </Button>
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
-        Ainda não tem conta?{" "}
+        {t.auth.noAccount}{" "}
         <Link href="/cadastro" className="font-medium text-primary hover:underline">
-          Cadastre-se
+          {t.auth.signUp}
         </Link>
       </p>
     </div>

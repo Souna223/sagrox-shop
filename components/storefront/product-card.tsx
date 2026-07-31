@@ -10,6 +10,8 @@ import { calcPriceInfo } from "@/lib/prices";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 export type ProductCardData = {
   id: string;
@@ -35,6 +37,7 @@ function toNumber(v: string | number | { toString(): string } | null | undefined
 }
 
 export function ProductCard({ product, priority = false }: { product: ProductCardData; priority?: boolean }) {
+  const { t } = useI18n();
   const price = toNumber(product.price);
   const compareAt = toNumber(product.compareAtPrice);
   const rating = toNumber(product.ratingAvg);
@@ -47,7 +50,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
 
   const handleAddToCart = () => {
     if (product.stock <= 0) {
-      toast.error("Produto esgotado");
+      toast.error(t.productCard.outOfStock);
       return;
     }
     addItem({
@@ -60,7 +63,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
       image: image ?? "",
       stock: product.stock,
     });
-    toast.success("Produto adicionado ao carrinho");
+    toast.success(t.productCard.addedToCart);
   };
 
   return (
@@ -77,7 +80,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
             unoptimized
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground">Sem imagem</div>
+          <div className="flex h-full items-center justify-center text-muted-foreground">{t.productCard.noImage}</div>
         )}
 
         <div className="absolute left-2 top-2 flex flex-col gap-1">
@@ -88,7 +91,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
           ) : null}
           {product.isNew ? (
             <Badge variant="secondary" className="bg-primary text-primary-foreground">
-              Novo
+              {t.productCard.new}
             </Badge>
           ) : null}
         </div>
@@ -101,7 +104,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
             e.preventDefault();
             toggleWishlist(product.id);
           }}
-          aria-label={inWishlist ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+          aria-label={inWishlist ? t.productCard.removeFromFavorites : t.productCard.addToFavorites}
         >
           <Heart className={`size-4 ${inWishlist ? "fill-current" : ""}`} />
         </Button>
@@ -132,7 +135,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
         ) : (
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Star className="size-3 opacity-30" />
-            <span>Sem avaliações</span>
+            <span>{t.productCard.noReviews}</span>
           </div>
         )}
 
@@ -144,21 +147,21 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
             <div>
               <p className="text-lg font-bold">{formatBRL(price)}</p>
               <p className="text-xs text-muted-foreground">
-                em até {info.installment}x de {formatBRL(info.installmentValue)}
+                {fmt(t.productCard.installmentOf, { x: info.installment, y: formatBRL(info.installmentValue) })}
               </p>
             </div>
             <Button
               size="icon"
               className="size-9 shrink-0"
               onClick={handleAddToCart}
-              aria-label="Adicionar ao carrinho"
+              aria-label={t.productCard.addToCart}
             >
               <ShoppingCart className="size-4" />
             </Button>
           </div>
           {product.freeShipping ? (
             <p className="mt-1 flex items-center gap-1 text-xs font-medium text-emerald-600">
-              <Truck className="size-3.5" /> Frete grátis
+              <Truck className="size-3.5" /> {t.productCard.freeShipping}
             </p>
           ) : null}
         </div>

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/pagination";
 import { getPageNumbers, buildCatalogUrl } from "@/lib/catalog";
 import type { CategoryWithCount, BrandWithCount } from "@/lib/products";
+import { getDictionary } from "@/lib/i18n/server";
 
 export type CatalogResult = {
   products: ProductCardData[];
@@ -39,7 +40,7 @@ function FiltersFallback() {
   return <div className="hidden lg:block"><Skeleton className="h-80 w-full" /></div>;
 }
 
-export function CatalogView({
+export async function CatalogView({
   title,
   description,
   basePath,
@@ -51,6 +52,7 @@ export function CatalogView({
   breadcrumb,
 }: CatalogViewProps) {
   const { products, total, page, totalPages } = result;
+  const t = await getDictionary();
 
   const pageLinks = getPageNumbers(page, totalPages);
   const paginate = (p: number) => buildCatalogUrl(basePath, params, { pagina: String(p) });
@@ -83,13 +85,13 @@ export function CatalogView({
             <div className="flex flex-col items-center justify-center gap-3 rounded-xl border py-20 text-center">
               <PackageSearch className="size-10 text-muted-foreground" />
               <div>
-                <p className="font-medium">Nenhum produto encontrado</p>
+                <p className="font-medium">{t.catalog.noProducts}</p>
                 <p className="text-sm text-muted-foreground">
-                  Tente ajustar os filtros ou buscar por outro termo.
+                  {t.catalog.adjustFilters}
                 </p>
               </div>
               <Link href={basePath} className="text-sm font-medium text-primary hover:underline">
-                Limpar filtros
+                {t.catalog.clearFilters}
               </Link>
             </div>
           ) : (
@@ -105,7 +107,7 @@ export function CatalogView({
                   <PaginationContent>
                     {page > 1 ? (
                       <PaginationItem>
-                        <PaginationPrevious href={paginate(page - 1)} text="Anterior" />
+                        <PaginationPrevious href={paginate(page - 1)} text={t.catalog.previous} />
                       </PaginationItem>
                     ) : null}
                     {pageLinks.map((p, i) =>
@@ -125,7 +127,7 @@ export function CatalogView({
                     )}
                     {page < totalPages ? (
                       <PaginationItem>
-                        <PaginationNext href={paginate(page + 1)} text="Próxima" />
+                        <PaginationNext href={paginate(page + 1)} text={t.catalog.next} />
                       </PaginationItem>
                     ) : null}
                   </PaginationContent>

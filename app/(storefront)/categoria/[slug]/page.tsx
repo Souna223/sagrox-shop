@@ -12,6 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import { getDictionary } from "@/lib/i18n/server";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -24,7 +25,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
     where: { slug, active: true },
     select: { name: true, seoTitle: true, seoDescription: true, description: true },
   });
-  if (!category) return { title: "Categoria não encontrada" };
+  const t = await getDictionary();
+  if (!category) return { title: t.account.categoryNotFound };
   return {
     title: category.seoTitle ?? category.name,
     description: category.seoDescription ?? category.description ?? undefined,
@@ -34,6 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const { slug } = await params;
   const sp = await searchParams;
+  const t = await getDictionary();
 
   const category = await prisma.category.findFirst({
     where: { slug, active: true },
@@ -85,11 +88,11 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
     <Breadcrumb className="mb-6">
       <BreadcrumbList>
         <BreadcrumbItem>
-          <BreadcrumbLink render={<Link href="/" />}>Início</BreadcrumbLink>
+          <BreadcrumbLink render={<Link href="/" />}>{t.account.home}</BreadcrumbLink>
         </BreadcrumbItem>
         <BreadcrumbSeparator />
         <BreadcrumbItem>
-          <BreadcrumbLink render={<Link href="/produtos" />}>Produtos</BreadcrumbLink>
+          <BreadcrumbLink render={<Link href="/produtos" />}>{t.catalog.productsTitle}</BreadcrumbLink>
         </BreadcrumbItem>
         {category.parent ? (
           <>
