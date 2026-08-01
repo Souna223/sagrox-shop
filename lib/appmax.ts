@@ -237,7 +237,19 @@ async function getAppmaxMerchantToken(): Promise<string> {
   return json.access_token;
 }
 
-type ApiData<T> = { data?: T };
+function appmaxErrorDetail(json: Record<string, unknown>): string {
+  if (typeof json.error === "string" && json.error) return json.error;
+  if (json.errors && typeof json.errors === "object") {
+    const fields = Object.entries(json.errors as Record<string, unknown>);
+    const msgs: string[] = [];
+    for (const [field, value] of fields) {
+      if (Array.isArray(value)) msgs.push(`${field}: ${value.join("; ")}`);
+    }
+    if (msgs.length) return msgs.join(" | ");
+  }
+  if (typeof json.message === "string" && json.message) return json.message;
+  return "resposta inválida";
+}
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const token = await getAppmaxMerchantToken();
@@ -251,12 +263,12 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
     body: JSON.stringify(body),
   });
 
-  const json = (await res.json().catch(() => ({}))) as ApiData<T> & { error?: string; message?: string };
+  const raw = await res.text().catch(() => "");
+  const json = (raw ? JSON.parse(raw) : {}) as Record<string, unknown> & { data?: T };
 
   if (!res.ok || json.error) {
-    throw new Error(
-      `Erro AppMax ${path} (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`,
-    );
+    console.error(`[appmax-debug] ${path} -> ${res.status}`, { requestBody: body, rawBody: raw });
+    throw new Error(`Erro AppMax ${path} (${res.status}): ${appmaxErrorDetail(json)}`);
   }
 
   const data = json.data;
@@ -275,10 +287,11 @@ async function apiGet<T>(path: string): Promise<T> {
     headers: { Authorization: `Bearer ${token}` },
   });
 
-  const json = (await res.json().catch(() => ({}))) as ApiData<T> & { error?: string; message?: string };
+  const raw = await res.text().catch(() => "");
+  const json = (raw ? JSON.parse(raw) : {}) as Record<string, unknown> & { data?: T };
 
   if (!res.ok || json.error) {
-    throw new Error(`Erro AppMax GET ${path} (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`);
+    throw new Error(`Erro AppMax GET ${path} (${res.status}): ${appmaxErrorDetail(json)}`);
   }
 
   const data = json.data;
