@@ -931,6 +931,18 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
+model AppmaxInstallation {
+  id                   String   @id @default(cuid())
+  appId                String
+  externalKey          String   @unique
+  merchantClientId     String
+  merchantClientSecret String
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  @@index([appId])
+}
+
 model FAQ {
   id        String   @id @default(cuid())
   question  String

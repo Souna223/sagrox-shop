@@ -7,6 +7,7 @@ import {
   getAppmaxOrder,
   cents,
   appmaxEnabled,
+  appmaxReady,
 } from "@/lib/appmax";
 import type { AppmaxProduct } from "@/lib/appmax";
 
@@ -32,7 +33,7 @@ export type AppmaxCheckoutInput = {
 };
 
 export async function processOrderPayment(input: AppmaxCheckoutInput): Promise<void> {
-  if (!appmaxEnabled()) {
+  if (!appmaxEnabled() || !(await appmaxReady())) {
     return;
   }
 

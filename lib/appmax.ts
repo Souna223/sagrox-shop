@@ -1,22 +1,27 @@
+import { prisma } from "@/lib/prisma";
+
 const ENVIRONMENTS = {
   sandbox: {
     auth: "https://auth.sandboxappmax.com.br",
     api: "https://api.sandboxappmax.com.br",
+    admin: "https://breakingcode.sandboxappmax.com.br",
   },
   production: {
     auth: "https://auth.appmax.com.br",
     api: "https://api.appmax.com.br",
+    admin: "https://admin.appmax.com.br",
   },
 } as const;
 
 export type AppmaxEnv = keyof typeof ENVIRONMENTS;
 
-function envConfig(): { authUrl: string; apiUrl: string } {
+function envConfig(): { authUrl: string; apiUrl: string; adminUrl: string } {
   const env: AppmaxEnv = process.env.APPMAX_ENV === "production" ? "production" : "sandbox";
   const base = ENVIRONMENTS[env];
   return {
     authUrl: process.env.APPMAX_AUTH_URL ?? base.auth,
     apiUrl: process.env.APPMAX_API_URL ?? base.api,
+    adminUrl: process.env.APPMAX_ADMIN_URL ?? base.admin,
   };
 }
 
@@ -28,11 +33,25 @@ export function appmaxEnabled(): boolean {
   return isAppmaxConfigured() && process.env.APPMAX_ENABLED !== "false";
 }
 
-let tokenCache: { token: string; expiresAt: number } | null = null;
+/**
+ * AppMax está configurado (env) e possui credenciais de merchant instaladas?
+ * Comercio só funciona após a instalação OAuth gerar as credenciais do merchant.
+ */
+export async function appmaxReady(): Promise<boolean> {
+  if (!appmaxEnabled()) return false;
+  const inst = await prisma.appmaxInstallation.findFirst();
+  return Boolean(inst && inst.merchantClientId && inst.merchantClientSecret);
+}
 
-export async function getAppmaxToken(): Promise<string> {
-  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
-    return tokenCache.token;
+let appTokenCache: { token: string; expiresAt: number } | null = null;
+
+/**
+ * App-level token. Escopo limitado: usado apenas para a instalação do app
+ * (/app/authorize e /app/client/generate). Não executa transações.
+ */
+export async function getAppmaxAppToken(): Promise<string> {
+  if (appTokenCache && appTokenCache.expiresAt > Date.now() + 60_000) {
+    return appTokenCache.token;
   }
 
   const clientId = process.env.APPMAX_CLIENT_ID;
@@ -68,14 +87,159 @@ export async function getAppmaxToken(): Promise<string> {
   }
 
   const expiresIn = Number(json.expires_in ?? 3600);
-  tokenCache = { token: json.access_token, expiresAt: Date.now() + expiresIn * 1000 };
+  appTokenCache = { token: json.access_token, expiresAt: Date.now() + expiresIn * 1000 };
+  return json.access_token;
+}
+
+// ---------------------------------------------------------------------------
+// Instalação (App credentials)
+// ---------------------------------------------------------------------------
+
+export async function authorizeAppmaxInstall(input: {
+  appId: string;
+  externalKey: string;
+  urlCallback: string;
+}): Promise<{ hash: string; redirectUrl: string }> {
+  const token = await getAppmaxAppToken();
+  const { apiUrl, adminUrl } = envConfig();
+
+  const res = await fetch(`${apiUrl}/app/authorize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({
+      app_id: input.appId,
+      external_key: input.externalKey,
+      url_callback: input.urlCallback,
+    }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    data?: { token?: string };
+    error?: string;
+    message?: string;
+  };
+
+  if (!res.ok || !json.data?.token) {
+    throw new Error(
+      `Erro AppMax /app/authorize (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`,
+    );
+  }
+
+  return {
+    hash: json.data.token,
+    redirectUrl: `${adminUrl}/appstore/integration/${json.data.token}`,
+  };
+}
+
+export async function generateAppmaxMerchantCreds(hash: string): Promise<{
+  clientId: string;
+  clientSecret: string;
+}> {
+  const token = await getAppmaxAppToken();
+  const { apiUrl } = envConfig();
+
+  const res = await fetch(`${apiUrl}/app/client/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ token: hash }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    data?: { client?: { client_id?: string; client_secret?: string } };
+    error?: string;
+    message?: string;
+  };
+
+  if (!res.ok || !json.data?.client?.client_id || !json.data?.client?.client_secret) {
+    throw new Error(
+      `Erro AppMax /app/client/generate (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`,
+    );
+  }
+
+  return {
+    clientId: json.data.client.client_id,
+    clientSecret: json.data.client.client_secret,
+  };
+}
+
+export async function saveAppmaxInstallation(input: {
+  appId: string;
+  externalKey: string;
+  merchantClientId: string;
+  merchantClientSecret: string;
+}): Promise<{ externalId: string }> {
+  const row = await prisma.appmaxInstallation.upsert({
+    where: { externalKey: input.externalKey },
+    update: {
+      appId: input.appId,
+      merchantClientId: input.merchantClientId,
+      merchantClientSecret: input.merchantClientSecret,
+    },
+    create: {
+      appId: input.appId,
+      externalKey: input.externalKey,
+      merchantClientId: input.merchantClientId,
+      merchantClientSecret: input.merchantClientSecret,
+    },
+  });
+  return { externalId: row.id };
+}
+
+export async function getAppmaxInstallation() {
+  return prisma.appmaxInstallation.findFirst();
+}
+
+// ---------------------------------------------------------------------------
+// Comércio (Merchant credentials)
+// ---------------------------------------------------------------------------
+
+let merchantTokenCache: { token: string; expiresAt: number } | null = null;
+
+async function getAppmaxMerchantToken(): Promise<string> {
+  if (merchantTokenCache && merchantTokenCache.expiresAt > Date.now() + 60_000) {
+    return merchantTokenCache.token;
+  }
+
+  const inst = await getAppmaxInstallation();
+  if (!inst) {
+    throw new Error("AppMax não está instalado. Complete a instalação no painel administrativo.");
+  }
+
+  const { authUrl } = envConfig();
+  const res = await fetch(`${authUrl}/oauth2/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: inst.merchantClientId,
+      client_secret: inst.merchantClientSecret,
+    }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error?: string;
+    error_description?: string;
+  };
+
+  if (!res.ok || !json.access_token) {
+    throw new Error(
+      `Falha na autenticação AppMax (merchant) (${res.status}): ${json.error ?? "erro desconhecido"} ${
+        json.error_description ?? ""
+      }`.trim(),
+    );
+  }
+
+  const expiresIn = Number(json.expires_in ?? 3600);
+  merchantTokenCache = { token: json.access_token, expiresAt: Date.now() + expiresIn * 1000 };
   return json.access_token;
 }
 
 type ApiData<T> = { data?: T };
 
 async function apiPost<T>(path: string, body: unknown): Promise<T> {
-  const token = await getAppmaxToken();
+  const token = await getAppmaxMerchantToken();
   const { apiUrl } = envConfig();
   const res = await fetch(`${apiUrl}${path}`, {
     method: "POST",
@@ -103,7 +267,7 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
 }
 
 async function apiGet<T>(path: string): Promise<T> {
-  const token = await getAppmaxToken();
+  const token = await getAppmaxMerchantToken();
   const { apiUrl } = envConfig();
   const res = await fetch(`${apiUrl}${path}`, {
     method: "GET",

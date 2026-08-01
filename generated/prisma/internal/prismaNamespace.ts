@@ -439,6 +439,7 @@ export const ModelName = {
   SessionActivity: 'SessionActivity',
   AuditLog: 'AuditLog',
   Setting: 'Setting',
+  AppmaxInstallation: 'AppmaxInstallation',
   FAQ: 'FAQ',
   Page: 'Page',
   Translation: 'Translation',
@@ -459,7 +460,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "authenticator" | "category" | "brand" | "product" | "productImage" | "productVariation" | "review" | "wishlistItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "refund" | "coupon" | "couponUsage" | "flashSale" | "flashSaleProduct" | "subscriber" | "marketingCampaign" | "referral" | "loyaltyTransaction" | "giftCard" | "abandonedCart" | "pushDevice" | "notification" | "customerNote" | "customerTag" | "customerTagsOnCustomers" | "customerSegment" | "address" | "shipment" | "shippingQuote" | "analyticsEvent" | "dailyMetric" | "sessionActivity" | "auditLog" | "setting" | "fAQ" | "page" | "translation" | "announcement" | "stockMovement"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "authenticator" | "category" | "brand" | "product" | "productImage" | "productVariation" | "review" | "wishlistItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "refund" | "coupon" | "couponUsage" | "flashSale" | "flashSaleProduct" | "subscriber" | "marketingCampaign" | "referral" | "loyaltyTransaction" | "giftCard" | "abandonedCart" | "pushDevice" | "notification" | "customerNote" | "customerTag" | "customerTagsOnCustomers" | "customerSegment" | "address" | "shipment" | "shippingQuote" | "analyticsEvent" | "dailyMetric" | "sessionActivity" | "auditLog" | "setting" | "appmaxInstallation" | "fAQ" | "page" | "translation" | "announcement" | "stockMovement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -3571,6 +3572,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    AppmaxInstallation: {
+      payload: Prisma.$AppmaxInstallationPayload<ExtArgs>
+      fields: Prisma.AppmaxInstallationFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.AppmaxInstallationFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.AppmaxInstallationFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        findFirst: {
+          args: Prisma.AppmaxInstallationFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.AppmaxInstallationFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        findMany: {
+          args: Prisma.AppmaxInstallationFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>[]
+        }
+        create: {
+          args: Prisma.AppmaxInstallationCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        createMany: {
+          args: Prisma.AppmaxInstallationCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.AppmaxInstallationCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>[]
+        }
+        delete: {
+          args: Prisma.AppmaxInstallationDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        update: {
+          args: Prisma.AppmaxInstallationUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        deleteMany: {
+          args: Prisma.AppmaxInstallationDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.AppmaxInstallationUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.AppmaxInstallationUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>[]
+        }
+        upsert: {
+          args: Prisma.AppmaxInstallationUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$AppmaxInstallationPayload>
+        }
+        aggregate: {
+          args: Prisma.AppmaxInstallationAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateAppmaxInstallation>
+        }
+        groupBy: {
+          args: Prisma.AppmaxInstallationGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppmaxInstallationGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.AppmaxInstallationCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AppmaxInstallationCountAggregateOutputType> | number
+        }
+      }
+    }
     FAQ: {
       payload: Prisma.$FAQPayload<ExtArgs>
       fields: Prisma.FAQFieldRefs
@@ -4679,6 +4754,19 @@ export const SettingScalarFieldEnum = {
 export type SettingScalarFieldEnum = (typeof SettingScalarFieldEnum)[keyof typeof SettingScalarFieldEnum]
 
 
+export const AppmaxInstallationScalarFieldEnum = {
+  id: 'id',
+  appId: 'appId',
+  externalKey: 'externalKey',
+  merchantClientId: 'merchantClientId',
+  merchantClientSecret: 'merchantClientSecret',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppmaxInstallationScalarFieldEnum = (typeof AppmaxInstallationScalarFieldEnum)[keyof typeof AppmaxInstallationScalarFieldEnum]
+
+
 export const FAQScalarFieldEnum = {
   id: 'id',
   question: 'question',
@@ -5297,6 +5385,7 @@ export type GlobalOmitConfig = {
   sessionActivity?: Prisma.SessionActivityOmit
   auditLog?: Prisma.AuditLogOmit
   setting?: Prisma.SettingOmit
+  appmaxInstallation?: Prisma.AppmaxInstallationOmit
   fAQ?: Prisma.FAQOmit
   page?: Prisma.PageOmit
   translation?: Prisma.TranslationOmit

@@ -93,6 +93,7 @@ export const ModelName = {
   SessionActivity: 'SessionActivity',
   AuditLog: 'AuditLog',
   Setting: 'Setting',
+  AppmaxInstallation: 'AppmaxInstallation',
   FAQ: 'FAQ',
   Page: 'Page',
   Translation: 'Translation',
@@ -813,6 +814,19 @@ export const SettingScalarFieldEnum = {
 } as const
 
 export type SettingScalarFieldEnum = (typeof SettingScalarFieldEnum)[keyof typeof SettingScalarFieldEnum]
+
+
+export const AppmaxInstallationScalarFieldEnum = {
+  id: 'id',
+  appId: 'appId',
+  externalKey: 'externalKey',
+  merchantClientId: 'merchantClientId',
+  merchantClientSecret: 'merchantClientSecret',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AppmaxInstallationScalarFieldEnum = (typeof AppmaxInstallationScalarFieldEnum)[keyof typeof AppmaxInstallationScalarFieldEnum]
 
 
 export const FAQScalarFieldEnum = {

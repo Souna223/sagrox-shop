@@ -2,7 +2,7 @@ import { checkoutSchema } from "@/lib/validators";
 import { ok, fail, handleError, parseJson, rateLimit, getClientIp, getSessionUser } from "@/lib/api";
 import { createOrder } from "@/lib/checkout";
 import { processOrderPayment, cancelOrderOnPaymentFailure } from "@/lib/appmax-checkout";
-import { appmaxEnabled } from "@/lib/appmax";
+import { appmaxEnabled, appmaxReady } from "@/lib/appmax";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -43,6 +43,15 @@ export async function POST(request: Request) {
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,
     });
+
+    if (appmaxEnabled() && !(await appmaxReady())) {
+      await cancelOrderOnPaymentFailure(
+        order.orderId,
+        "Gateway de pagamento ainda não configurado. Tente novamente mais tarde.",
+        getClientIp(request),
+      );
+      return fail("O checkout está indisponível no momento. Tente novamente em instantes.", 503);
+    }
 
     if (appmaxEnabled()) {
       const cpf = (data.cpf ?? "").replace(/\D/g, "");

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/api";
 import { SettingsForm } from "@/components/admin/settings-form";
+import { AppmaxIntegration } from "@/components/admin/appmax-integration";
 import type { SettingValues } from "@/lib/admin-settings";
 
 export const metadata: Metadata = {
@@ -19,6 +20,7 @@ export default async function AdminSettingsPage() {
         <h1 className="text-2xl font-bold">Configurações</h1>
         <p className="mt-1 text-sm text-muted-foreground">Ajustes gerais da loja.</p>
       </div>
+      <AppmaxIntegration />
       <SettingsForm initial={initial} />
     </div>
   );

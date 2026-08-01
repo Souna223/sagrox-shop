@@ -228,6 +228,11 @@ export type AuditLog = Prisma.AuditLogModel
  */
 export type Setting = Prisma.SettingModel
 /**
+ * Model AppmaxInstallation
+ * 
+ */
+export type AppmaxInstallation = Prisma.AppmaxInstallationModel
+/**
  * Model FAQ
  * 
  */
