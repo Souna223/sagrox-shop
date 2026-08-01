@@ -214,7 +214,7 @@ export const checkoutSchema = z.object({
       number: z.string().regex(/^\d{12,19}$/, "Número do cartão inválido."),
       holderName: z.string().min(3, "Informe o nome impresso no cartão."),
       expirationMonth: z.string().regex(/^\d{2}$/, "Mês de validade inválido."),
-      expirationYear: z.string().regex(/^\d{2}$/, "Ano de validade inválido."),
+      expirationYear: z.string().regex(/^(?:\d{2}|\d{4})$/, "Ano de validade inválido."),
       cvv: z.string().regex(/^\d{3,4}$/, "CVV inválido."),
     })
     .optional(),
