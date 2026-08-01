@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { auditLog } from "@/lib/audit";
 import { serializeRecord } from "@/lib/serialize";
 import { ORDER_STATUS_TRANSITIONS, TERMINAL_ORDER_STATUSES } from "@/lib/constants";
+import { requestAppmaxRefund, appmaxEnabled, cents } from "@/lib/appmax";
 import type { OrderStatus } from "@/generated/prisma/enums";
 
 export function serializeAdminOrder<T extends Record<string, unknown>>(order: T): T {
@@ -105,6 +106,15 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
     },
     ip: input.ip,
   });
+
+  if (input.status === "REFUNDED" && appmaxEnabled()) {
+    const payment = await prisma.payment.findFirst({ where: { orderId: order.id } });
+    if (payment?.gatewayOrderId) {
+      requestAppmaxRefund(Number(payment.gatewayOrderId), cents(Number(order.total))).catch((err) => {
+        console.error(`[appmax] Falha ao solicitar reembolso do pedido #${order.number}:`, err);
+      });
+    }
+  }
 
   return updated;
 }

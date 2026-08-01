@@ -1,6 +1,8 @@
 import { checkoutSchema } from "@/lib/validators";
 import { ok, fail, handleError, parseJson, rateLimit, getClientIp, getSessionUser } from "@/lib/api";
 import { createOrder } from "@/lib/checkout";
+import { processOrderPayment, cancelOrderOnPaymentFailure } from "@/lib/appmax-checkout";
+import { appmaxEnabled } from "@/lib/appmax";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -41,6 +43,35 @@ export async function POST(request: Request) {
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,
     });
+
+    if (appmaxEnabled()) {
+      const cpf = (data.cpf ?? "").replace(/\D/g, "");
+      if (cpf.length !== 11) {
+        await cancelOrderOnPaymentFailure(order.orderId, "CPF inválido ou não informado.", getClientIp(request));
+        return fail("Informe um CPF válido para realizar o pagamento.", 422);
+      }
+
+      try {
+        await processOrderPayment({
+          orderId: order.orderId,
+          paymentMethod: data.paymentMethod,
+          installments: data.installments,
+          cpf,
+          phone: data.phone ?? null,
+          ip: getClientIp(request),
+          utmSource: data.utmSource,
+          utmMedium: data.utmMedium,
+          utmCampaign: data.utmCampaign,
+          utmTerm: data.utmTerm,
+          utmContent: data.utmContent,
+          card: data.card,
+        });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Falha ao processar o pagamento.";
+        await cancelOrderOnPaymentFailure(order.orderId, message, getClientIp(request));
+        return fail(message, 502);
+      }
+    }
 
     if (user) {
       const addressCount = await prisma.address.count({ where: { userId: user.id } });

@@ -209,6 +209,15 @@ export const checkoutSchema = z.object({
   couponCode: z.string().optional(),
   paymentMethod: z.enum(["PIX", "CREDIT_CARD", "BOLETO"]),
   installments: z.number().int().min(1).max(12).optional(),
+  card: z
+    .object({
+      number: z.string().regex(/^\d{12,19}$/, "Número do cartão inválido."),
+      holderName: z.string().min(3, "Informe o nome impresso no cartão."),
+      expirationMonth: z.string().regex(/^\d{2}$/, "Mês de validade inválido."),
+      expirationYear: z.string().regex(/^\d{2}$/, "Ano de validade inválido."),
+      cvv: z.string().regex(/^\d{3,4}$/, "CVV inválido."),
+    })
+    .optional(),
   sessionId: z.string().optional(),
   utmSource: z.string().optional(),
   utmMedium: z.string().optional(),

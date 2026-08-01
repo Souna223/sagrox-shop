@@ -90,6 +90,10 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
   const [paymentMethod, setPaymentMethod] = useState<"PIX" | "CREDIT_CARD" | "BOLETO">("PIX");
   const [installments, setInstallments] = useState(1);
+  const [cardNumber, setCardNumber] = useState("");
+  const [cardName, setCardName] = useState("");
+  const [cardExpiry, setCardExpiry] = useState("");
+  const [cardCvv, setCardCvv] = useState("");
   const [couponCode, setCouponCode] = useState("");
   const [appliedCoupon, setAppliedCoupon] = useState<{
     code: string;
@@ -200,10 +204,32 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
   };
 
   const placeOrder = async () => {
+    if (paymentMethod === "CREDIT_CARD") {
+      const digits = cardNumber.replace(/\D/g, "");
+      const expParts = cardExpiry.split("/");
+      if (digits.length < 12) {
+        setError(t.checkout.cardNumberError);
+        return;
+      }
+      if (cardName.trim().length < 3) {
+        setError(t.checkout.cardNameError);
+        return;
+      }
+      if (expParts.length !== 2 || expParts[0].length !== 2 || expParts[1].length !== 2) {
+        setError(t.checkout.cardExpiryError);
+        return;
+      }
+      if (!/^\d{3,4}$/.test(cardCvv)) {
+        setError(t.checkout.cardCvvError);
+        return;
+      }
+    }
+
     setSubmitting(true);
     setError(null);
     try {
       const qs = new URLSearchParams(window.location.search);
+      const expParts = cardExpiry.split("/");
       const payload = {
         email: email.trim().toLowerCase(),
         customerName: name.trim(),
@@ -227,6 +253,16 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
         couponCode: appliedCoupon?.code,
         paymentMethod,
         installments: paymentMethod === "CREDIT_CARD" ? cardInstallments : undefined,
+        card:
+          paymentMethod === "CREDIT_CARD"
+            ? {
+                number: cardNumber.replace(/\D/g, ""),
+                holderName: cardName.trim(),
+                expirationMonth: expParts[0] ?? "",
+                expirationYear: expParts[1] ?? "",
+                cvv: cardCvv,
+              }
+            : undefined,
         sessionId: localStorage.getItem("wbsite.session-id") ?? undefined,
         utmSource: qs.get("utm_source") ?? undefined,
         utmMedium: qs.get("utm_medium") ?? undefined,
@@ -513,19 +549,42 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                 <div className="grid gap-4 rounded-xl bg-muted/40 p-4 sm:grid-cols-2">
                   <div className="sm:col-span-2">
                     <label className="mb-1.5 block text-sm font-medium">{t.checkout.cardNumber}</label>
-                    <Input placeholder="0000 0000 0000 0000" inputMode="numeric" />
+                    <Input
+                      value={cardNumber}
+                      onChange={(e) =>
+                        setCardNumber(
+                          e.target.value.replace(/\D/g, "").slice(0, 19),
+                        )
+                      }
+                      inputMode="numeric"
+                      placeholder="0000 0000 0000 0000"
+                    />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="mb-1.5 block text-sm font-medium">{t.checkout.cardName}</label>
-                    <Input placeholder={t.checkout.cardNamePlaceholder} />
+                    <Input value={cardName} onChange={(e) => setCardName(e.target.value.toUpperCase())} placeholder={t.checkout.cardNamePlaceholder} />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium">{t.checkout.expiry}</label>
-                    <Input placeholder="MM/AA" inputMode="numeric" />
+                    <Input
+                      value={cardExpiry}
+                      onChange={(e) => {
+                        const digits = e.target.value.replace(/\D/g, "").slice(0, 4);
+                        setCardExpiry(digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits);
+                      }}
+                      inputMode="numeric"
+                      placeholder="MM/AA"
+                    />
                   </div>
                   <div>
                     <label className="mb-1.5 block text-sm font-medium">{t.checkout.cvv}</label>
-                    <Input placeholder="123" inputMode="numeric" maxLength={4} />
+                    <Input
+                      value={cardCvv}
+                      onChange={(e) => setCardCvv(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                      inputMode="numeric"
+                      placeholder="123"
+                      maxLength={4}
+                    />
                   </div>
                   <div className="sm:col-span-2">
                     <label className="mb-1.5 block text-sm font-medium">{t.checkout.installments}</label>

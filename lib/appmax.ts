@@ -1,0 +1,313 @@
+const ENVIRONMENTS = {
+  sandbox: {
+    auth: "https://auth.sandboxappmax.com.br",
+    api: "https://api.sandboxappmax.com.br",
+  },
+  production: {
+    auth: "https://auth.appmax.com.br",
+    api: "https://api.appmax.com.br",
+  },
+} as const;
+
+export type AppmaxEnv = keyof typeof ENVIRONMENTS;
+
+function envConfig(): { authUrl: string; apiUrl: string } {
+  const env: AppmaxEnv = process.env.APPMAX_ENV === "production" ? "production" : "sandbox";
+  const base = ENVIRONMENTS[env];
+  return {
+    authUrl: process.env.APPMAX_AUTH_URL ?? base.auth,
+    apiUrl: process.env.APPMAX_API_URL ?? base.api,
+  };
+}
+
+export function isAppmaxConfigured(): boolean {
+  return Boolean(process.env.APPMAX_CLIENT_ID && process.env.APPMAX_CLIENT_SECRET);
+}
+
+export function appmaxEnabled(): boolean {
+  return isAppmaxConfigured() && process.env.APPMAX_ENABLED !== "false";
+}
+
+let tokenCache: { token: string; expiresAt: number } | null = null;
+
+export async function getAppmaxToken(): Promise<string> {
+  if (tokenCache && tokenCache.expiresAt > Date.now() + 60_000) {
+    return tokenCache.token;
+  }
+
+  const clientId = process.env.APPMAX_CLIENT_ID;
+  const clientSecret = process.env.APPMAX_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new Error("AppMax não está configurado (APPMAX_CLIENT_ID / APPMAX_CLIENT_SECRET).");
+  }
+
+  const { authUrl } = envConfig();
+  const res = await fetch(`${authUrl}/oauth2/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: clientId,
+      client_secret: clientSecret,
+    }),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as {
+    access_token?: string;
+    expires_in?: number;
+    error?: string;
+    error_description?: string;
+  };
+
+  if (!res.ok || !json.access_token) {
+    throw new Error(
+      `Falha na autenticação AppMax (${res.status}): ${json.error ?? "erro desconhecido"} ${
+        json.error_description ?? ""
+      }`.trim(),
+    );
+  }
+
+  const expiresIn = Number(json.expires_in ?? 3600);
+  tokenCache = { token: json.access_token, expiresAt: Date.now() + expiresIn * 1000 };
+  return json.access_token;
+}
+
+type ApiData<T> = { data?: T };
+
+async function apiPost<T>(path: string, body: unknown): Promise<T> {
+  const token = await getAppmaxToken();
+  const { apiUrl } = envConfig();
+  const res = await fetch(`${apiUrl}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify(body),
+  });
+
+  const json = (await res.json().catch(() => ({}))) as ApiData<T> & { error?: string; message?: string };
+
+  if (!res.ok || json.error) {
+    throw new Error(
+      `Erro AppMax ${path} (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`,
+    );
+  }
+
+  const data = json.data;
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    throw new Error(`AppMax retornou resposta vazia em ${path}.`);
+  }
+
+  return data;
+}
+
+async function apiGet<T>(path: string): Promise<T> {
+  const token = await getAppmaxToken();
+  const { apiUrl } = envConfig();
+  const res = await fetch(`${apiUrl}${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  const json = (await res.json().catch(() => ({}))) as ApiData<T> & { error?: string; message?: string };
+
+  if (!res.ok || json.error) {
+    throw new Error(`Erro AppMax GET ${path} (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`);
+  }
+
+  const data = json.data;
+  if (!data || (Array.isArray(data) && data.length === 0)) {
+    throw new Error(`AppMax retornou resposta vazia em GET ${path}.`);
+  }
+
+  return data;
+}
+
+export const cents = (value: number): number => Math.round(value * 100);
+
+export type AppmaxAddress = {
+  postcode: string;
+  street: string;
+  number: string;
+  complement?: string;
+  district?: string;
+  city: string;
+  state: string;
+};
+
+export type AppmaxProduct = {
+  sku: string;
+  name: string;
+  quantity: number;
+  unit_value: number;
+  type: "physical" | "digital";
+};
+
+export type AppmaxTracking = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+};
+
+export type CreateAppmaxCustomerInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string | null;
+  documentNumber: string;
+  ip?: string | null;
+  address?: AppmaxAddress;
+  products?: AppmaxProduct[];
+  tracking?: AppmaxTracking;
+};
+
+export async function createAppmaxCustomer(
+  input: CreateAppmaxCustomerInput,
+): Promise<{ customerId: number }> {
+  const data = await apiPost<{ customer: { id: number } }>("/v1/customers", {
+    first_name: input.firstName,
+    last_name: input.lastName,
+    email: input.email,
+    phone: input.phone ?? undefined,
+    document_number: input.documentNumber,
+    ip: input.ip ?? undefined,
+    address: input.address,
+    products: input.products,
+    tracking: input.tracking,
+  });
+
+  return { customerId: data.customer.id };
+}
+
+export type CreateAppmaxOrderInput = {
+  customerId: number;
+  productsValueCents: number;
+  discountValueCents: number;
+  shippingValueCents: number;
+  products: AppmaxProduct[];
+};
+
+export async function createAppmaxOrder(
+  input: CreateAppmaxOrderInput,
+): Promise<{ orderId: number }> {
+  const data = await apiPost<{ order: { id: number } }>("/v1/orders", {
+    customer_id: input.customerId,
+    products_value: input.productsValueCents,
+    discount_value: input.discountValueCents,
+    shipping_value: input.shippingValueCents,
+    products: input.products,
+  });
+
+  return { orderId: data.order.id };
+}
+
+export async function getAppmaxOrder(orderId: number): Promise<{
+  status: string;
+  payment?: {
+    method?: string;
+    installments?: number;
+    card?: { brand?: string; number?: string };
+    paid_at?: string;
+  };
+}> {
+  const data = await apiGet<{ order: { status: string } } & Record<string, unknown>>(`/v1/orders/${orderId}`);
+  const order = (data.order ?? data) as {
+    status: string;
+    payment?: { method?: string; installments?: number; card?: { brand?: string; number?: string }; paid_at?: string };
+  };
+  return { status: order.status, payment: order.payment };
+}
+
+export type AppmaxPaymentResult =
+  | { method: "PIX"; pixQrcode: string; pixEmv: string }
+  | { method: "BOLETO"; boletoLinkPdf: string; boletoDigitableLine: string }
+  | {
+      method: "CREDIT_CARD";
+      payReference: string;
+      status: string;
+    };
+
+export async function processAppmaxPayment(
+  input: {
+    orderId: number;
+    customerId: number;
+    method: "PIX" | "BOLETO" | "CREDIT_CARD";
+    documentNumber: string;
+    card?: {
+      number: string;
+      cvv: string;
+      expirationMonth: string;
+      expirationYear: string;
+      holderName: string;
+      installments: number;
+      softDescriptor?: string;
+    };
+  },
+): Promise<AppmaxPaymentResult> {
+  if (input.method === "PIX") {
+    const data = await apiPost<{ payment: { pix_qrcode: string; pix_emv: string } }>("/v1/payments/pix", {
+      order_id: input.orderId,
+      payment_data: { pix: { document_number: input.documentNumber } },
+    });
+    return {
+      method: "PIX",
+      pixQrcode: data.payment.pix_qrcode,
+      pixEmv: data.payment.pix_emv,
+    };
+  }
+
+  if (input.method === "BOLETO") {
+    const data = await apiPost<{
+      payment: { boleto_link_pdf: string; boleto_digitable_line: string };
+    }>("/v1/payments/boleto", {
+      order_id: input.orderId,
+      payment_data: { boleto: { document_number: input.documentNumber } },
+    });
+    return {
+      method: "BOLETO",
+      boletoLinkPdf: data.payment.boleto_link_pdf,
+      boletoDigitableLine: data.payment.boleto_digitable_line,
+    };
+  }
+
+  if (!input.card) {
+    throw new Error("Dados do cartão de crédito não informados.");
+  }
+
+  const data = await apiPost<{ payment: { pay_reference: string; status: string } }>(
+    "/v1/payments/credit-card",
+    {
+      order_id: input.orderId,
+      customer_id: input.customerId,
+      payment_data: {
+        credit_card: {
+          number: input.card.number,
+          cvv: input.card.cvv,
+          expiration_month: input.card.expirationMonth,
+          expiration_year: input.card.expirationYear,
+          holder_name: input.card.holderName,
+          holder_document_number: input.documentNumber,
+          installments: input.card.installments,
+          soft_descriptor: input.card.softDescriptor,
+        },
+      },
+    },
+  );
+
+  return {
+    method: "CREDIT_CARD",
+    payReference: data.payment.pay_reference,
+    status: data.payment.status,
+  };
+}
+
+export async function requestAppmaxRefund(orderId: number, valueCents: number): Promise<void> {
+  await apiPost("/v1/orders/refund-request", {
+    order_id: orderId,
+    type: "total",
+    value: valueCents,
+  });
+}

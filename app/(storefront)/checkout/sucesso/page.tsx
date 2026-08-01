@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CheckCircle2, Home, Package, Clock, Mail } from "lucide-react";
+import { CheckCircle2, Home, Package, Clock, Mail, FileText } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { formatBRL } from "@/lib/format";
 import { PAYMENT_METHOD, PAYMENT_STATUS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
+import { PixBox } from "@/components/storefront/pix-box";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dictionaries";
 
@@ -159,16 +160,32 @@ export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
               <Clock className="size-4" /> {t.success.payment}
             </h2>
             {payment?.method === "PIX" ? (
-              <p className="text-sm text-muted-foreground">
-                {t.success.pixProcessing}
-              </p>
+              <div className="space-y-3">
+                {payment.status === "APPROVED" ? (
+                  <p className="rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400">
+                    {t.success.paymentApproved}
+                  </p>
+                ) : null}
+                <PixBox qrCode={payment.pixQrCode} code={payment.pixCode} />
+              </div>
             ) : payment?.method === "BOLETO" ? (
-              <p className="text-sm text-muted-foreground">
-                {t.success.boletoProcessing}
-              </p>
+              <div className="space-y-3">
+                {payment.boletoUrl ? (
+                  <Button render={<a href={payment.boletoUrl} target="_blank" rel="noreferrer" />}>
+                    <FileText className="size-4" /> {t.success.emitBoleto}
+                  </Button>
+                ) : null}
+                {payment.boletoBarcode ? (
+                  <p className="break-all font-mono text-xs text-muted-foreground">
+                    {t.success.boletoDigitable}
+                    <br />
+                    {payment.boletoBarcode}
+                  </p>
+                ) : null}
+              </div>
             ) : (
               <p className="text-sm text-muted-foreground">
-                {t.success.cardProcessing}
+                {payment?.status === "APPROVED" ? t.success.paymentApproved : t.success.cardProcessing}
               </p>
             )}
             <p className="mt-2 text-sm">
