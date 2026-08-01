@@ -248,6 +248,7 @@ function appmaxErrorDetail(json: Record<string, unknown>): string {
     if (msgs.length) return msgs.join(" | ");
   }
   if (typeof json.message === "string" && json.message) return json.message;
+  if (Array.isArray(json.message) && json.message.length) return json.message.join(" | ");
   return "resposta inválida";
 }
 
@@ -267,8 +268,10 @@ async function apiPost<T>(path: string, body: unknown): Promise<T> {
   const json = (raw ? JSON.parse(raw) : {}) as Record<string, unknown> & { data?: T };
 
   if (!res.ok || json.error) {
+    const detail = appmaxErrorDetail(json);
+    const rawSnippet = raw ? ` — body: ${raw.slice(0, 500)}` : " (body vazio)";
     console.error(`[appmax-debug] ${path} -> ${res.status}`, { requestBody: body, rawBody: raw });
-    throw new Error(`Erro AppMax ${path} (${res.status}): ${appmaxErrorDetail(json)}`);
+    throw new Error(`Erro AppMax ${path} (${res.status}): ${detail}${rawSnippet}`);
   }
 
   const data = json.data;
@@ -291,7 +294,9 @@ async function apiGet<T>(path: string): Promise<T> {
   const json = (raw ? JSON.parse(raw) : {}) as Record<string, unknown> & { data?: T };
 
   if (!res.ok || json.error) {
-    throw new Error(`Erro AppMax GET ${path} (${res.status}): ${appmaxErrorDetail(json)}`);
+    const detail = appmaxErrorDetail(json);
+    const rawSnippet = raw ? ` — body: ${raw.slice(0, 500)}` : " (body vazio)";
+    throw new Error(`Erro AppMax GET ${path} (${res.status}): ${detail}${rawSnippet}`);
   }
 
   const data = json.data;

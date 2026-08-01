@@ -1,5 +1,6 @@
 import { checkoutSchema } from "@/lib/validators";
 import { ok, fail, handleError, parseJson, rateLimit, getClientIp, getSessionUser } from "@/lib/api";
+import { isValidCPF } from "@/lib/br";
 import { createOrder } from "@/lib/checkout";
 import { processOrderPayment, cancelOrderOnPaymentFailure } from "@/lib/appmax-checkout";
 import { appmaxEnabled, appmaxReady } from "@/lib/appmax";
@@ -55,8 +56,8 @@ export async function POST(request: Request) {
 
     if (appmaxEnabled()) {
       const cpf = (data.cpf ?? "").replace(/\D/g, "");
-      if (cpf.length !== 11) {
-        await cancelOrderOnPaymentFailure(order.orderId, "CPF inválido ou não informado.", getClientIp(request));
+      if (!isValidCPF(cpf)) {
+        await cancelOrderOnPaymentFailure(order.orderId, "CPF inválido.", getClientIp(request));
         return fail("Informe um CPF válido para realizar o pagamento.", 422);
       }
 
