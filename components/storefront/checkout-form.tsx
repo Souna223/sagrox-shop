@@ -259,7 +259,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
                 number: cardNumber.replace(/\D/g, ""),
                 holderName: cardName.trim(),
                 expirationMonth: expParts[0] ?? "",
-                expirationYear: expParts[1] ?? "",
+                expirationYear: expParts[1] ? `20${expParts[1]}` : "",
                 cvv: cardCvv,
               }
             : undefined,
