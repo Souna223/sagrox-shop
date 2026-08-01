@@ -144,7 +144,8 @@ export async function generateAppmaxMerchantCreds(hash: string): Promise<{
     body: JSON.stringify({ token: hash }),
   });
 
-  const json = (await res.json().catch(() => ({}))) as {
+  const raw = await res.text().catch(() => "");
+  const json = (raw ? JSON.parse(raw) : {}) as {
     data?: { client?: { client_id?: string; client_secret?: string } };
     error?: string;
     message?: string;
@@ -152,7 +153,7 @@ export async function generateAppmaxMerchantCreds(hash: string): Promise<{
 
   if (!res.ok || !json.data?.client?.client_id || !json.data?.client?.client_secret) {
     throw new Error(
-      `Erro AppMax /app/client/generate (${res.status}): ${json.error ?? json.message ?? "resposta inválida"}`,
+      `Erro AppMax /app/client/generate (${res.status}): ${json.error ?? json.message ?? (raw || "resposta inválida")}`,
     );
   }
 

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   generateAppmaxMerchantCreds,
   saveAppmaxInstallation,
+  getAppmaxInstallation,
   appmaxEnabled,
 } from "@/lib/appmax";
 
@@ -74,26 +75,41 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ ok: true, message: "Nenhum token recebido." });
     }
 
-    const { clientId, clientSecret } = await generateAppmaxMerchantCreds(token);
     const appId = process.env.APPMAX_APP_ID_NUMERIC ?? "";
     const externalKey = process.env.APPMAX_EXTERNAL_KEY ?? "sagrox";
 
-    const { externalId } = await saveAppmaxInstallation({
-      appId,
-      externalKey,
-      merchantClientId: clientId,
-      merchantClientSecret: clientSecret,
-    });
-
-    console.log(`[appmax-callback] Credenciais de merchant geradas (external_id=${externalId})`);
-    return NextResponse.json({
-      ok: true,
-      message: "Instalação AppMax concluída.",
-      external_id: externalId,
-    });
+    try {
+      const { clientId, clientSecret } = await generateAppmaxMerchantCreds(token);
+      const { externalId } = await saveAppmaxInstallation({
+        appId,
+        externalKey,
+        merchantClientId: clientId,
+        merchantClientSecret: clientSecret,
+      });
+      console.log(`[appmax-callback] Credenciais de merchant geradas (external_id=${externalId})`);
+      return NextResponse.json({
+        ok: true,
+        message: "Instalação AppMax concluída.",
+        external_id: externalId,
+      });
+    } catch (error) {
+      const existing = await getAppmaxInstallation();
+      if (existing) {
+        console.log(
+          `[appmax-callback] Geração via token falhou mas a instalação já existe via health check (external_id=${existing.id})`,
+        );
+        return NextResponse.json({
+          ok: true,
+          message: "Instalação AppMax já concluída via health check.",
+          external_id: existing.id,
+        });
+      }
+      console.error("[appmax-callback] Erro ao concluir instalação:", error);
+      const message = error instanceof Error ? error.message : "Erro interno do servidor.";
+      return NextResponse.json({ ok: false, error: message }, { status: 502 });
+    }
   } catch (error) {
-    console.error("[appmax-callback] Erro ao concluir instalação:", error);
-    const message = error instanceof Error ? error.message : "Erro interno do servidor.";
-    return NextResponse.json({ ok: false, error: message }, { status: 502 });
+    console.error("[appmax-callback] Erro ao processar callback:", error);
+    return NextResponse.json({ ok: false, error: "Erro interno do servidor." }, { status: 500 });
   }
 }
