@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { Eye, Search } from "lucide-react";
+import { toast } from "sonner";
+import { Eye, Loader2, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -109,6 +110,7 @@ export function OrdersTable({ initial, q, status }: OrdersTableProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [search, setSearch] = useState(q);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const navigate = (nextQ: string, nextStatus: string, page = 1) => {
     router.push(buildUrl(pathname, nextQ, nextStatus, page));
@@ -117,6 +119,25 @@ export function OrdersTable({ initial, q, status }: OrdersTableProps) {
   const submitSearch = (e: React.FormEvent) => {
     e.preventDefault();
     navigate(search.trim(), status);
+  };
+
+  const remove = async (order: OrderRow) => {
+    if (!window.confirm(`Remover o pedido #${order.number}? Essa ação não pode ser desfeita.`)) return;
+    setDeletingId(order.id);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, { method: "DELETE" });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Erro ao remover o pedido.");
+        return;
+      }
+      toast.success("Pedido removido.");
+      router.refresh();
+    } catch {
+      toast.error("Erro ao remover o pedido.");
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const pages = getPageNumbers(initial.page, initial.totalPages);
@@ -209,7 +230,7 @@ export function OrdersTable({ initial, q, status }: OrdersTableProps) {
                     {formatDateTime(order.createdAt)}
                   </TableCell>
                   <TableCell>
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-1">
                       <Button
                         variant="ghost"
                         size="icon-sm"
@@ -217,6 +238,16 @@ export function OrdersTable({ initial, q, status }: OrdersTableProps) {
                         render={<Link href={`/admin/pedidos/${order.id}`} />}
                       >
                         <Eye className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label="Remover pedido"
+                        className="text-destructive hover:text-destructive"
+                        disabled={deletingId === order.id}
+                        onClick={() => remove(order)}
+                      >
+                        {deletingId === order.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
                       </Button>
                     </div>
                   </TableCell>

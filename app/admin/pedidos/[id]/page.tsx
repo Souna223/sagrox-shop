@@ -5,6 +5,7 @@ import { ArrowLeft, MapPin, ShoppingBag, Truck } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { serializeAdminOrder } from "@/lib/admin-orders";
 import { OrderStatusControl } from "@/components/admin/order-status-control";
+import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 import {
   ORDER_STATUS,
   ORDER_STATUS_STYLES,
@@ -189,6 +190,10 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         trackingCode={o.trackingCode}
         trackingUrl={o.trackingUrl}
       />
+
+      <div className="flex justify-end">
+        <DeleteOrderButton orderId={o.id} orderNumber={o.number} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="space-y-6 lg:col-span-2">

@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError, getClientIp } from "@/lib/api";
-import { serializeAdminOrder, updateOrderStatus } from "@/lib/admin-orders";
+import { serializeAdminOrder, updateOrderStatus, deleteOrder } from "@/lib/admin-orders";
 import type { OrderStatus } from "@/generated/prisma/enums";
 
 const ORDER_STATUSES: OrderStatus[] = [
@@ -88,6 +88,22 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 }
 
-export function DELETE() {
-  return fail("Operação não suportada.", 405);
+export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const admin = await requireAdmin();
+    const { id } = await params;
+
+    await deleteOrder({
+      orderId: id,
+      actor: { id: admin.id, name: admin.name },
+      ip: getClientIp(request),
+    });
+
+    return ok({ message: "Pedido removido." });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes("não encontrado")) {
+      return fail(error.message, 404);
+    }
+    return handleError(error);
+  }
 }
