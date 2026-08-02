@@ -4,6 +4,7 @@ import { isValidCPF } from "@/lib/br";
 import { createOrder } from "@/lib/checkout";
 import { processOrderPayment, cancelOrderOnPaymentFailure } from "@/lib/appmax-checkout";
 import { appmaxEnabled, appmaxReady } from "@/lib/appmax";
+import { recordEvent } from "@/lib/tracking";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -43,6 +44,16 @@ export async function POST(request: Request) {
       utmCampaign: data.utmCampaign,
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,
+    });
+
+    recordEvent({
+      eventType: "PURCHASE",
+      eventName: "checkout",
+      sessionId: data.sessionId ?? null,
+      userId: user?.id ?? null,
+      orderId: String(order.orderId),
+      value: order.total,
+      metadata: { paymentMethod: data.paymentMethod },
     });
 
     if (appmaxEnabled() && !(await appmaxReady())) {

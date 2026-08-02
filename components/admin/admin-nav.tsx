@@ -14,6 +14,7 @@ import {
   ScrollText,
   Store,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ type NavItem = {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { href: "/admin/analiticas", label: "Analíticas", icon: BarChart3 },
   { href: "/admin/pedidos", label: "Pedidos", icon: ShoppingCart },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/clientes", label: "Clientes", icon: Users },

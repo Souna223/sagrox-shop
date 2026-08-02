@@ -1,5 +1,6 @@
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
+import { AnalyticsTracker } from "@/components/storefront/analytics-tracker";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { I18nProvider } from "@/lib/i18n/provider";
@@ -28,6 +29,7 @@ export default async function StorefrontLayout({
 
   return (
     <I18nProvider>
+      <AnalyticsTracker />
       <div className="flex min-h-screen flex-col">
         <Header
           categories={categories}

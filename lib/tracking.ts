@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { AnalyticsEventType } from "@/generated/prisma/enums";
+import type { AnalyticsEventType, DeviceType } from "@/generated/prisma/enums";
 import { randomUUID } from "crypto";
 
 type TrackParams = {
@@ -14,6 +14,14 @@ type TrackParams = {
   value?: number;
   metadata?: Record<string, unknown> | null;
   ip?: string | null;
+  device?: DeviceType | null;
+  browser?: string | null;
+  os?: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
+  utmContent?: string | null;
+  utmTerm?: string | null;
 };
 
 export async function recordEvent(params: TrackParams): Promise<void> {
@@ -32,6 +40,14 @@ export async function recordEvent(params: TrackParams): Promise<void> {
         orderId: params.orderId ?? null,
         pagePath: params.pagePath ?? null,
         referrer: params.referrer ?? null,
+        device: params.device ?? null,
+        browser: params.browser ?? null,
+        os: params.os ?? null,
+        utmSource: params.utmSource ?? null,
+        utmMedium: params.utmMedium ?? null,
+        utmCampaign: params.utmCampaign ?? null,
+        utmContent: params.utmContent ?? null,
+        utmTerm: params.utmTerm ?? null,
         value: params.value ?? null,
         metadata: (params.metadata ?? null) as never,
       },

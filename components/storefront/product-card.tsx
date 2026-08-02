@@ -12,6 +12,7 @@ import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { toast } from "sonner";
 import { useI18n } from "@/lib/i18n/provider";
 import { fmt } from "@/lib/i18n/dictionaries";
+import { trackClient } from "@/lib/client-tracking";
 
 export type ProductCardData = {
   id: string;
@@ -63,6 +64,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
       image: image ?? "",
       stock: product.stock,
     });
+    trackClient("ADD_TO_CART", { productId: product.id, value: price });
     toast.success(t.productCard.addedToCart);
   };
 

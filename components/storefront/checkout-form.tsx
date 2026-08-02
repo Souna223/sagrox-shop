@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   ArrowRight,
@@ -35,6 +35,7 @@ import { toast } from "sonner";
 import { PixIcon, BoletoIcon } from "@/components/icons";
 import { useI18n } from "@/lib/i18n/provider";
 import { fmt } from "@/lib/i18n/dictionaries";
+import { trackClient } from "@/lib/client-tracking";
 
 type CheckoutUser = {
   id: string;
@@ -70,6 +71,15 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
   const clear = useCartStore((s) => s.clear);
 
   const [step, setStep] = useState<Step>("identification");
+  const itemsRef = useRef(items);
+
+  useEffect(() => {
+    if (itemsRef.current.length > 0) {
+      trackClient("BEGIN_CHECKOUT", {
+        value: itemsRef.current.reduce((s, i) => s + i.price * i.quantity, 0),
+      });
+    }
+  }, []);
 
   const [email, setEmail] = useState(user?.email ?? "");
   const [name, setName] = useState(user?.name ?? "");
@@ -120,6 +130,17 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
   const canIdentification = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && name.trim().length >= 3;
   const canDelivery = !!shippingCode && zip.length === 8 && street && number && neighborhood && city && state;
+
+  const totalRef = useRef(total);
+  useEffect(() => {
+    totalRef.current = total;
+  }, [total]);
+
+  useEffect(() => {
+    if (step === "payment") {
+      trackClient("ADD_PAYMENT_INFO", { value: totalRef.current });
+    }
+  }, [step]);
 
   const lookupCep = async () => {
     const digits = zip.replace(/\D/g, "");

@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import type { ProductDetailData } from "@/lib/products";
 import { useI18n } from "@/lib/i18n/provider";
 import { fmt } from "@/lib/i18n/dictionaries";
+import { trackClient } from "@/lib/client-tracking";
 
 export function ProductDetail({ product }: { product: ProductDetailData }) {
   const router = useRouter();
@@ -75,6 +76,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
       },
       quantity,
     );
+    trackClient("ADD_TO_CART", { productId: product.id, value: price * quantity });
     toast.success(t.productDetail.addedToCart);
     if (buyNow) router.push("/checkout");
   };
