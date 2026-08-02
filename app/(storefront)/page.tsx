@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ArrowRight, ShieldCheck, Truck, CreditCard, Headset } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
+import { ProductCarousel } from "@/components/storefront/product-carousel";
 import {
   getFeaturedProducts,
   getBestSellers,
@@ -40,7 +41,7 @@ export default async function HomePage() {
 
   return (
     <div>
-      <Hero t={t} />
+      <Hero t={t} featured={featured} />
 
       <section className="mx-auto max-w-7xl px-4 py-8">
         <TrustBar t={t} />
@@ -102,13 +103,6 @@ export default async function HomePage() {
         </section>
       ) : null}
 
-      {featured.length > 0 ? (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader title={t.home.featured} href="/produtos" linkLabel={t.home.viewAll} />
-          <ProductGrid products={featured} />
-        </section>
-      ) : null}
-
       {discounted.length > 0 ? (
         <section className="mx-auto max-w-7xl px-4 pb-12">
           <SectionHeader title={t.home.promotions} href="/promocoes" linkLabel={t.home.seeDeals} />
@@ -139,7 +133,7 @@ export default async function HomePage() {
   );
 }
 
-function Hero({ t }: { t: Dictionary }) {
+function Hero({ t, featured }: { t: Dictionary; featured: ProductCardData[] }) {
   return (
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-16 lg:grid-cols-2 lg:py-24">
@@ -189,6 +183,15 @@ function Hero({ t }: { t: Dictionary }) {
           </div>
         </div>
       </div>
+
+      {featured.length > 0 ? (
+        <div className="mx-auto max-w-7xl px-4 pb-12">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-primary-foreground">{t.home.featured}</h2>
+          </div>
+          <ProductCarousel products={featured.slice(0, 8)} />
+        </div>
+      ) : null}
     </section>
   );
 }

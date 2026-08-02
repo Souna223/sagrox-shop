@@ -75,6 +75,8 @@ export const dictionaries = {
       installmentsSubtitle: "Pix, boleto e cartão",
       supportTitle: "Suporte",
       supportSubtitle: "Atendimento humano",
+      previousProducts: "Produtos anteriores",
+      nextProducts: "Próximos produtos",
     },
     productCard: {
       outOfStock: "Produto esgotado",
@@ -564,6 +566,8 @@ export const dictionaries = {
       installmentsSubtitle: "Pix, boleto and card",
       supportTitle: "Support",
       supportSubtitle: "Human support",
+      previousProducts: "Previous products",
+      nextProducts: "Next products",
     },
     productCard: {
       outOfStock: "Product out of stock",

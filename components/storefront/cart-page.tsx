@@ -44,6 +44,15 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
+      <Link href="/" className="mb-4 inline-block" aria-label="Sagrox">
+        <Image
+          src="/logo.png"
+          alt="Sagrox"
+          width={1406}
+          height={768}
+          className="h-10 w-auto object-contain"
+        />
+      </Link>
       <h1 className="mb-6 text-2xl font-bold sm:text-3xl">
         {t.cart.myCart}{" "}
         <span className="text-base font-normal text-muted-foreground">{fmt(t.cart.itemsCount, { n: count })}</span>
