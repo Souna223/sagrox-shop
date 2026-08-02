@@ -29,7 +29,11 @@ export default async function LoginPage({ searchParams }: PageProps) {
 
   return (
     <AuthShell title={t.auth.loginTitle} description={t.auth.loginDescription}>
-      <LoginForm callbackUrl={callbackUrl?.startsWith("/") ? callbackUrl : "/conta"} error={error} />
+      <LoginForm
+        callbackUrl={callbackUrl?.startsWith("/") ? callbackUrl : "/conta"}
+        error={error}
+        googleEnabled={!!process.env.GOOGLE_CLIENT_ID && !!process.env.GOOGLE_CLIENT_SECRET}
+      />
     </AuthShell>
   );
 }

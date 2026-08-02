@@ -16,9 +16,10 @@ import { useI18n } from "@/lib/i18n/provider";
 type LoginFormProps = {
   callbackUrl?: string;
   error?: string;
+  googleEnabled?: boolean;
 };
 
-export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
+export function LoginForm({ callbackUrl = "/conta", error, googleEnabled = false }: LoginFormProps) {
   const router = useRouter();
   const { t } = useI18n();
   const [email, setEmail] = useState("");
@@ -108,15 +109,19 @@ export function LoginForm({ callbackUrl = "/conta", error }: LoginFormProps) {
         </Button>
       </form>
 
-      <div className="my-6 flex items-center gap-3">
-        <Separator className="flex-1" />
-        <span className="text-xs text-muted-foreground">{t.auth.orContinueWith}</span>
-        <Separator className="flex-1" />
-      </div>
+      {googleEnabled ? (
+        <>
+          <div className="my-6 flex items-center gap-3">
+            <Separator className="flex-1" />
+            <span className="text-xs text-muted-foreground">{t.auth.orContinueWith}</span>
+            <Separator className="flex-1" />
+          </div>
 
-      <Button type="button" variant="outline" className="w-full" onClick={googleLogin} disabled={loading}>
-        {t.auth.signInGoogle}
-      </Button>
+          <Button type="button" variant="outline" className="w-full" onClick={googleLogin} disabled={loading}>
+            {t.auth.signInGoogle}
+          </Button>
+        </>
+      ) : null}
 
       <p className="mt-6 text-center text-sm text-muted-foreground">
         {t.auth.noAccount}{" "}

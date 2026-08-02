@@ -62,6 +62,7 @@ NEXT_PUBLIC_SITE_URL="https://seudominio.com.br"
 AUTH_URL="https://seudominio.com.br"
 NEXTAUTH_URL="https://seudominio.com.br"
 AUTH_SECRET="$(openssl rand -base64 32)"
+AUTH_TRUST_HOST="true"  # evita "UntrustedHost" (a Hostinger/Nginx faz proxy na frente do app)
 ADMIN_EMAIL="admin@seudominio.com.br"
 ADMIN_PASSWORD="uma-senha-forte"
 ```
@@ -130,6 +131,8 @@ No hPanel: **Reiniciar** a aplicação Node.js.
 | 502 no site | App não subiu; veja **Logs** no hPanel. Confirme que o startup file é `server.js` e que `.next` foi compilado. |
 | Migrations divergentes | `npx prisma migrate status`; se houver drift, alinhe com a branch correta do repositório. |
 | Tela "Não autenticado" no `/admin` | `AUTH_SECRET` divergente entre build/runtime; use o mesmo valor no `.env` e no painel. |
+| Erro "UntrustedHost" no login | Falta `AUTH_TRUST_HOST="true"` (a Hostinger/Nginx faz proxy na frente do app). |
+| Botão "Entrar com Google" some | Comportamento esperado enquanto `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` estiverem vazios. |
 | E-mails não saem | SMTP vazio → `lib/mail.ts` só loga no console. Configure `SMTP_*` (e instale um provedor) quando for produzir e-mails. |
 
 > **Recomendação**: para escala/confiabilidade reais, a Hostinger VPS (ou Cloud)
