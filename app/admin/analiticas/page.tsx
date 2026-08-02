@@ -29,12 +29,12 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
       select: { eventType: true, sessionId: true, createdAt: true },
     }),
     prisma.order.aggregate({
-      where: { createdAt: { gte: since } },
+      where: { paymentStatus: "APPROVED", createdAt: { gte: since } },
       _count: true,
       _sum: { total: true },
     }),
     prisma.order.findMany({
-      where: { createdAt: { gte: since } },
+      where: { paymentStatus: "APPROVED", createdAt: { gte: since } },
       select: { createdAt: true, total: true },
     }),
   ]);
