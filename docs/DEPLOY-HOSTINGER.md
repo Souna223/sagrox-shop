@@ -81,6 +81,7 @@ APPMAX_CLIENT_SECRET="..."
 APPMAX_ENV="production"        # sandbox | production
 APPMAX_ENABLED="true"
 APPMAX_APP_ID_UUID="..."       # ID do app no painel do AppMax (obrigatório)
+APPMAX_APP_ID_NUMERIC="..."    # ID numérico do app (validação do callback de instalação)
 APPMAX_EXTERNAL_KEY="sagrox"   # opcional
 APPMAX_CALLBACK_BASE_URL="https://seudominio.com.br"
 ```
