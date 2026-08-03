@@ -30,7 +30,7 @@ const DEFAULTS: SiteSettings = {
   instagram: "",
   facebook: "",
   tiktok: "",
-  businessHours: "Segunda a sexta, das 9h às 18h",
+  businessHours: "",
   freeShippingThreshold: 299,
   shippingEnabled: true,
   appmaxPublicKey: "",
