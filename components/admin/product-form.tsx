@@ -292,12 +292,13 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
-      if (!res.ok || !data.ok) {
+      const data = (await res.json()) as { ok: boolean; data?: { url?: string }; error?: string };
+      const imageUrl = data.data?.url;
+      if (!res.ok || !data.ok || !imageUrl) {
         toast.error(data.error ?? "Erro ao enviar a imagem.");
         return;
       }
-      const next = [...images, data.url as string];
+      const next = [...images, imageUrl];
       setImages(next);
       persistImagesNow(next);
       toast.success("Imagem publicada!");
@@ -323,12 +324,13 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       const fd = new FormData();
       fd.append("file", file);
       const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
-      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
-      if (!res.ok || !data.ok) {
+      const data = (await res.json()) as { ok: boolean; data?: { url?: string }; error?: string };
+      const imageUrl = data.data?.url;
+      if (!res.ok || !data.ok || !imageUrl) {
         toast.error(data.error ?? "Erro ao enviar a imagem.");
         return;
       }
-      const next = images.map((img, i) => (i === replacingIndex ? (data.url as string) : img));
+      const next = images.map((img, i) => (i === replacingIndex ? imageUrl : img));
       setImages(next);
       persistImagesNow(next);
       deleteUpload(oldUrl);
