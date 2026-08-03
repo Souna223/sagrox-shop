@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { updateOrderStatus } from "@/lib/admin-orders";
+import { sendOrderStatusEmail } from "@/lib/mail";
 
 type AppmaxWebhookBody = {
   event?: string;
@@ -96,6 +97,7 @@ export async function POST(request: NextRequest) {
           console.error(`[appmax-webhook] Falha ao aprovar pedido ${payment.order.number}:`, err);
         });
       }
+      await sendOrderStatusEmail(payment.order.id, "paid");
       return NextResponse.json({ ok: true });
     }
 
@@ -115,6 +117,7 @@ export async function POST(request: NextRequest) {
           console.error(`[appmax-webhook] Falha ao reembolsar pedido ${payment.order.number}:`, err);
         });
       }
+      await sendOrderStatusEmail(payment.order.id, "refunded");
       return NextResponse.json({ ok: true });
     }
 
@@ -134,6 +137,7 @@ export async function POST(request: NextRequest) {
           console.error(`[appmax-webhook] Falha ao cancelar pedido ${payment.order.number}:`, err);
         });
       }
+      await sendOrderStatusEmail(payment.order.id, "cancelled");
       return NextResponse.json({ ok: true });
     }
 

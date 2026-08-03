@@ -154,7 +154,7 @@ No hPanel: **Reiniciar** a aplicação Node.js.
 | Botão "Entrar com Google" some | Comportamento esperado enquanto `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` estiverem vazios. |
 | AppMax "Configurado, mas ainda não instalado" | Complete a instalação do merchant em **Admin → Configurações → AppMax** (exige `APPMAX_APP_ID_UUID` no env). |
 | Checkout falha com "AppMax não está instalado" | A instalação do merchant não foi concluída; veja a linha acima. |
-| E-mails não saem | SMTP vazio → `lib/mail.ts` só loga no console. Configure `SMTP_*` (e instale um provedor) quando for produzir e-mails. |
+| E-mails não saem | Sem `SMTP_*` configurado, `lib/mail.ts` só loga no console (modo dev). Defina `SMTP_HOST`/`SMTP_PORT`/`SMTP_USER`/`SMTP_PASS`/`SMTP_FROM` no painel para enviar e-mails (redefinição de senha e status de pedido). |
 
 > **Recomendação**: para escala/confiabilidade reais, a Hostinger VPS (ou Cloud)
 > roda o mesmo `npm run build:prod` + `npm run start` sob PM2 com Nginx, com

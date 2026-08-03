@@ -5,6 +5,7 @@ import { createOrder } from "@/lib/checkout";
 import { processOrderPayment, cancelOrderOnPaymentFailure } from "@/lib/appmax-checkout";
 import { appmaxEnabled, appmaxReady } from "@/lib/appmax";
 import { recordEvent } from "@/lib/tracking";
+import { sendOrderStatusEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
@@ -93,6 +94,8 @@ export async function POST(request: Request) {
         return fail(message, 502);
       }
     }
+
+    await sendOrderStatusEmail(order.orderId, "created");
 
     if (user) {
       const addressCount = await prisma.address.count({ where: { userId: user.id } });
