@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { applyCouponDiscount, round } from "@/lib/prices";
 import { isValidCEP } from "@/lib/br";
+import { getShippingMethods } from "@/lib/shipping-methods";
 import type { Prisma } from "@/generated/prisma/client";
 
 export type CheckoutItemInput = {
@@ -127,14 +128,23 @@ export async function getShippingOptions(cep: string, items: ResolvedCartItem[])
   const freeThreshold = settings.freeShippingThreshold;
 
   const options: ShippingOption[] = [];
+  const methods = await getShippingMethods();
 
   if (settings.shippingEnabled) {
     const freeEligible = allFreeShipping || (freeThreshold > 0 && subtotal >= freeThreshold);
     if (freeEligible) {
       options.push({ code: "FREE", service: "Frete Grátis", price: 0, deliveryDays: 5, deliveryBusinessDays: 5 });
     }
-    options.push({ code: "PAC", service: "PAC — Econômico", price: 19.9, deliveryDays: 10, deliveryBusinessDays: 8 });
-    options.push({ code: "SEDEX", service: "SEDEX — Expresso", price: 39.9, deliveryDays: 5, deliveryBusinessDays: 3 });
+    for (const method of methods) {
+      if (!method.active) continue;
+      options.push({
+        code: method.code,
+        service: method.service,
+        price: method.price,
+        deliveryDays: method.deliveryDays,
+        deliveryBusinessDays: method.deliveryDays,
+      });
+    }
   }
 
   if (options.length === 0) {

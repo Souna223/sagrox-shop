@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Loader2, Link2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -143,6 +143,9 @@ export function ProductsTable({ initial, q, status }: ProductsTableProps) {
           </Select>
           <Button render={<Link href="/admin/produtos/novo" />}>
             <Plus className="size-4" /> Novo produto
+          </Button>
+          <Button variant="outline" render={<Link href="/admin/produtos/importar" />}>
+            <Link2 className="size-4" /> Importar
           </Button>
         </div>
       </div>

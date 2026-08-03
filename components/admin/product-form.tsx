@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -226,12 +226,37 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
     })) ?? [],
   );
   const [imageInput, setImageInput] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const addImage = () => {
     const url = imageInput.trim();
     if (!url) return;
     setImages((list) => [...list, url]);
     setImageInput("");
+  };
+
+  const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Erro ao enviar a imagem.");
+        return;
+      }
+      setImages((list) => [...list, data.url as string]);
+      toast.success("Imagem enviada!");
+    } catch {
+      toast.error("Falha ao enviar a imagem.");
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
   };
 
   const toNumber = (v: string) => (v === "" ? undefined : Number(v));
@@ -533,6 +558,24 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
             />
             <Button type="button" variant="outline" onClick={addImage}>
               <Plus className="size-4" /> Adicionar
+            </Button>
+          </div>
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              className="hidden"
+              onChange={uploadFile}
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {uploading ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
+              {uploading ? "Enviando..." : "Enviar imagem do computador"}
             </Button>
           </div>
           {images.length > 0 ? (
