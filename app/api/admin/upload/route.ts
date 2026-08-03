@@ -70,7 +70,9 @@ export async function POST(request: NextRequest) {
 
     if (!res.ok || !data.secure_url) {
       console.error("Cloudinary upload error:", data);
-      return fail("Não foi possível enviar a imagem para o Cloudinary.", 502);
+      const detail =
+        data.error?.message ?? (typeof data.error === "string" ? data.error : res.statusText);
+      return fail(detail ? `Falha no Cloudinary: ${detail}` : "Não foi possível enviar a imagem para o Cloudinary.", 502);
     }
 
     return ok({ url: data.secure_url });
