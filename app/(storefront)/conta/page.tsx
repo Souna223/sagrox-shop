@@ -6,9 +6,10 @@ import {
   Heart,
   ChevronRight,
   UserRound,
+  Settings,
 } from "lucide-react";
 import { prisma } from "@/lib/prisma";
-import { getSessionUser } from "@/lib/api";
+import { getSessionUser, isAdminRole } from "@/lib/api";
 import { formatBRL } from "@/lib/format";
 import { ORDER_STATUS, ORDER_STATUS_STYLES } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
@@ -54,6 +55,9 @@ export default async function AccountDashboardPage() {
     { href: "/conta/desejos", label: t.account.wishlist, icon: Heart, description: t.account.savedProducts },
     { href: "/conta/enderecos", label: t.account.addresses, icon: MapPin, description: fmt(t.account.registeredCount, { n: addressCount }) },
     { href: "/conta/dados", label: t.account.personalData, icon: UserRound, description: t.account.profileAndPassword },
+    ...(isAdminRole(sessionUser.role)
+      ? [{ href: "/admin", label: t.header.adminPanel, icon: Settings, description: t.account.adminPanelDesc }]
+      : []),
   ];
 
   return (

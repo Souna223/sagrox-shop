@@ -3,8 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useSession, signOut } from "next-auth/react";
+import { useState } from "react";
 import {
   Menu,
   Search,
@@ -12,10 +11,6 @@ import {
   Heart,
   ShoppingBag,
   ChevronDown,
-  LogOut,
-  Package,
-  Settings,
-  MapPin,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,8 +19,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
@@ -45,7 +38,6 @@ type HeaderProps = {
 export function Header({ categories, announcement, storeName }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { data: session, status } = useSession();
   const { t } = useI18n();
   const [search, setSearch] = useState("");
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -53,12 +45,6 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
 
   const items = useCartStore((s) => s.items);
   const cartCount = items.reduce((sum, i) => sum + i.quantity, 0);
-
-  useEffect(() => {
-    if (session?.user?.name) {
-      // noop
-    }
-  }, [session]);
 
   const activeCategories = categories.filter((c) => !c.parentId).slice(0, 8);
 
@@ -164,60 +150,15 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
           </form>
 
           <div className="flex items-center gap-1">
-            {status === "loading" ? null : session?.user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button variant="ghost" size="icon" className="rounded-full" aria-label={t.header.myAccount} />
-                  }
-                >
-                  <User className="size-5" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
-                    <p className="truncate">{session.user.name}</p>
-                    <p className="text-xs font-normal text-muted-foreground">{session.user.email}</p>
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem render={<Link href="/conta" />}>
-                    <Settings className="size-4" /> {t.header.myAccount}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href="/conta/pedidos" />}>
-                    <Package className="size-4" /> {t.header.myOrders}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href="/conta/desejos" />}>
-                    <Heart className="size-4" /> {t.header.wishlist}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem render={<Link href="/conta/enderecos" />}>
-                    <MapPin className="size-4" /> {t.header.addresses}
-                  </DropdownMenuItem>
-                  {["ADMIN", "MANAGER", "EMPLOYEE"].includes(session.user.role) ? (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem render={<Link href="/admin" />}>
-                        <Settings className="size-4" /> {t.header.adminPanel}
-                      </DropdownMenuItem>
-                    </>
-                  ) : null}
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    onClick={() => signOut({ callbackUrl: "/" })}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="size-4" /> {t.header.logout}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                aria-label={t.header.signIn}
-                render={<Link href="/login" />}
-              >
-                <User className="size-5" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="rounded-full"
+              aria-label={t.header.myAccount}
+              render={<Link href="/conta" />}
+            >
+              <User className="size-5" />
+            </Button>
 
             <Button
               variant="ghost"
