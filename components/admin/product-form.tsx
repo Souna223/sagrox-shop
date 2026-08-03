@@ -232,7 +232,7 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
   const deleteUpload = (url: string) => {
-    if (!url.startsWith("/uploads/")) return;
+    if (!url.startsWith("/uploads/") && !url.startsWith("https://res.cloudinary.com/")) return;
     fetch("/api/admin/upload", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },

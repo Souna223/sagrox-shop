@@ -1,6 +1,5 @@
 import { NextRequest } from "next/server";
-import { mkdir, writeFile, rm } from "fs/promises";
-import path from "path";
+import { createHash } from "node:crypto";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 
 const MAX_SIZE = 8 * 1024 * 1024;
@@ -12,17 +11,33 @@ const ALLOWED_TYPES = new Set([
   "image/avif",
 ]);
 
-const EXT_BY_TYPE: Record<string, string> = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-  "image/avif": "avif",
-};
+const CLOUD = process.env.CLOUDINARY_CLOUD_NAME;
+const API_KEY = process.env.CLOUDINARY_API_KEY;
+const API_SECRET = process.env.CLOUDINARY_API_SECRET;
+const UPLOAD_FOLDER = "sagrox/products";
+
+if (CLOUD && (CLOUD.startsWith('"') || CLOUD.includes(" "))) {
+  console.warn("CLOUDINARY_CLOUD_NAME contém aspas ou espaços — remova as aspas no .env.");
+}
+
+function sign(params: Record<string, string | number>) {
+  const sorted = Object.keys(params)
+    .sort()
+    .map((k) => `${k}=${params[k]}`);
+  return createHash("sha1").update(sorted.join("&") + API_SECRET).digest("hex");
+}
+
+function cloudinaryConfigured() {
+  return Boolean(CLOUD && API_KEY && API_SECRET);
+}
 
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
+
+    if (!cloudinaryConfigured()) {
+      return fail("Cloudinary não configurado. Preencha CLOUDINARY_* no arquivo .env.", 503);
+    }
 
     const form = await request.formData();
     const file = form.get("file");
@@ -36,14 +51,29 @@ export async function POST(request: NextRequest) {
       return fail("A imagem deve ter no máximo 8MB.", 422);
     }
 
-    const bytes = Buffer.from(await file.arrayBuffer());
-    const ext = EXT_BY_TYPE[file.type] ?? "jpg";
-    const name = `p-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
-    const dir = path.join(process.cwd(), "public", "uploads", "products");
-    await mkdir(dir, { recursive: true });
-    await writeFile(path.join(dir, name), bytes);
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = sign({ timestamp, folder: UPLOAD_FOLDER, resource_type: "image" });
 
-    return ok({ url: `/uploads/products/${name}` });
+    const body = new FormData();
+    body.append("file", file, file.name);
+    body.append("api_key", API_KEY!);
+    body.append("timestamp", String(timestamp));
+    body.append("folder", UPLOAD_FOLDER);
+    body.append("resource_type", "image");
+    body.append("signature", signature);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`, {
+      method: "POST",
+      body,
+    });
+    const data = (await res.json()) as { secure_url?: string; error?: { message?: string } };
+
+    if (!res.ok || !data.secure_url) {
+      console.error("Cloudinary upload error:", data);
+      return fail("Não foi possível enviar a imagem para o Cloudinary.", 502);
+    }
+
+    return ok({ url: data.secure_url });
   } catch (error) {
     return handleError(error, "Não foi possível enviar a imagem.");
   }
@@ -57,13 +87,26 @@ export async function DELETE(request: NextRequest) {
     const url = body.url;
     if (!url || typeof url !== "string") return fail("Informe a URL da imagem.", 422);
 
-    const uploadsRoot = path.resolve(process.cwd(), "public");
-    const filePath = path.resolve(process.cwd(), "public", ...url.split("/").filter(Boolean));
-    if (!filePath.startsWith(uploadsRoot + path.sep)) {
-      return fail("Caminho de imagem inválido.", 422);
-    }
+    const prefix = `https://res.cloudinary.com/${CLOUD}/image/upload/`;
+    if (!url.startsWith(prefix)) return ok({ deleted: false });
 
-    await rm(filePath, { force: true });
+    const publicId = url.slice(prefix.length).replace(/^v\d+\//, "");
+    const timestamp = Math.floor(Date.now() / 1000);
+    const signature = sign({ timestamp, public_id: publicId });
+
+    const params = new URLSearchParams({
+      public_id: publicId,
+      api_key: API_KEY!,
+      timestamp: String(timestamp),
+      signature,
+    });
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/destroy`, {
+      method: "POST",
+      body: params,
+    });
+    await res.json();
+
     return ok({ deleted: true });
   } catch (error) {
     return handleError(error, "Não foi possível remover a imagem.");
