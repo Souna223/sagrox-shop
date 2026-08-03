@@ -591,7 +591,10 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       <Card>
         <CardHeader>
           <CardTitle>Imagens</CardTitle>
-          <CardDescription>A primeira imagem é usada como principal.</CardDescription>
+          <CardDescription>
+            A primeira imagem é usada como principal. Depois de adicionar as imagens, clique em
+            &ldquo;Salvar produto&rdquo; para publicá-las.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
