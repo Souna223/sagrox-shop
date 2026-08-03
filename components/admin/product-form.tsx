@@ -214,6 +214,9 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const [seoDescription, setSeoDescription] = useState(initial?.seoDescription ?? "");
   const [tagsText, setTagsText] = useState(initial?.tags.join(", ") ?? "");
   const [images, setImages] = useState<string[]>(initial?.images.map((i) => i.url) ?? []);
+  const [persistedImages, setPersistedImages] = useState<string[]>(
+    initial?.images.map((i) => i.url) ?? [],
+  );
   const [variations, setVariations] = useState<VariationForm[]>(
     initial?.variations.map((v) => ({
       name: v.name,
@@ -231,9 +234,23 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
-  const savedImages = initial?.images.map((i) => i.url) ?? [];
   const imagesDirty =
-    images.length !== savedImages.length || images.some((u, i) => u !== savedImages[i]);
+    images.length !== persistedImages.length || images.some((u, i) => u !== persistedImages[i]);
+
+  const persistImagesNow = async (urls: string[]) => {
+    if (!productId) return;
+    const cleaned = urls.filter(Boolean);
+    try {
+      const res = await fetch(`/api/admin/products/${productId}/images`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ images: cleaned }),
+      });
+      if (res.ok) setPersistedImages(cleaned);
+    } catch {
+      // se falhar, o banner de alterações não salvas permanece e "Salvar produto" reaplica
+    }
+  };
 
   useEffect(() => {
     if (!imagesDirty) return;
@@ -274,7 +291,9 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
         toast.error(data.error ?? "Erro ao enviar a imagem.");
         return;
       }
-      setImages((list) => [...list, data.url as string]);
+      const next = [...images, data.url as string];
+      setImages(next);
+      persistImagesNow(next);
       toast.success("Imagem enviada!");
     } catch {
       toast.error("Falha ao enviar a imagem.");
@@ -303,9 +322,9 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
         toast.error(data.error ?? "Erro ao enviar a imagem.");
         return;
       }
-      setImages((list) =>
-        list.map((img, i) => (i === replacingIndex ? (data.url as string) : img)),
-      );
+      const next = images.map((img, i) => (i === replacingIndex ? (data.url as string) : img));
+      setImages(next);
+      persistImagesNow(next);
       deleteUpload(oldUrl);
       toast.success("Imagem substituída!");
     } catch {
@@ -666,8 +685,10 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
                     size="icon-sm"
                     className="absolute right-1 top-1 rounded-full bg-background/80 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={() => {
+                      const next = images.filter((_, i) => i !== index);
                       deleteUpload(images[index]);
-                      setImages((list) => list.filter((_, i) => i !== index));
+                      setImages(next);
+                      persistImagesNow(next);
                     }}
                     aria-label="Remover imagem"
                   >
