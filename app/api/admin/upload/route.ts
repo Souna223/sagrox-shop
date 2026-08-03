@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const signature = sign({ timestamp, folder: UPLOAD_FOLDER, resource_type: "image" });
+    const signature = sign({ timestamp, folder: UPLOAD_FOLDER });
 
     const body = new FormData();
     body.append("file", file, file.name);
