@@ -246,9 +246,13 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ images: cleaned }),
       });
-      if (res.ok) setPersistedImages(cleaned);
+      if (res.ok) {
+        setPersistedImages(cleaned);
+      } else {
+        toast.error("Falha ao publicar a imagem automaticamente. Clique em \"Salvar produto\".");
+      }
     } catch {
-      // se falhar, o banner de alterações não salvas permanece e "Salvar produto" reaplica
+      toast.error("Falha ao publicar a imagem automaticamente. Clique em \"Salvar produto\".");
     }
   };
 
@@ -274,8 +278,10 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const addImage = () => {
     const url = imageInput.trim();
     if (!url) return;
-    setImages((list) => [...list, url]);
+    const next = [...images, url];
+    setImages(next);
     setImageInput("");
+    persistImagesNow(next);
   };
 
   const uploadFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,7 +300,7 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       const next = [...images, data.url as string];
       setImages(next);
       persistImagesNow(next);
-      toast.success("Imagem enviada!");
+      toast.success("Imagem publicada!");
     } catch {
       toast.error("Falha ao enviar a imagem.");
     } finally {
@@ -326,7 +332,7 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       setImages(next);
       persistImagesNow(next);
       deleteUpload(oldUrl);
-      toast.success("Imagem substituída!");
+      toast.success("Imagem substituída e publicada!");
     } catch {
       toast.error("Falha ao enviar a imagem.");
     } finally {
