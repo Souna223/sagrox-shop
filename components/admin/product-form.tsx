@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { toast } from "sonner";
-import { ImagePlus, Loader2, Plus, Save, Trash2, X } from "lucide-react";
+import { ImagePlus, Loader2, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -227,7 +227,18 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   );
   const [imageInput, setImageInput] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [replacingIndex, setReplacingIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const replaceInputRef = useRef<HTMLInputElement>(null);
+
+  const deleteUpload = (url: string) => {
+    if (!url.startsWith("/uploads/")) return;
+    fetch("/api/admin/upload", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ url }),
+    }).catch(() => {});
+  };
 
   const addImage = () => {
     const url = imageInput.trim();
@@ -255,6 +266,39 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       toast.error("Falha ao enviar a imagem.");
     } finally {
       setUploading(false);
+      e.target.value = "";
+    }
+  };
+
+  const startReplace = (index: number) => {
+    setReplacingIndex(index);
+    replaceInputRef.current?.click();
+  };
+
+  const replaceFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || replacingIndex === null) return;
+    const oldUrl = images[replacingIndex];
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/upload", { method: "POST", body: fd });
+      const data = (await res.json()) as { ok: boolean; url?: string; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Erro ao enviar a imagem.");
+        return;
+      }
+      setImages((list) =>
+        list.map((img, i) => (i === replacingIndex ? (data.url as string) : img)),
+      );
+      deleteUpload(oldUrl);
+      toast.success("Imagem substituída!");
+    } catch {
+      toast.error("Falha ao enviar a imagem.");
+    } finally {
+      setUploading(false);
+      setReplacingIndex(null);
       e.target.value = "";
     }
   };
@@ -562,6 +606,13 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
           </div>
           <div>
             <input
+              ref={replaceInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
+              className="hidden"
+              onChange={replaceFile}
+            />
+            <input
               ref={fileInputRef}
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif,image/avif"
@@ -589,10 +640,24 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
                     variant="ghost"
                     size="icon-sm"
                     className="absolute right-1 top-1 rounded-full bg-background/80 text-destructive opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={() => setImages((list) => list.filter((_, i) => i !== index))}
+                    onClick={() => {
+                      deleteUpload(images[index]);
+                      setImages((list) => list.filter((_, i) => i !== index));
+                    }}
                     aria-label="Remover imagem"
                   >
                     <X className="size-3.5" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    className="absolute bottom-1 right-1 rounded-full bg-background/80 opacity-0 transition-opacity group-hover:opacity-100"
+                    onClick={() => startReplace(index)}
+                    aria-label="Substituir imagem"
+                    disabled={uploading}
+                  >
+                    <RefreshCw className="size-3.5" />
                   </Button>
                   {index === 0 ? (
                     <span className="absolute bottom-1 left-1 rounded bg-background/80 px-1.5 py-0.5 text-[10px] font-medium">

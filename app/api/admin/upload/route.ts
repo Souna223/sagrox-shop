@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { mkdir, writeFile } from "fs/promises";
+import { mkdir, writeFile, rm } from "fs/promises";
 import path from "path";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 
@@ -46,5 +46,26 @@ export async function POST(request: NextRequest) {
     return ok({ url: `/uploads/products/${name}` });
   } catch (error) {
     return handleError(error, "Não foi possível enviar a imagem.");
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    await requireAdmin();
+
+    const body = (await request.json()) as { url?: string };
+    const url = body.url;
+    if (!url || typeof url !== "string") return fail("Informe a URL da imagem.", 422);
+
+    const uploadsRoot = path.resolve(process.cwd(), "public");
+    const filePath = path.resolve(process.cwd(), "public", ...url.split("/").filter(Boolean));
+    if (!filePath.startsWith(uploadsRoot + path.sep)) {
+      return fail("Caminho de imagem inválido.", 422);
+    }
+
+    await rm(filePath, { force: true });
+    return ok({ deleted: true });
+  } catch (error) {
+    return handleError(error, "Não foi possível remover a imagem.");
   }
 }
