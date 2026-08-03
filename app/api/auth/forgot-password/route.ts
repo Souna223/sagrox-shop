@@ -2,8 +2,7 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { fail, ok, rateLimit, getClientIp } from "@/lib/api";
-import { sendEmail, buildResetPasswordUrl } from "@/lib/mail";
-import { SITE_NAME } from "@/lib/constants";
+import { sendPasswordResetEmail, buildResetPasswordUrl } from "@/lib/mail";
 
 const schema = z.object({ email: z.string().email("E-mail inválido.") });
 
@@ -32,16 +31,7 @@ export async function POST(request: Request) {
       });
 
       const resetUrl = buildResetPasswordUrl(token);
-      await sendEmail({
-        to: email,
-        subject: `Redefinição de senha — ${SITE_NAME}`,
-        html: `
-          <p>Olá, ${user.name}!</p>
-          <p>Recebemos uma solicitação para redefinir sua senha.</p>
-          <p><a href="${resetUrl}">Clique aqui para redefinir sua senha</a></p>
-          <p>O link expira em 1 hora. Se você não solicitou, ignore este e-mail.</p>
-        `,
-      });
+      await sendPasswordResetEmail({ to: email, name: user.name ?? email, resetUrl });
     }
 
     return ok({ message: "Se o e-mail existir, enviaremos um link de redefinição." });
