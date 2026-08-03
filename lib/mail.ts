@@ -320,6 +320,14 @@ export async function sendPasswordResetEmail(input: {
   name: string;
   resetUrl: string;
 }): Promise<boolean> {
+  const { subject, html } = renderPasswordResetEmailHtml(input);
+  return sendEmail({ to: input.to, subject, html });
+}
+
+export function renderPasswordResetEmailHtml(input: {
+  name: string;
+  resetUrl: string;
+}): { subject: string; html: string } {
   const subject = `Redefinição de senha — ${SITE_NAME}`;
   const html = renderEmailLayout({
     subject,
@@ -337,10 +345,15 @@ export async function sendPasswordResetEmail(input: {
     extraLink: { label: "Voltar à loja", href: SITE_URL },
   });
 
-  return sendEmail({ to: input.to, subject, html });
+  return { subject, html };
 }
 
 export async function sendWelcomeEmail(input: { to: string; name: string }): Promise<boolean> {
+  const { subject, html } = renderWelcomeEmailHtml(input);
+  return sendEmail({ to: input.to, subject, html });
+}
+
+export function renderWelcomeEmailHtml(input: { name: string }): { subject: string; html: string } {
   const subject = `Bem-vindo(a) à ${SITE_NAME}!`;
   const html = renderEmailLayout({
     subject,
@@ -359,40 +372,35 @@ export async function sendWelcomeEmail(input: { to: string; name: string }): Pro
     cta: { label: "Explorar a loja", href: SITE_URL },
   });
 
-  return sendEmail({ to: input.to, subject, html });
+  return { subject, html };
 }
 
 export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded";
 
-export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind): Promise<boolean> {
-  try {
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: {
-        id: true,
-        number: true,
-        email: true,
-        customerName: true,
-        subtotal: true,
-        discount: true,
-        shippingFee: true,
-        total: true,
-        paymentMethod: true,
-        installments: true,
-        shippingService: true,
-        shippingEstimateDays: true,
-        trackingCode: true,
-        trackingUrl: true,
-        createdAt: true,
-        items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true } },
-        payments: {
-          select: { method: true, installments: true, cardLast4: true, cardBrand: true },
-          orderBy: { createdAt: "desc" },
-        },
-      },
-    });
-    if (!order) return false;
+export type OrderEmailRecord = {
+  id: string;
+  number: number;
+  email: string;
+  customerName: string;
+  subtotal: string | { toString(): string };
+  discount: string | { toString(): string };
+  shippingFee: string | { toString(): string };
+  total: string | { toString(): string };
+  paymentMethod: string | null;
+  installments: number | null;
+  shippingService: string | null;
+  shippingEstimateDays: number | null;
+  trackingCode: string | null;
+  trackingUrl: string | null;
+  createdAt: Date | string;
+  items: OrderSummaryItem[];
+  payments: { method: string | null; installments: number | null; cardLast4: string | null; cardBrand: string | null }[];
+};
 
+export function renderOrderStatusEmailHtml(
+  order: OrderEmailRecord,
+  kind: OrderEmailKind,
+): { subject: string; html: string } {
     const payment = order.payments[0];
     const methodLabel = order.paymentMethod
       ? (PAYMENT_METHOD[order.paymentMethod as keyof typeof PAYMENT_METHOD] ?? String(order.paymentMethod))
@@ -537,7 +545,40 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
       ],
     });
 
-    return sendEmail({ to: order.email, subject: msg.subject, html });
+    return { subject: msg.subject, html };
+}
+
+export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind): Promise<boolean> {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: orderId },
+      select: {
+        id: true,
+        number: true,
+        email: true,
+        customerName: true,
+        subtotal: true,
+        discount: true,
+        shippingFee: true,
+        total: true,
+        paymentMethod: true,
+        installments: true,
+        shippingService: true,
+        shippingEstimateDays: true,
+        trackingCode: true,
+        trackingUrl: true,
+        createdAt: true,
+        items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true } },
+        payments: {
+          select: { method: true, installments: true, cardLast4: true, cardBrand: true },
+          orderBy: { createdAt: "desc" },
+        },
+      },
+    });
+    if (!order) return false;
+
+    const { subject, html } = renderOrderStatusEmailHtml(order as unknown as OrderEmailRecord, kind);
+    return sendEmail({ to: order.email, subject, html });
   } catch (error) {
     console.error(`[mail] Falha ao montar e-mail do pedido ${orderId} (${kind}):`, error);
     return false;

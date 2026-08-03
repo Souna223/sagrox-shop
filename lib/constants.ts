@@ -9,7 +9,7 @@ import type {
   AnalyticsEventType,
 } from "@/generated/prisma/enums";
 
-export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "wbsite";
+export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME ?? "sagrox-shop";
 export const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000";
 
 export const ORDER_STATUS: Record<OrderStatus, string> = {
