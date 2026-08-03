@@ -60,7 +60,7 @@ export async function Footer({ settings }: { settings: SiteSettings }) {
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li><Link href="/politica-privacidade" className="hover:text-foreground">{t.footer.privacyPolicy}</Link></li>
               <li><Link href="/termos-de-uso" className="hover:text-foreground">{t.footer.termsOfUse}</Link></li>
-              <li><Link href="/politica-privacidade" className="hover:text-foreground">{t.footer.lgpd}</Link></li>
+              <li><Link href="/lgpd" className="hover:text-foreground">{t.footer.lgpd}</Link></li>
               <li><Link href="/produtos" className="hover:text-foreground">{t.footer.allProducts}</Link></li>
               <li><Link href="/promocoes" className="hover:text-foreground">{t.footer.promotions}</Link></li>
             </ul>

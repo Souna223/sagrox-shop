@@ -532,6 +532,187 @@ export const dictionaries = {
       wishlistTitle: "Lista de desejos",
       productsTitle: "Produtos",
       productsDescription: "Confira todos os produtos da nossa loja. Compre online com entrega para todo o Brasil.",
+      promotionsTitle: "Promoções",
+      promotionsDescription: "Aproveite os melhores descontos da nossa loja.",
+      privacyTitle: "Política de privacidade",
+      privacyDescription:
+        "Saiba como coletamos, usamos e protegemos seus dados pessoais, em conformidade com a Lei Geral de Proteção de Dados (LGPD).",
+      privacyUpdated: "Última atualização: agosto de 2026",
+      privacySections: [
+        {
+          title: "Quais dados coletamos",
+          paragraphs: [
+            "Dados cadastrais: nome, e-mail, CPF, telefone e endereço de entrega informados no cadastro ou na compra.",
+            "Dados de pagamento: processados de forma segura pela nossa plataforma de pagamento, sem que os dados do cartão sejam armazenados em nossos servidores.",
+            "Dados de navegação: páginas visitadas, produtos visualizados, preferências e cookies, para melhorar sua experiência de compra.",
+            "Dados de comunicação: mensagens enviadas pelo formulário de contato, e-mail ou WhatsApp.",
+          ],
+        },
+        {
+          title: "Como usamos seus dados",
+          paragraphs: [
+            "Para processar pedidos, pagamentos e entregas, além de emitir notas fiscais.",
+            "Para atender solicitações de suporte, tirar dúvidas e resolver problemas.",
+            "Para personalizar a experiência, enviar comunicações e melhorar nossos produtos e serviços.",
+            "Para garantir a segurança das transações e prevenir fraudes.",
+          ],
+        },
+        {
+          title: "Compartilhamento de dados",
+          paragraphs: [
+            "Compartilhamos seus dados apenas com parceiros necessários para a operação, como processadores de pagamento e transportadoras.",
+            "Também podemos compartilhar informações quando exigido por lei, ordem judicial ou autoridade competente.",
+            "Nunca vendemos seus dados pessoais a terceiros.",
+          ],
+        },
+        {
+          title: "Cookies e rastreamento",
+          paragraphs: [
+            "Utilizamos cookies para lembrar suas preferências, manter itens no carrinho e medir o desempenho da loja.",
+            "Você pode desativar os cookies nas configurações do seu navegador, mas algumas funcionalidades podem deixar de funcionar.",
+          ],
+        },
+        {
+          title: "Seus direitos",
+          paragraphs: [
+            "Conforme a LGPD, você pode solicitar acesso, correção, exclusão, portabilidade e informações sobre o uso dos seus dados.",
+            "Você também pode revogar consentimentos e se opor a determinados tratamentos a qualquer momento.",
+          ],
+        },
+        {
+          title: "Segurança e armazenamento",
+          paragraphs: [
+            "Adotamos medidas técnicas e organizacionais para proteger seus dados contra acesso não autorizado, perda ou alteração.",
+            "Os dados são armazenados em ambiente seguro pelo tempo necessário às finalidades, respeitando os prazos legais.",
+          ],
+        },
+        {
+          title: "Contato",
+          paragraphs: [
+            "Para exercer seus direitos ou tirar dúvidas sobre esta política, fale com nosso encarregado de proteção de dados (DPO) pelo formulário de contato ou e-mail de atendimento.",
+          ],
+        },
+      ],
+      termsTitle: "Termos de uso",
+      termsDescription: "As condições gerais para uso desta loja e realização de compras.",
+      termsUpdated: "Última atualização: agosto de 2026",
+      termsSections: [
+        {
+          title: "Aceitação dos termos",
+          paragraphs: [
+            "Ao acessar ou comprar nesta loja, você concorda com estes Termos de Uso e com a Política de Privacidade.",
+            "Se não concordar com qualquer condição, recomendamos não utilizar a plataforma.",
+          ],
+        },
+        {
+          title: "Uso da plataforma",
+          paragraphs: [
+            "A loja destina-se ao uso pessoal e não comercial. Você se compromete a fornecer informações verdadeiras no cadastro.",
+            "É proibido reproduzir, copiar ou utilizar indevidamente o conteúdo da loja sem autorização.",
+          ],
+        },
+        {
+          title: "Pedidos e pagamentos",
+          paragraphs: [
+            "A confirmação do pedido está sujeita à aprovação do pagamento. Os preços e as condições exibidos no fechamento são os que valem.",
+            "Reservamo-nos o direito de cancelar pedidos em caso de erro de preço, indisponibilidade ou suspeita de fraude.",
+          ],
+        },
+        {
+          title: "Preços e disponibilidade",
+          paragraphs: [
+            "Os preços podem ser alterados a qualquer momento, sem aviso prévio, mas o valor cobrado é o do momento da compra.",
+            "A disponibilidade dos produtos está sujeita ao estoque e pode mudar durante o processo de compra.",
+          ],
+        },
+        {
+          title: "Entrega",
+          paragraphs: [
+            "Os prazos de entrega são estimados no checkout, conforme CEP e transportadora, e começam a contar após a aprovação do pagamento.",
+            "Não nos responsabilizamos por atrasos causados por endereço incorreto, ausência do destinatário ou fatores externos à transportadora.",
+          ],
+        },
+        {
+          title: "Trocas e devoluções",
+          paragraphs: [
+            "As trocas e devoluções seguem os prazos legais e as condições descritas na página Trocas e devoluções.",
+          ],
+        },
+        {
+          title: "Propriedade intelectual",
+          paragraphs: [
+            "Todos os conteúdos da loja (textos, imagens, logotipos e marcas) são protegidos e não podem ser usados sem autorização.",
+          ],
+        },
+        {
+          title: "Limitação de responsabilidade",
+          paragraphs: [
+            "Nossa responsabilidade limita-se ao valor do pedido, salvo nos casos previstos em lei.",
+          ],
+        },
+        {
+          title: "Alterações destes termos",
+          paragraphs: [
+            "Estes Termos podem ser atualizados a qualquer momento. A versão vigente é sempre a publicada nesta página.",
+          ],
+        },
+        {
+          title: "Legislação aplicável",
+          paragraphs: [
+            "Estes Termos são regidos pelas leis brasileiras, com foro na comarca da sede da loja.",
+          ],
+        },
+      ],
+      lgpdTitle: "LGPD",
+      lgpdDescription:
+        "Como tratamos seus dados pessoais conforme a Lei Geral de Proteção de Dados (Lei nº 13.709/2018).",
+      lgpdUpdated: "Última atualização: agosto de 2026",
+      lgpdSections: [
+        {
+          title: "O que é a LGPD",
+          paragraphs: [
+            "A Lei Geral de Proteção de Dados (Lei nº 13.709/2018) regula o tratamento de dados pessoais no Brasil, garantindo mais transparência e controle ao titular.",
+          ],
+        },
+        {
+          title: "Base legal do tratamento",
+          paragraphs: [
+            "Tratamos seus dados com base em execução de contrato (compras), cumprimento de obrigações legais, legítimo interesse e consentimento, conforme a finalidade.",
+          ],
+        },
+        {
+          title: "Consentimento",
+          paragraphs: [
+            "Quando necessário, pedimos seu consentimento de forma clara e específica. Você pode revogá-lo a qualquer momento pelo mesmo canal.",
+          ],
+        },
+        {
+          title: "Seus direitos como titular",
+          paragraphs: [
+            "Você pode solicitar: confirmação de existência de tratamento, acesso, correção, anonimização ou eliminação de dados desnecessários, portabilidade, informação sobre compartilhamentos e revogação de consentimento.",
+            "Para exercer seus direitos, utilize o formulário de contato ou o canal do encarregado (DPO).",
+          ],
+        },
+        {
+          title: "Prazo de retenção",
+          paragraphs: [
+            "Mantemos seus dados apenas pelo tempo necessário às finalidades e aos prazos legais, como os fiscais. Após esse período, eles são eliminados ou anonimizados.",
+          ],
+        },
+        {
+          title: "Segurança da informação",
+          paragraphs: [
+            "Aplicamos medidas técnicas e organizacionais, como criptografia e controles de acesso, para proteger seus dados contra incidentes.",
+            "Em caso de incidente que gere risco aos titulares, notificaremos a autoridade e os afetados, conforme a legislação.",
+          ],
+        },
+        {
+          title: "Encarregado (DPO) e contato",
+          paragraphs: [
+            "Nosso encarregado de proteção de dados pode ser acionado pelo formulário de contato ou pelo e-mail de atendimento da loja.",
+          ],
+        },
+      ],
     },
   },
   en: {
@@ -1067,6 +1248,187 @@ export const dictionaries = {
       wishlistTitle: "Wishlist",
       productsTitle: "Products",
       productsDescription: "Check out all products in our store. Shop online with delivery nationwide.",
+      promotionsTitle: "Promotions",
+      promotionsDescription: "Enjoy the best discounts in our store.",
+      privacyTitle: "Privacy policy",
+      privacyDescription:
+        "Learn how we collect, use and protect your personal data, in accordance with Brazil's General Data Protection Law (LGPD).",
+      privacyUpdated: "Last updated: August 2026",
+      privacySections: [
+        {
+          title: "What data we collect",
+          paragraphs: [
+            "Registration data: name, e-mail, CPF, phone and delivery address provided at signup or checkout.",
+            "Payment data: processed securely by our payment provider, without storing card data on our servers.",
+            "Browsing data: visited pages, viewed products, preferences and cookies, to improve your shopping experience.",
+            "Communication data: messages sent through the contact form, e-mail or WhatsApp.",
+          ],
+        },
+        {
+          title: "How we use your data",
+          paragraphs: [
+            "To process orders, payments and deliveries, and to issue invoices.",
+            "To handle support requests, answer questions and resolve issues.",
+            "To personalize your experience, send communications and improve our products and services.",
+            "To ensure transaction security and prevent fraud.",
+          ],
+        },
+        {
+          title: "Data sharing",
+          paragraphs: [
+            "We share your data only with partners required for the operation, such as payment processors and carriers.",
+            "We may also share information when required by law, court order or a competent authority.",
+            "We never sell your personal data to third parties.",
+          ],
+        },
+        {
+          title: "Cookies and tracking",
+          paragraphs: [
+            "We use cookies to remember your preferences, keep items in your cart and measure store performance.",
+            "You can disable cookies in your browser settings, but some features may stop working.",
+          ],
+        },
+        {
+          title: "Your rights",
+          paragraphs: [
+            "Under the LGPD you may request access, correction, deletion, portability and information about how your data is used.",
+            "You may also revoke consents and object to certain processing at any time.",
+          ],
+        },
+        {
+          title: "Security and storage",
+          paragraphs: [
+            "We adopt technical and organizational measures to protect your data against unauthorized access, loss or alteration.",
+            "Data is stored in a secure environment for as long as needed for the purposes, respecting legal time limits.",
+          ],
+        },
+        {
+          title: "Contact",
+          paragraphs: [
+            "To exercise your rights or ask questions about this policy, contact our data protection officer (DPO) through the contact form or support e-mail.",
+          ],
+        },
+      ],
+      termsTitle: "Terms of use",
+      termsDescription: "The general conditions for using this store and making purchases.",
+      termsUpdated: "Last updated: August 2026",
+      termsSections: [
+        {
+          title: "Acceptance of terms",
+          paragraphs: [
+            "By accessing or buying from this store, you agree to these Terms of Use and the Privacy Policy.",
+            "If you do not agree with any condition, we recommend not using the platform.",
+          ],
+        },
+        {
+          title: "Use of the platform",
+          paragraphs: [
+            "The store is intended for personal, non-commercial use. You agree to provide truthful information when registering.",
+            "Reproducing, copying or improperly using the store content without authorization is prohibited.",
+          ],
+        },
+        {
+          title: "Orders and payments",
+          paragraphs: [
+            "Order confirmation is subject to payment approval. The prices and conditions shown at checkout are the ones that apply.",
+            "We reserve the right to cancel orders in case of pricing errors, unavailability or suspected fraud.",
+          ],
+        },
+        {
+          title: "Prices and availability",
+          paragraphs: [
+            "Prices may change at any time without prior notice, but the amount charged is the one at the time of purchase.",
+            "Product availability depends on stock and may change during the purchase process.",
+        ],
+        },
+        {
+          title: "Delivery",
+          paragraphs: [
+            "Delivery times are estimated at checkout based on your ZIP code and carrier, and start after payment approval.",
+            "We are not responsible for delays caused by incorrect addresses, recipient absence or factors outside the carrier's control.",
+          ],
+        },
+        {
+          title: "Exchanges and returns",
+          paragraphs: [
+            "Exchanges and returns follow the legal time limits and the conditions described on the Exchanges and returns page.",
+          ],
+        },
+        {
+          title: "Intellectual property",
+          paragraphs: [
+            "All store content (texts, images, logos and trademarks) is protected and may not be used without authorization.",
+          ],
+        },
+        {
+          title: "Limitation of liability",
+          paragraphs: [
+            "Our liability is limited to the order value, except where otherwise provided by law.",
+          ],
+        },
+        {
+          title: "Changes to these terms",
+          paragraphs: [
+            "These Terms may be updated at any time. The current version is always the one published on this page.",
+          ],
+        },
+        {
+          title: "Governing law",
+          paragraphs: [
+            "These Terms are governed by Brazilian law, with jurisdiction in the district of the store's headquarters.",
+          ],
+        },
+      ],
+      lgpdTitle: "LGPD",
+      lgpdDescription:
+        "How we process your personal data under Brazil's General Data Protection Law (Law No. 13.709/2018).",
+      lgpdUpdated: "Last updated: August 2026",
+      lgpdSections: [
+        {
+          title: "What the LGPD is",
+          paragraphs: [
+            "Brazil's General Data Protection Law (Law No. 13.709/2018) regulates the processing of personal data in Brazil, giving data subjects more transparency and control.",
+          ],
+        },
+        {
+          title: "Legal basis for processing",
+          paragraphs: [
+            "We process your data based on contract performance (purchases), compliance with legal obligations, legitimate interest and consent, depending on the purpose.",
+          ],
+        },
+        {
+          title: "Consent",
+          paragraphs: [
+            "When required, we request your consent clearly and specifically. You may withdraw it at any time through the same channel.",
+          ],
+        },
+        {
+          title: "Your rights as a data subject",
+          paragraphs: [
+            "You may request: confirmation that processing exists, access, correction, anonymization or deletion of unnecessary data, portability, information about sharing, and withdrawal of consent.",
+            "To exercise your rights, use the contact form or the data protection officer (DPO) channel.",
+          ],
+        },
+        {
+          title: "Retention period",
+          paragraphs: [
+            "We keep your data only for as long as needed for the purposes and legal time limits, such as tax records. After that, it is deleted or anonymized.",
+          ],
+        },
+        {
+          title: "Information security",
+          paragraphs: [
+            "We apply technical and organizational measures, such as encryption and access controls, to protect your data against incidents.",
+            "In the event of an incident that poses risk to data subjects, we will notify the authority and those affected, as required by law.",
+          ],
+        },
+        {
+          title: "Data protection officer (DPO) and contact",
+          paragraphs: [
+            "Our data protection officer can be reached through the contact form or the store's support e-mail.",
+          ],
+        },
+      ],
     },
   },
 } as const;
