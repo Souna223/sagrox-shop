@@ -71,6 +71,25 @@ ADMIN_PASSWORD="uma-senha-forte"
 > As variáveis de integração (Google, Appmax, Cloudinary, SMTP, analytics, OpenAI)
 > entram aqui também, quando você tiver as chaves.
 
+**AppMax (pagamentos)** — além do `.env`, a loja só processa pagamentos após a
+**instalação do merchant** (as credenciais de merchant são geradas e salvas no
+banco durante o fluxo de autorização, e não via env):
+
+```env
+APPMAX_CLIENT_ID="..."
+APPMAX_CLIENT_SECRET="..."
+APPMAX_ENV="production"        # sandbox | production
+APPMAX_ENABLED="true"
+APPMAX_APP_ID_UUID="..."       # ID do app no painel do AppMax (obrigatório)
+APPMAX_EXTERNAL_KEY="sagrox"   # opcional
+APPMAX_CALLBACK_BASE_URL="https://seudominio.com.br"
+```
+
+Após subir o app: **Admin → Configurações → AppMax → "Autorizar instalação no
+AppMax"**. Confirme que o card mostra **"Instalado e pronto para receber
+pagamentos"**. Cadastre o webhook
+`https://seudominio.com.br/api/webhooks/appmax` no painel do AppMax.
+
 Instale, prepare o banco e compile:
 
 ```bash
@@ -133,6 +152,8 @@ No hPanel: **Reiniciar** a aplicação Node.js.
 | Tela "Não autenticado" no `/admin` | `AUTH_SECRET` divergente entre build/runtime; use o mesmo valor no `.env` e no painel. |
 | Erro "UntrustedHost" no login | Falta `AUTH_TRUST_HOST="true"` (a Hostinger/Nginx faz proxy na frente do app). |
 | Botão "Entrar com Google" some | Comportamento esperado enquanto `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` estiverem vazios. |
+| AppMax "Configurado, mas ainda não instalado" | Complete a instalação do merchant em **Admin → Configurações → AppMax** (exige `APPMAX_APP_ID_UUID` no env). |
+| Checkout falha com "AppMax não está instalado" | A instalação do merchant não foi concluída; veja a linha acima. |
 | E-mails não saem | SMTP vazio → `lib/mail.ts` só loga no console. Configure `SMTP_*` (e instale um provedor) quando for produzir e-mails. |
 
 > **Recomendação**: para escala/confiabilidade reais, a Hostinger VPS (ou Cloud)
