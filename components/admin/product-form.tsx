@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { ImagePlus, Loader2, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -231,6 +231,20 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const fileInputRef = useRef<HTMLInputElement>(null);
   const replaceInputRef = useRef<HTMLInputElement>(null);
 
+  const savedImages = initial?.images.map((i) => i.url) ?? [];
+  const imagesDirty =
+    images.length !== savedImages.length || images.some((u, i) => u !== savedImages[i]);
+
+  useEffect(() => {
+    if (!imagesDirty) return;
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = "";
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, [imagesDirty]);
+
   const deleteUpload = (url: string) => {
     if (!url.startsWith("/uploads/") && !url.startsWith("https://res.cloudinary.com/")) return;
     fetch("/api/admin/upload", {
@@ -356,16 +370,24 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
-      const data = (await res.json()) as { ok: boolean; error?: string };
 
-      if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Erro ao salvar o produto.");
+      if (res.redirected || res.type === "opaqueredirect") {
+        toast.error("Sua sessão expirou. Faça login novamente e tente salvar.");
+        return;
+      }
+
+      const data = (await res.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+
+      if (!res.ok || !data?.ok) {
+        toast.error(data?.error ?? "Erro ao salvar o produto. Tente novamente.");
         return;
       }
 
       toast.success(productId ? "Produto atualizado!" : "Produto criado!");
       router.push("/admin/produtos");
       router.refresh();
+    } catch {
+      toast.error("Falha ao salvar o produto. Verifique sua conexão e tente novamente.");
     } finally {
       setSaving(false);
     }
@@ -673,6 +695,12 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
           ) : (
             <p className="text-sm text-muted-foreground">Nenhuma imagem adicionada.</p>
           )}
+          {imagesDirty ? (
+            <p className="rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+              Alterações de imagem ainda não salvas. Clique em &ldquo;Salvar produto&rdquo; para
+              publicá-las.
+            </p>
+          ) : null}
         </CardContent>
       </Card>
 
