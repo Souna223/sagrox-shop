@@ -169,6 +169,29 @@ export async function sendPasswordResetEmail(input: {
   return sendEmail({ to: input.to, subject: `Redefinição de senha — ${SITE_NAME}`, html });
 }
 
+export async function sendWelcomeEmail(input: { to: string; name: string }): Promise<boolean> {
+  const html = renderEmailLayout({
+    title: `Bem-vindo à ${SITE_NAME}!`,
+    bodyHtml: `
+      <p style="margin:0 0 14px">Olá, ${escapeHtml(input.name)}! Sua conta em <strong>${SITE_NAME}</strong> foi criada com sucesso. Que bom ter você por aqui!</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border:1px solid ${BORDER};border-radius:8px;overflow:hidden">
+        <tr>
+          <td style="padding:12px 14px;border-bottom:1px solid ${BORDER};font-size:13px;color:#3f3f46"><strong style="color:${BRAND}">Pedidos:</strong> acompanhe suas compras e entregas em tempo real</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 14px;border-bottom:1px solid ${BORDER};font-size:13px;color:#3f3f46"><strong style="color:${BRAND}">Praticidade:</strong> checkout mais rápido com seus dados e endereços salvos</td>
+        </tr>
+        <tr>
+          <td style="padding:12px 14px;font-size:13px;color:#3f3f46"><strong style="color:${BRAND}">Vantagens:</strong> receba novidades, cupons e ofertas em primeira mão</td>
+        </tr>
+      </table>
+      <p style="margin:0 0 8px">Já está tudo pronto. Vamos às compras?</p>`,
+    cta: { label: "Explorar a loja", href: SITE_URL },
+  });
+
+  return sendEmail({ to: input.to, subject: `Bem-vindo(a) à ${SITE_NAME}!`, html });
+}
+
 export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded";
 
 export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind): Promise<boolean> {

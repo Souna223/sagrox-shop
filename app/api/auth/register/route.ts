@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { registerSchema } from "@/lib/validators";
 import { fail, ok, rateLimit, getClientIp } from "@/lib/api";
+import { sendWelcomeEmail } from "@/lib/mail";
 
 const ipKey = (ip: string) => `register:${ip}`;
 
@@ -48,6 +49,8 @@ export async function POST(request: Request) {
         create: { email, name: data.name.trim(), status: "ACTIVE" },
       });
     }
+
+    void sendWelcomeEmail({ to: email, name: user.name ?? email });
 
     return ok(user, { status: 201 });
   } catch (error) {
