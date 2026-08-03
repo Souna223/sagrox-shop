@@ -413,6 +413,33 @@ export type AppmaxPaymentResult =
       status: string;
     };
 
+export async function tokenizeAppmaxCard(input: {
+  number: string;
+  cvv: string;
+  expirationMonth: string;
+  expirationYear: string;
+  holderName: string;
+}): Promise<{ token: string }> {
+  const data = await apiPost<Record<string, unknown>>("/v1/payments/tokenize", {
+    payment_data: {
+      credit_card: {
+        number: input.number,
+        cvv: input.cvv,
+        expiration_month: input.expirationMonth,
+        expiration_year: input.expirationYear,
+        holder_name: input.holderName,
+      },
+    },
+  });
+
+  const payment = data.payment as { token?: string } | undefined;
+  const token = payment?.token ?? (data as { token?: string }).token;
+  if (!token) {
+    throw new Error("AppMax não retornou o token do cartão.");
+  }
+  return { token };
+}
+
 export async function processAppmaxPayment(
   input: {
     orderId: number;
@@ -460,6 +487,14 @@ export async function processAppmaxPayment(
     throw new Error("Dados do cartão de crédito não informados.");
   }
 
+  const { token } = await tokenizeAppmaxCard({
+    number: input.card.number,
+    cvv: input.card.cvv,
+    expirationMonth: input.card.expirationMonth,
+    expirationYear: input.card.expirationYear,
+    holderName: input.card.holderName,
+  });
+
   const data = await apiPost<{ payment: { pay_reference: string; status: string } }>(
     "/v1/payments/credit-card",
     {
@@ -467,10 +502,7 @@ export async function processAppmaxPayment(
       customer_id: input.customerId,
       payment_data: {
         credit_card: {
-          number: input.card.number,
-          cvv: input.card.cvv,
-          expiration_month: input.card.expirationMonth,
-          expiration_year: input.card.expirationYear,
+          token,
           holder_name: input.card.holderName,
           holder_document_number: input.documentNumber,
           installments: input.card.installments,
