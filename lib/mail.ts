@@ -71,63 +71,166 @@ function formatDate(date: Date | string): string {
 }
 
 const BRAND = "#c81e2e";
-const INK = "#18181b";
-const MUTED = "#71717a";
-const BORDER = "#ececee";
-const BACKGROUND = "#f4f4f5";
+const INK = "#1f2933";
+const MUTED = "#6e7a8a";
+const BORDER = "#e4e7ec";
+const CARD_BG = "#f8fafc";
+const BACKGROUND = "#f3f4f6";
+const SUCCESS = "#15803d";
+const DANGER = "#b91c1c";
+
+const FONT_STACK = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
+
+type CtaAction = { label: string; href: string; secondary?: boolean } | null;
 
 type EmailLayoutOptions = {
+  subject: string;
   title: string;
+  preheader: string;
   bodyHtml: string;
-  cta?: { label: string; href: string } | null;
+  cta?: CtaAction;
+  extraLink?: { label: string; href: string };
+  meta?: { label: string; value: string; tone?: "default" | "success" | "danger" | "brand" }[];
 };
 
-function renderEmailLayout({ title, bodyHtml, cta }: EmailLayoutOptions): string {
-  const logoUrl = `${SITE_URL}/logo.png`;
+function renderButton(cta: Exclude<CtaAction, null>): string {
+  const isSecondary = Boolean(cta.secondary);
+  const bg = isSecondary ? "#ffffff" : BRAND;
+  const fg = isSecondary ? INK : "#ffffff";
+  const border = isSecondary ? `1px solid ${BORDER}` : `1px solid ${BRAND}`;
+
   return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${BACKGROUND};padding:28px 12px;font-family:Arial,Helvetica,sans-serif">
+    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:30px auto 6px;border-radius:10px">
       <tr>
-        <td align="center">
-          <table role="presentation" width="620" cellpadding="0" cellspacing="0" style="max-width:620px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER}">
-            <tr>
-              <td align="center" style="padding:32px 24px;background:#ffffff">
-                <a href="${SITE_URL}" style="text-decoration:none">
-                  <img src="${logoUrl}" alt="${SITE_NAME}" width="170" style="width:auto;max-height:76px;display:block;margin:0 auto" />
-                </a>
-              </td>
-            </tr>
-            <tr>
-              <td style="height:6px;background:${BRAND};font-size:0;line-height:0">&nbsp;</td>
-            </tr>
-            <tr>
-              <td style="padding:32px 36px;color:${INK}">
-                <h1 style="margin:0 0 8px;font-size:26px;line-height:1.25;color:${INK}">${escapeHtml(title)}</h1>
-                <div style="width:44px;height:3px;background:${BRAND};margin:0 0 20px"></div>
-                <div style="font-size:16px;line-height:1.7;color:#3f3f46">${bodyHtml}</div>
-                ${
-                  cta
-                    ? `<p style="margin:30px 0 6px">
-                        <a href="${cta.href}" style="background:${BRAND};color:#ffffff;padding:14px 30px;border-radius:9px;text-decoration:none;font-weight:bold;font-size:15px;display:inline-block">${escapeHtml(cta.label)}</a>
-                      </p>`
-                    : ""
-                }
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:24px 36px;background:#fafafa;border-top:1px solid ${BORDER};text-align:center">
-                <p style="margin:0 0 10px;font-size:13px;color:${MUTED}">${SITE_NAME} — compras seguras · entrega em todo o Brasil</p>
-                <p style="margin:0;font-size:13px;color:#a1a1aa">
-                  <a href="${SITE_URL}" style="color:${MUTED};text-decoration:none">Loja</a> ·
-                  <a href="${SITE_URL}/conta/pedidos" style="color:${MUTED};text-decoration:none">Meus pedidos</a> ·
-                  <a href="${SITE_URL}/contato" style="color:${MUTED};text-decoration:none">Contato</a>
-                </p>
-                <p style="margin:12px 0 0;font-size:12px;color:#a1a1aa">Este e-mail foi enviado automaticamente pelo sistema de ${SITE_NAME}. Se você tiver dúvidas, é só responder esta mensagem.</p>
-              </td>
-            </tr>
-          </table>
+        <td align="center" style="border-radius:10px;background-color:${bg};border:${border};mso-padding-alt:15px 36px">
+          <a href="${cta.href}" style="display:inline-block;padding:15px 36px;font-size:15px;font-weight:bold;letter-spacing:0.2px;text-decoration:none;color:${fg};border-radius:10px;line-height:1.4">${escapeHtml(cta.label)}</a>
         </td>
       </tr>
     </table>`;
+}
+
+function renderMetaCard(
+  meta: NonNullable<EmailLayoutOptions["meta"]>,
+): string {
+  const tds = meta
+    .map((row, i) => {
+      const tone =
+        row.tone === "success"
+          ? SUCCESS
+          : row.tone === "danger"
+            ? DANGER
+            : row.tone === "brand"
+              ? BRAND
+              : INK;
+      return `
+        <td style="padding:14px 16px;${i > 0 ? `border-left:1px solid ${BORDER};` : ""}vertical-align:top">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:${MUTED};margin-bottom:5px">${escapeHtml(row.label)}</div>
+          <div style="font-size:16px;font-weight:700;color:${tone}">${escapeHtml(row.value)}</div>
+        </td>`;
+    })
+    .join("");
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden;background-color:${CARD_BG}">
+      <tr>${tds}</tr>
+    </table>`;
+}
+
+function renderCard(title: string, rows: { label: string; value: string }[]): string {
+  const rowHtml = rows
+    .map(
+      (row, i) => `
+        <tr>
+          <td style="padding:13px 18px;${i < rows.length - 1 ? `border-bottom:1px solid ${BORDER};` : ""}font-size:13px;color:${MUTED};width:46%">${escapeHtml(row.label)}</td>
+          <td style="padding:13px 18px;${i < rows.length - 1 ? `border-bottom:1px solid ${BORDER};` : ""}font-size:14px;font-weight:600;color:${INK};text-align:right">${row.value}</td>
+        </tr>`,
+    )
+    .join("");
+
+  return `
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
+      <tr>
+        <td colspan="2" style="padding:13px 18px;background-color:${CARD_BG};border-bottom:1px solid ${BORDER};font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:${MUTED};font-weight:700">${escapeHtml(title)}</td>
+      </tr>
+      ${rowHtml}
+    </table>`;
+}
+
+function renderEmailLayout(options: EmailLayoutOptions): string {
+  const { subject, title, preheader, bodyHtml, cta, extraLink, meta } = options;
+  const logoUrl = `${SITE_URL}/logo.png`;
+  const metaCard = meta && meta.length > 0 ? renderMetaCard(meta) : "";
+
+  return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="x-apple-disable-message-reformatting" />
+  <title>${escapeHtml(subject)}</title>
+  <!--[if mso]><style type="text/css">.container{width:600px !important}</style><![endif]-->
+  <style type="text/css">
+    @media only screen and (max-width: 620px) {
+      .container { width: 100% !important; }
+      .content { padding: 24px 20px !important; }
+      .footer { padding: 20px 20px !important; }
+      .hero { padding: 24px 20px !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:${BACKGROUND};font-family:${FONT_STACK};color:${INK}">
+  <div style="display:none;font-size:1px;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all">${escapeHtml(preheader)}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" bgcolor="${BACKGROUND}" style="background-color:${BACKGROUND}">
+    <tr>
+      <td align="center" style="padding:32px 12px">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" class="container" style="width:100%;max-width:600px;background-color:#ffffff;border-radius:16px;overflow:hidden;border:1px solid ${BORDER}">
+          <tr>
+            <td align="center" class="hero" style="padding:36px 24px 30px;background-color:#ffffff">
+              <a href="${SITE_URL}" style="text-decoration:none">
+                <img src="${logoUrl}" alt="${SITE_NAME}" width="168" style="display:block;margin:0 auto;max-height:80px;width:auto" />
+              </a>
+              <div style="margin-top:14px;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#9aa5b1">Compras seguras · Entrega em todo o Brasil</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="height:5px;font-size:0;line-height:0;background-color:${BRAND}">&nbsp;</td>
+          </tr>
+          <tr>
+            <td class="content" style="padding:34px 40px;color:${INK}">
+              <h1 style="margin:0 0 8px;font-size:25px;line-height:1.3;color:${INK};font-weight:700">${escapeHtml(title)}</h1>
+              <div style="width:52px;height:4px;border-radius:2px;background-color:${BRAND};margin:0 0 22px"></div>
+              <div style="font-size:15px;line-height:1.7;color:#3e4c59">${bodyHtml}</div>
+              ${cta ? renderButton(cta) : ""}
+              ${
+                extraLink
+                  ? `<p style="margin:14px 0 0;text-align:center"><a href="${extraLink.href}" style="color:${MUTED};font-size:13px;text-decoration:underline">${escapeHtml(extraLink.label)}</a></p>`
+                  : ""
+              }
+              ${metaCard}
+            </td>
+          </tr>
+          <tr>
+            <td class="footer" style="padding:26px 40px;background-color:${CARD_BG};border-top:1px solid ${BORDER};text-align:center">
+              <div style="font-size:15px;font-weight:700;color:${INK};margin-bottom:6px">${escapeHtml(SITE_NAME)}</div>
+              <div style="font-size:13px;color:${MUTED};margin-bottom:12px">Compras seguras · Entrega em todo o Brasil</div>
+              <div style="font-size:13px;color:${MUTED}">
+                <a href="${SITE_URL}" style="color:${MUTED};text-decoration:none">Loja</a>
+                &nbsp;·&nbsp;
+                <a href="${SITE_URL}/conta/pedidos" style="color:${MUTED};text-decoration:none">Meus pedidos</a>
+                &nbsp;·&nbsp;
+                <a href="${SITE_URL}/contato" style="color:${MUTED};text-decoration:none">Fale conosco</a>
+              </div>
+              <div style="margin:14px 0 0;padding-top:14px;border-top:1px solid ${BORDER};font-size:12px;color:#9aa5b1">Você recebeu este e-mail por ter uma conta ou uma compra em ${escapeHtml(SITE_NAME)}. Mensagem enviada automaticamente.</div>
+              <div style="margin-top:8px;font-size:12px;color:#9aa5b1">&copy; ${new Date().getFullYear()} ${escapeHtml(SITE_NAME)}. Todos os direitos reservados.</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
 }
 
 type OrderSummaryItem = {
@@ -153,19 +256,25 @@ function renderOrderSummary(order: OrderSummaryData): string {
       const img = toAbsoluteUrl(item.imageUrl);
       return `
         <tr>
-          <td width="76" style="padding:14px 12px;border-bottom:1px solid ${BORDER};vertical-align:top">
-            ${
-              img
-                ? `<img src="${img}" alt="" width="64" height="64" style="width:64px;height:64px;object-fit:cover;border-radius:10px;display:block" />`
-                : `<div style="width:64px;height:64px;border-radius:10px;background:#f4f4f5"></div>`
-            }
+          <td style="padding:14px 12px;border-bottom:1px solid ${BORDER};vertical-align:middle">
+            <table role="presentation" cellpadding="0" cellspacing="0">
+              <tr>
+                <td width="56" style="vertical-align:middle;padding-right:12px">
+                  ${
+                    img
+                      ? `<img src="${img}" alt="" width="56" height="56" style="width:56px;height:56px;object-fit:cover;border-radius:8px;display:block;background-color:${CARD_BG}" />`
+                      : `<div style="width:56px;height:56px;border-radius:8px;background-color:${CARD_BG}"></div>`
+                  }
+                </td>
+                <td style="vertical-align:middle;font-size:14px;color:#3e4c59">
+                  <div style="font-weight:700;color:${INK};font-size:14px;margin-bottom:3px">${escapeHtml(item.name)}</div>
+                  <div style="color:${MUTED};font-size:12px">Ref.: ${escapeHtml(item.sku)}</div>
+                  <div style="margin-top:3px;font-size:13px;color:${MUTED}">${item.quantity}x ${formatBRL(Number(item.unitPrice))}</div>
+                </td>
+              </tr>
+            </table>
           </td>
-          <td style="padding:14px 12px;border-bottom:1px solid ${BORDER};vertical-align:top;font-size:14px;color:#3f3f46">
-            <div style="font-weight:bold;color:${INK};font-size:15px;margin-bottom:4px">${escapeHtml(item.name)}</div>
-            <div style="color:${MUTED};font-size:13px">Ref.: ${escapeHtml(item.sku)}</div>
-            <div style="margin-top:4px;font-size:14px">${item.quantity}x ${formatBRL(Number(item.unitPrice))}</div>
-          </td>
-          <td style="padding:14px 12px;border-bottom:1px solid ${BORDER};vertical-align:top;text-align:right;white-space:nowrap;font-size:15px;font-weight:bold;color:${INK}">
+          <td style="padding:14px 12px;border-bottom:1px solid ${BORDER};text-align:right;vertical-align:middle;white-space:nowrap;font-size:14px;font-weight:600;color:${INK}">
             ${formatBRL(Number(item.unitPrice) * item.quantity)}
           </td>
         </tr>`;
@@ -178,74 +287,31 @@ function renderOrderSummary(order: OrderSummaryData): string {
   return `
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:22px 0 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
       <tr>
-        <td style="background:#fafafa;padding:14px;font-size:14px;font-weight:bold;color:${INK}">Produtos</td>
-        <td style="background:#fafafa;padding:14px;font-size:14px;font-weight:bold;text-align:right;color:${INK}">Total</td>
+        <td colspan="2" style="padding:13px 18px;background-color:${CARD_BG};border-bottom:1px solid ${BORDER};font-size:12px;text-transform:uppercase;letter-spacing:0.8px;color:${MUTED};font-weight:700">Itens do pedido</td>
       </tr>
       ${rows}
     </table>
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:14px 0 0">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0 0">
       <tr>
         <td style="padding:6px 4px;font-size:14px;color:${MUTED}">Subtotal</td>
-        <td style="padding:6px 4px;font-size:14px;color:${MUTED};text-align:right">${formatBRL(Number(order.subtotal))}</td>
+        <td style="padding:6px 4px;font-size:14px;color:${INK};text-align:right">${formatBRL(Number(order.subtotal))}</td>
       </tr>
       ${
         discount > 0
           ? `<tr>
               <td style="padding:6px 4px;font-size:14px;color:${MUTED}">Desconto</td>
-              <td style="padding:6px 4px;font-size:14px;color:#16a34a;text-align:right">- ${formatBRL(discount)}</td>
+              <td style="padding:6px 4px;font-size:14px;color:${SUCCESS};text-align:right">- ${formatBRL(discount)}</td>
             </tr>`
           : ""
       }
       <tr>
         <td style="padding:6px 4px;font-size:14px;color:${MUTED}">Frete</td>
-        <td style="padding:6px 4px;font-size:14px;color:${MUTED};text-align:right">${formatBRL(shipping)}</td>
+        <td style="padding:6px 4px;font-size:14px;color:${INK};text-align:right">${formatBRL(shipping)}</td>
       </tr>
       <tr>
-        <td style="padding:10px 4px 4px;border-top:2px solid ${BORDER};font-size:16px;font-weight:bold;color:${INK}">Total do pedido</td>
-        <td style="padding:10px 4px 4px;border-top:2px solid ${BORDER};font-size:18px;font-weight:bold;text-align:right;color:${BRAND}">${formatBRL(Number(order.total))}</td>
+        <td style="padding:12px 4px 4px;border-top:2px solid ${BORDER};font-size:15px;font-weight:700;color:${INK}">Total do pedido</td>
+        <td style="padding:12px 4px 4px;border-top:2px solid ${BORDER};font-size:18px;font-weight:700;text-align:right;color:${BRAND}">${formatBRL(Number(order.total))}</td>
       </tr>
-    </table>`;
-}
-
-function renderShippingBlock(input: {
-  shippingService: string | null;
-  shippingEstimateDays: number | null;
-  trackingCode?: string | null;
-  trackingUrl?: string | null;
-}): string {
-  const trackingCode = input.trackingCode ?? null;
-  return `
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
-      ${
-        input.shippingService
-          ? `<tr>
-              <td style="padding:14px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:${MUTED};margin-bottom:4px">Forma de envio</div>
-                <strong style="color:${INK};font-size:15px">${escapeHtml(input.shippingService)}</strong>
-                ${
-                  input.shippingEstimateDays
-                    ? ` <span style="color:${MUTED}">· prazo estimado de <strong style="color:${INK}">${input.shippingEstimateDays} dia${input.shippingEstimateDays > 1 ? "s" : ""} útil${input.shippingEstimateDays > 1 ? "eis" : ""}</strong></span>`
-                    : ""
-                }
-              </td>
-            </tr>`
-          : ""
-      }
-      ${
-        trackingCode
-          ? `<tr>
-              <td style="padding:14px 16px;font-size:14px;color:#3f3f46">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:${MUTED};margin-bottom:6px">Código de rastreio</div>
-                <div style="font-size:18px;font-weight:bold;letter-spacing:0.5px;color:${INK}">${escapeHtml(trackingCode)}</div>
-                ${
-                  input.trackingUrl
-                    ? `<div style="margin-top:8px"><a href="${input.trackingUrl}" style="color:${BRAND};font-weight:bold;font-size:14px">Rastrear pela transportadora</a></div>`
-                    : ""
-                }
-              </td>
-            </tr>`
-          : ""
-      }
     </table>`;
 }
 
@@ -254,41 +320,46 @@ export async function sendPasswordResetEmail(input: {
   name: string;
   resetUrl: string;
 }): Promise<boolean> {
+  const subject = `Redefinição de senha — ${SITE_NAME}`;
   const html = renderEmailLayout({
+    subject,
     title: "Redefinição de senha",
+    preheader: "Clique no botão para criar uma nova senha para a sua conta.",
     bodyHtml: `
-      <p style="margin:0 0 16px">Olá, ${escapeHtml(input.name)}! Recebemos um pedido para redefinir a senha da sua conta em <strong>${SITE_NAME}</strong>.</p>
-      <p style="margin:0 0 16px">Não se preocupe, acontece com todo mundo. Para criar uma nova senha, clique no botão abaixo:</p>
-      <p style="margin:0 0 16px;font-size:14px;color:${MUTED}">O link é válido por <strong>1 hora</strong> e pode ser usado apenas uma vez.</p>
-      <p style="margin:0;font-size:13px;color:${MUTED}">Se você não pediu a redefinição, pode ignorar este e-mail — sua senha continua a mesma e sua conta permanece segura.</p>`,
+      <p style="margin:0 0 16px">Olá, ${escapeHtml(input.name)}!</p>
+      <p style="margin:0 0 16px">Recebemos uma solicitação para redefinir a senha da sua conta em <strong>${SITE_NAME}</strong>. Para criar uma nova senha, clique no botão abaixo.</p>
+      ${renderCard("Sobre este link", [
+        { label: "Validade", value: "1 hora" },
+        { label: "Utilização", value: "Uso único" },
+      ])}
+      <p style="margin:0;font-size:13px;color:${MUTED}">Se você não pediu a redefinição, ignore este e-mail — sua senha continua a mesma e sua conta permanece segura.</p>`,
     cta: { label: "Redefinir senha", href: input.resetUrl },
+    extraLink: { label: "Voltar à loja", href: SITE_URL },
   });
 
-  return sendEmail({ to: input.to, subject: `Redefinição de senha — ${SITE_NAME}`, html });
+  return sendEmail({ to: input.to, subject, html });
 }
 
 export async function sendWelcomeEmail(input: { to: string; name: string }): Promise<boolean> {
+  const subject = `Bem-vindo(a) à ${SITE_NAME}!`;
   const html = renderEmailLayout({
-    title: `Bem-vindo à ${SITE_NAME}!`,
+    subject,
+    title: `Bem-vindo(a) à ${SITE_NAME}!`,
+    preheader: "Sua conta foi criada com sucesso. Explore a loja e aproveite as novidades.",
     bodyHtml: `
-      <p style="margin:0 0 16px">Olá, ${escapeHtml(input.name)}! Sua conta em <strong>${SITE_NAME}</strong> foi criada com sucesso. Que bom ter você por aqui!</p>
-      <p style="margin:0 0 16px">Criar uma conta é só o começo — com ela você aproveita tudo o que a loja oferece:</p>
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
-        <tr>
-          <td style="padding:14px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46"><strong style="color:${BRAND}">Pedidos:</strong> acompanhe cada compra e a entrega em tempo real</td>
-        </tr>
-        <tr>
-          <td style="padding:14px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46"><strong style="color:${BRAND}">Praticidade:</strong> checkout mais rápido com seus dados e endereços salvos</td>
-        </tr>
-        <tr>
-          <td style="padding:14px 16px;font-size:14px;color:#3f3f46"><strong style="color:${BRAND}">Vantagens:</strong> receba novidades, cupons e ofertas em primeira mão</td>
-        </tr>
-      </table>
-      <p style="margin:0 0 8px">Já está tudo pronto. Vamos às compras?</p>`,
+      <p style="margin:0 0 16px">Olá, ${escapeHtml(input.name)}!</p>
+      <p style="margin:0 0 16px">Sua conta em <strong>${SITE_NAME}</strong> foi criada com sucesso. Que bom ter você por aqui!</p>
+      <p style="margin:0 0 8px">Com a sua conta, você aproveita:</p>
+      ${renderCard("O que você ganha", [
+        { label: "Pedidos", value: "Acompanhe cada compra em tempo real" },
+        { label: "Praticidade", value: "Checkout rápido com dados salvos" },
+        { label: "Vantagens", value: "Cupons e ofertas em primeira mão" },
+      ])}
+      <p style="margin:0">Já está tudo pronto. Explore a loja e boa compra!</p>`,
     cta: { label: "Explorar a loja", href: SITE_URL },
   });
 
-  return sendEmail({ to: input.to, subject: `Bem-vindo(a) à ${SITE_NAME}!`, html });
+  return sendEmail({ to: input.to, subject, html });
 }
 
 export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded";
@@ -327,94 +398,96 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
       ? (PAYMENT_METHOD[order.paymentMethod as keyof typeof PAYMENT_METHOD] ?? String(order.paymentMethod))
       : "Pagamento";
     const orderUrl = `${SITE_URL}/conta/pedidos/${order.number}`;
-    const summary = renderOrderSummary(order as unknown as OrderSummaryData);
-    const shippingBlock = renderShippingBlock({
-      shippingService: order.shippingService,
-      shippingEstimateDays: order.shippingEstimateDays,
-      trackingCode: order.trackingCode,
-      trackingUrl: order.trackingUrl,
-    });
     const orderDate = formatDate(order.createdAt);
+    const isPix = payment?.method === "PIX";
 
     const installmentsLabel =
-      order.installments && order.installments > 1
-        ? ` em ${order.installments}x`
-        : "";
+      order.installments && order.installments > 1 ? ` em ${order.installments}x` : "";
     const cardLabel =
       payment?.cardBrand || payment?.cardLast4
-        ? ` (${payment.cardBrand ?? ""}${payment.cardLast4 ? ` final ${payment.cardLast4}` : ""})`.trim()
+        ? `${payment.cardBrand ?? ""}${payment.cardLast4 ? ` final ${payment.cardLast4}` : ""}`.trim()
         : "";
+
+    const paymentRows: { label: string; value: string }[] = [
+      { label: "Forma de pagamento", value: `<strong>${escapeHtml(methodLabel)}${installmentsLabel}</strong>` },
+    ];
+    if (cardLabel) paymentRows.push({ label: "Cartão", value: escapeHtml(cardLabel) });
+    if (isPix && kind === "created") paymentRows.push({ label: "Situação", value: `<strong style="color:${BRAND}">Aguardando pagamento</strong>` });
+
+    const shippingRows: { label: string; value: string }[] = [];
+    if (order.shippingService) shippingRows.push({ label: "Forma de envio", value: `<strong>${escapeHtml(order.shippingService)}</strong>` });
+    if (order.shippingEstimateDays) {
+      const d = order.shippingEstimateDays;
+      shippingRows.push({ label: "Prazo estimado", value: `<strong>${d} dia${d > 1 ? "s" : ""} útil${d > 1 ? "eis" : ""}</strong>` });
+    }
+    if (order.trackingCode) shippingRows.push({ label: "Código de rastreio", value: `<strong>${escapeHtml(order.trackingCode)}</strong>` });
+
+    const summary = renderOrderSummary(order as unknown as OrderSummaryData);
+    const shippingCard = shippingRows.length > 0 ? renderCard("Entrega", shippingRows) : "";
+    const paymentCard = renderCard("Pagamento", paymentRows);
+
+    const statusByKind: Record<OrderEmailKind, { label: string; tone: "default" | "success" | "danger" | "brand" }> = {
+      created: { label: isPix ? "Aguardando pagamento" : "Aguardando confirmação", tone: "brand" },
+      paid: { label: "Pagamento aprovado", tone: "success" },
+      shipped: { label: "Enviado", tone: "success" },
+      cancelled: { label: "Cancelado", tone: "danger" },
+      refunded: { label: "Reembolsado", tone: "success" },
+    };
+
+    const status = statusByKind[kind];
 
     const bodyByKind: Record<
       OrderEmailKind,
-      { title: string; subject: string; bodyHtml: string; cta: { label: string; href: string } }
+      { title: string; subject: string; bodyHtml: string; cta: CtaAction; extraLink?: { label: string; href: string } }
     > = {
       created: {
         title: "Pedido confirmado",
         subject: `Pedido #${order.number} confirmado — ${SITE_NAME}`,
         bodyHtml: `
-          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}! Recebemos o seu pedido <strong>#${order.number}</strong> feito em <strong>${orderDate}</strong> e já estamos cuidando dele.</p>
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">Recebemos o seu pedido <strong>#${order.number}</strong> e já estamos cuidando dele.</p>
           ${summary}
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
-            <tr>
-              <td style="padding:14px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:${MUTED};margin-bottom:4px">Forma de pagamento</div>
-                <strong style="color:${INK};font-size:15px">${escapeHtml(methodLabel)}${installmentsLabel}</strong>${cardLabel ? ` · ${escapeHtml(cardLabel)}` : ""}
-              </td>
-            </tr>
-            ${
-              payment?.method === "PIX"
-                ? `<tr>
-                    <td style="padding:14px 16px;font-size:14px;color:#3f3f46"><strong style="color:${BRAND}">Pagamento pendente.</strong> Finalize o Pix na página do pedido para confirmar a compra. Enquanto isso, seu pedido está reservado.</td>
-                  </tr>`
-                : `<tr>
-                    <td style="padding:14px 16px;font-size:14px;color:#3f3f46">Assim que a operadora confirmar o pagamento, você receberá a confirmação por aqui.</td>
-                  </tr>`
-            }
-          </table>
-          ${shippingBlock}
-          <p style="margin:16px 0 0;font-size:14px;color:#3f3f46"><strong style="color:${INK}">Próximos passos:</strong></p>
-          <ol style="margin:6px 0 0 18px;padding:0;font-size:14px;color:#3f3f46;line-height:1.8">
+          ${paymentCard}
+          ${shippingCard}
+          <p style="margin:16px 0 0;font-size:14px;color:#3e4c59"><strong style="color:${INK}">Próximos passos</strong></p>
+          <ol style="margin:8px 0 0 18px;padding:0;font-size:14px;color:#3e4c59;line-height:1.9">
             <li>Confira os itens e o endereço de entrega na página do pedido.</li>
             <li>Acompanhe o status por aqui — avisamos a cada atualização.</li>
             <li>Receba o código de rastreio assim que o pedido for enviado.</li>
-          </ol>`,
+          </ol>
+          ${
+            isPix
+              ? `<p style="margin:16px 0 0;padding:14px 16px;border-radius:10px;background-color:#fff4f5;border:1px solid #fbd5da;font-size:14px;color:#8a1d28"><strong>Pagamento pendente.</strong> Finalize o Pix na página do pedido para confirmar a compra. Enquanto isso, seu pedido está reservado.</p>`
+              : ""
+          }`,
         cta: { label: "Acompanhar pedido", href: orderUrl },
       },
       paid: {
         title: "Pagamento aprovado",
         subject: `Pagamento aprovado — Pedido #${order.number}`,
         bodyHtml: `
-          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}! O pagamento do seu pedido <strong>#${order.number}</strong> foi aprovado com sucesso. Muito obrigado pela compra!</p>
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">O pagamento do seu pedido <strong>#${order.number}</strong> foi aprovado com sucesso. Muito obrigado pela compra!</p>
           ${summary}
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:20px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
-            <tr>
-              <td style="padding:14px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46">
-                <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:${MUTED};margin-bottom:4px">Pagamento</div>
-                <strong style="color:${INK};font-size:15px">${escapeHtml(methodLabel)}${installmentsLabel}</strong>${cardLabel ? ` · ${escapeHtml(cardLabel)}` : ""}
-              </td>
-            </tr>
-            <tr>
-              <td style="padding:14px 16px;font-size:14px;color:#3f3f46">Pagamento realizado em <strong style="color:${INK}">${orderDate}</strong>. Status: <strong style="color:#16a34a">Aprovado</strong>.</td>
-            </tr>
-          </table>
-          ${shippingBlock}
-          <p style="margin:16px 0 0;font-size:14px;color:#3f3f46">Já estamos separando e preparando o seu pedido para envio. Assim que ele sair da nossa loja, você recebe o código de rastreio por aqui.</p>`,
+          ${paymentCard}
+          ${shippingCard}
+          <p style="margin:16px 0 0;font-size:14px;color:#3e4c59">Já estamos separando e preparando o seu pedido para envio. Assim que ele sair da nossa loja, você recebe o código de rastreio por aqui.</p>`,
         cta: { label: "Acompanhar pedido", href: orderUrl },
       },
       shipped: {
         title: "Seu pedido foi enviado",
         subject: `Pedido #${order.number} enviado — ${SITE_NAME}`,
         bodyHtml: `
-          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}! Boa notícia: o seu pedido <strong>#${order.number}</strong> saiu da nossa loja e está a caminho. Hora de acompanhar a entrega!</p>
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">Boa notícia: o seu pedido <strong>#${order.number}</strong> saiu da nossa loja e está a caminho.</p>
           ${summary}
-          ${shippingBlock}
-          ${
+          ${paymentCard}
+          ${shippingCard}
+          <p style="margin:16px 0 0;font-size:14px;color:#3e4c59">${
             order.trackingUrl
-              ? `<p style="margin:0 0 8px;font-size:14px;color:#3f3f46">Clique no botão abaixo para acompanhar a entrega em tempo real pela transportadora.</p>`
-              : `<p style="margin:0 0 8px;font-size:14px;color:#3f3f46">Guarde o código de rastreio acima para consultar a entrega na página da transportadora. Ele também fica disponível na página do pedido.</p>`
-          }
-          <p style="margin:0;font-size:14px;color:#3f3f46">O prazo de entrega começa a contar a partir de hoje. Se algo não chegar no prazo, é só nos avisar.</p>`,
+              ? "Use o botão abaixo para acompanhar a entrega em tempo real pela transportadora."
+              : "Guarde o código de rastreio acima para consultar a entrega na página da transportadora. Ele também fica disponível na página do pedido."
+          }</p>`,
         cta: order.trackingUrl
           ? { label: "Rastrear pela transportadora", href: order.trackingUrl }
           : { label: "Acompanhar pedido", href: orderUrl },
@@ -423,39 +496,45 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
         title: "Pedido cancelado",
         subject: `Pagamento não confirmado — Pedido #${order.number}`,
         bodyHtml: `
-          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}! O pedido <strong>#${order.number}</strong>, feito em <strong>${orderDate}</strong>, foi cancelado porque não recebemos a confirmação do pagamento.</p>
-          <p style="margin:0 0 16px">Nenhum valor foi cobrado — ou, se houve qualquer tentativa, a operadora bloqueia a cobrança automaticamente.</p>
-          <p style="margin:0">Se você ainda quiser os produtos, é rapidinho: é só refazer o pedido na loja. Estamos à disposição para ajudar no que precisar.</p>`,
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">O pedido <strong>#${order.number}</strong> foi cancelado porque não recebemos a confirmação do pagamento.</p>
+          <p style="margin:0 0 16px">Nenhum valor foi cobrado — e, se houve qualquer tentativa, a operadora bloqueia a cobrança automaticamente.</p>
+          <p style="margin:0;font-size:14px;color:#3e4c59">Se você ainda quiser os produtos, é rápido: é só refazer o pedido na loja. Estamos à disposição para ajudar.</p>`,
         cta: { label: "Voltar às compras", href: SITE_URL },
+        extraLink: { label: "Entrar em contato", href: `${SITE_URL}/contato` },
       },
       refunded: {
         title: "Reembolso realizado",
         subject: `Reembolso — Pedido #${order.number}`,
         bodyHtml: `
-          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}! Informamos que o valor do pedido <strong>#${order.number}</strong> foi <strong>reembolsado</strong> com sucesso.</p>
-          <p style="margin:0 0 16px">O dinheiro volta para a mesma forma de pagamento utilizada na compra. O prazo para aparecer na sua conta depende da instituição financeira:</p>
-          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin:16px 0;border:1px solid ${BORDER};border-radius:12px;overflow:hidden">
-            <tr>
-              <td style="padding:12px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46"><strong style="color:${INK}">Cartão de crédito</strong> <span style="color:${MUTED}">— até 2 faturas</span></td>
-            </tr>
-            <tr>
-              <td style="padding:12px 16px;border-bottom:1px solid ${BORDER};font-size:14px;color:#3f3f46"><strong style="color:${INK}">Pix</strong> <span style="color:${MUTED}">— até 5 dias úteis</span></td>
-            </tr>
-            <tr>
-              <td style="padding:12px 16px;font-size:14px;color:#3f3f46"><strong style="color:${INK}">Boleto</strong> <span style="color:${MUTED}">— até 7 dias úteis</span></td>
-            </tr>
-          </table>
-          <p style="margin:0;font-size:14px;color:#3f3f46">Se preferir, você pode usar o valor para fazer um novo pedido. Ficaremos felizes em atendê-lo novamente!</p>`,
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">Informamos que o valor do pedido <strong>#${order.number}</strong> foi <strong>reembolsado</strong> com sucesso.</p>
+          <p style="margin:0 0 8px">O dinheiro volta para a mesma forma de pagamento da compra. O prazo para aparecer na sua conta depende da instituição financeira:</p>
+          ${renderCard("Prazos de reembolso", [
+            { label: "Cartão de crédito", value: "Até 2 faturas" },
+            { label: "Pix", value: "Até 5 dias úteis" },
+            { label: "Boleto", value: "Até 7 dias úteis" },
+          ])}
+          <p style="margin:0;font-size:14px;color:#3e4c59">Se preferir, você pode usar o valor para fazer um novo pedido. Será um prazer atendê-lo novamente!</p>`,
         cta: { label: "Fazer novo pedido", href: SITE_URL },
+        extraLink: { label: "Entrar em contato", href: `${SITE_URL}/contato` },
       },
     };
 
     const msg = bodyByKind[kind];
 
     const html = renderEmailLayout({
+      subject: msg.subject,
       title: msg.title,
+      preheader: `${status.label} — Pedido #${order.number} · ${SITE_NAME}`,
       bodyHtml: msg.bodyHtml,
       cta: msg.cta,
+      extraLink: msg.extraLink,
+      meta: [
+        { label: "Pedido", value: `#${order.number}` },
+        { label: "Data", value: orderDate },
+        { label: "Status", value: status.label, tone: status.tone },
+      ],
     });
 
     return sendEmail({ to: order.email, subject: msg.subject, html });
