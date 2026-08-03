@@ -3,6 +3,7 @@ import { auditLog } from "@/lib/audit";
 import { serializeRecord } from "@/lib/serialize";
 import { ORDER_STATUS_TRANSITIONS, TERMINAL_ORDER_STATUSES } from "@/lib/constants";
 import { requestAppmaxRefund, appmaxEnabled, cents } from "@/lib/appmax";
+import { sendOrderStatusEmail } from "@/lib/mail";
 import type { OrderStatus } from "@/generated/prisma/enums";
 
 export function serializeAdminOrder<T extends Record<string, unknown>>(order: T): T {
@@ -114,6 +115,10 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
         console.error(`[appmax] Falha ao solicitar reembolso do pedido #${order.number}:`, err);
       });
     }
+  }
+
+  if (input.status === "SHIPPED") {
+    await sendOrderStatusEmail(order.id, "shipped");
   }
 
   return updated;
@@ -229,6 +234,8 @@ export async function fulfillOrder(input: FulfillOrderInput) {
     details: { orderNumber: order.number, trackingCode, provider: input.provider ?? null },
     ip: input.ip,
   });
+
+  await sendOrderStatusEmail(order.id, "shipped");
 
   return saved;
 }

@@ -60,13 +60,22 @@ function escapeHtml(value: string): string {
     .replace(/"/g, "&quot;");
 }
 
-export type OrderEmailKind = "created" | "paid" | "cancelled" | "refunded";
+export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded";
 
 export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind): Promise<boolean> {
   try {
     const order = await prisma.order.findUnique({
       where: { id: orderId },
-      include: {
+      select: {
+        id: true,
+        number: true,
+        email: true,
+        customerName: true,
+        total: true,
+        status: true,
+        paymentMethod: true,
+        trackingCode: true,
+        trackingUrl: true,
         items: { select: { name: true, sku: true, quantity: true, unitPrice: true } },
         payments: { orderBy: { createdAt: "desc" } },
       },
@@ -103,6 +112,11 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
         intro: `Olá, ${order.customerName}!`,
         body: "O pagamento do seu pedido foi aprovado. Já estamos preparando a sua entrega.",
       },
+      shipped: {
+        subject: `Pedido #${order.number} enviado — ${SITE_NAME}`,
+        intro: `Olá, ${order.customerName}!`,
+        body: "Seu pedido foi enviado. Acompanhe o rastreamento abaixo.",
+      },
       cancelled: {
         subject: `Pagamento não confirmado — Pedido #${order.number}`,
         intro: `Olá, ${order.customerName}!`,
@@ -116,6 +130,18 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
     };
 
     const msg = messages[kind];
+
+    const trackingBlock = order.trackingCode
+      ? `
+        <p style="margin-top:16px;padding:12px;border:1px solid #eee;border-radius:6px;background:#fafafa">
+          <strong>Código de rastreio:</strong> ${escapeHtml(order.trackingCode)}<br />
+          ${
+            order.trackingUrl
+              ? `<a href="${order.trackingUrl}">Rastrear pela transportadora</a>`
+              : "Você pode acompanhar o pedido pela página da transportadora."
+          }
+        </p>`
+      : "";
 
     const html = `
       <div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;color:#1a1a1a">
@@ -135,6 +161,7 @@ export async function sendOrderStatusEmail(orderId: string, kind: OrderEmailKind
           </tr>
         </table>
         <p style="color:#666;font-size:13px">Método de pagamento: ${methodLabel} · Status: ${ORDER_STATUS[order.status]}</p>
+        ${trackingBlock}
         <p>
           <a href="${SITE_URL}/conta/pedidos/${order.number}" style="background:#111;color:#fff;padding:10px 16px;text-decoration:none;border-radius:6px;display:inline-block">
             Acompanhar pedido
