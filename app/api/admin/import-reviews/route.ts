@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
-import { parseCsv, decodeCsvBuffer, normalizeHeader, toInt } from "@/lib/csv";
+import { parseCsv, decodeCsvBuffer, normalizeHeader, toInt, toNumber } from "@/lib/csv";
 import { recomputeProductRating } from "@/lib/reviews";
 import type { ReviewStatus } from "@/generated/prisma/enums";
 
@@ -26,6 +26,28 @@ function syntheticEmail(name: string, rowNumber: number): string {
       .replace(/[^a-z0-9]/g, "")
       .slice(0, 20) || "cliente";
   return `${base}${rowNumber}@import.local`;
+}
+
+function parseRating(raw: string): number | null {
+  const s = String(raw ?? "").trim();
+  if (!s) return null;
+
+  const filledStars = s.match(/★/g);
+  if (filledStars && filledStars.length > 0) {
+    return Math.min(5, filledStars.length);
+  }
+
+  const fraction = s.match(/(\d+(?:[.,]\d+)?)\s*[/de:]\s*(\d+(?:[.,]\d+)?)/i);
+  if (fraction) {
+    const a = Number(fraction[1].replace(",", "."));
+    const b = Number(fraction[2].replace(",", "."));
+    if (b > 0) return Math.round((a / b) * 5);
+    return null;
+  }
+
+  const n = toNumber(s);
+  if (n === null) return null;
+  return Math.round(n);
 }
 
 function parseDate(raw: string): Date | null {
@@ -104,7 +126,7 @@ export async function POST(request: NextRequest) {
     const PRODUCT_NAME_COL = resolveColumn(["product", "produto", "productname", "nomeproduto"]);
     const EMAIL_COL = resolveColumn(["email", "customeremail", "cliente", "user", "customer"]);
     const CUSTOMER_NAME_COL = resolveColumn(["name", "nome", "customername", "clientenome"]);
-    const RATING_COL = resolveColumn(["rating", "nota", "estrelas", "stars", "avaliacao"]);
+    const RATING_COL = resolveColumn(["rating", "nota", "estrelas", "stars", "avaliacao", "score", "star", "estrela"]);
     const TITLE_COL = resolveColumn(["title", "titulo", "assunto", "subject"]);
     const COMMENT_COL = resolveColumn(["comment", "comentario", "review", "texto", "mensagem", "description"]);
     const STATUS_COL = resolveColumn(["status", "situacao"]);
@@ -198,7 +220,8 @@ export async function POST(request: NextRequest) {
       const rawEmail = column(row, EMAIL_COL);
       const email = rawEmail ? rawEmail.toLowerCase() : syntheticEmail(column(row, CUSTOMER_NAME_COL), rowNumber);
       const customerName = column(row, CUSTOMER_NAME_COL) || email.split("@")[0] || "Cliente";
-      const rating = toInt(column(row, RATING_COL));
+      const rawRating = column(row, RATING_COL);
+      const rating = parseRating(rawRating);
       const title = column(row, TITLE_COL);
       const comment = column(row, COMMENT_COL);
       const status = STATUS_COL ? reviewStatusFrom(column(row, STATUS_COL)) : "APPROVED";
@@ -222,7 +245,11 @@ export async function POST(request: NextRequest) {
       }
 
       if (rating === null || rating < 1 || rating > 5) {
-        errors.push({ row: rowNumber, name: productName || sku, error: "A nota deve ser um número entre 1 e 5." });
+        errors.push({
+          row: rowNumber,
+          name: productName || sku,
+          error: `A nota "${rawRating}" (coluna "${RATING_COL}") deve ser um número entre 1 e 5.`,
+        });
         continue;
       }
 
