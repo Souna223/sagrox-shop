@@ -1,11 +1,136 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Download, FileUp, Loader2 } from "lucide-react";
+import { Download, FileUp, Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+
+type ProductOption = { id: string; name: string; sku: string | null; slug: string };
+
+function ProductPicker({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (slug: string, label: string) => void;
+}) {
+  const [query, setQuery] = useState(value);
+  const [options, setOptions] = useState<ProductOption[]>([]);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [picked, setPicked] = useState(false);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    if (!picked) setQuery(value);
+  }, [value, picked]);
+
+  useEffect(() => {
+    const close = (e: MouseEvent) => {
+      if (boxRef.current && !boxRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, []);
+
+  useEffect(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    const q = query.trim();
+    if (!q) {
+      setOptions([]);
+      setOpen(false);
+      return;
+    }
+    setLoading(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/products?q=${encodeURIComponent(q)}&perPage=50`);
+        const data = await res.json();
+        const items = (data?.ok && data.data?.items) || [];
+        setOptions(
+          items.map((p: ProductOption & { slug: string }) => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            slug: p.slug,
+          })),
+        );
+        setOpen(true);
+      } catch {
+        setOptions([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 300);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, [query]);
+
+  return (
+    <div ref={boxRef} className="relative">
+      <div className="relative">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setPicked(false);
+          }}
+          placeholder="Buscar produto pelo nome ou SKU..."
+          className="w-full rounded-md border bg-background py-2 pr-8 pl-8 text-sm"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => {
+              setQuery("");
+              setPicked(false);
+              onChange("", "");
+              setOptions([]);
+              setOpen(false);
+            }}
+            className="absolute top-1/2 right-2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+          >
+            <X className="size-4" />
+          </button>
+        )}
+      </div>
+      {open && (
+        <div className="absolute z-20 mt-1 max-h-56 w-full overflow-y-auto rounded-md border bg-popover shadow-md">
+          {loading && (
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+              <Loader2 className="size-4 animate-spin" /> Buscando...
+            </div>
+          )}
+          {!loading && options.length === 0 && (
+            <div className="px-3 py-2 text-sm text-muted-foreground">Nenhum produto encontrado.</div>
+          )}
+          {options.map((p) => (
+            <button
+              key={p.id}
+              type="button"
+              onClick={() => {
+                setPicked(true);
+                setQuery(p.sku ? `${p.name} (${p.sku})` : p.name);
+                onChange(p.slug, p.sku ? `${p.name} (${p.sku})` : p.name);
+                setOpen(false);
+              }}
+              className="block w-full px-3 py-2 text-left text-sm hover:bg-accent"
+            >
+              <span className="font-medium">{p.name}</span>
+              {p.sku && <span className="ml-2 text-xs text-muted-foreground">{p.sku}</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const TEMPLATE_HEADERS = ["sku", "email", "name", "rating", "title", "comment", "status", "date"];
 
@@ -52,6 +177,7 @@ export default function ReviewImportForm() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult["data"] | null>(null);
+  const [productOverride, setProductOverride] = useState("");
 
   const downloadTemplate = () => {
     const csv = [TEMPLATE_HEADERS.join(TEMPLATE_SEP), TEMPLATE_ROW].join("\n");
@@ -75,6 +201,7 @@ export default function ReviewImportForm() {
     try {
       const fd = new FormData();
       fd.append("file", file);
+      if (productOverride.trim()) fd.append("product", productOverride.trim());
       const res = await fetch("/api/admin/import-reviews", { method: "POST", body: fd });
       const data = (await res.json()) as ImportResult;
       if (!res.ok || !data.ok || !data.data) {
@@ -123,6 +250,17 @@ export default function ReviewImportForm() {
               className="hidden"
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
+          </div>
+          <div className="max-w-md space-y-1.5">
+            <label htmlFor="review-product-override" className="text-sm font-medium">
+              Produto (opcional)
+            </label>
+            <ProductPicker value={productOverride} onChange={(slug) => setProductOverride(slug)} />
+            <p className="text-xs text-muted-foreground">
+              Escolha o produto antes de importar quando o CSV não tiver o identificador do seu produto — como nas
+              exportações do AliExpress, que só trazem a variação (ex.: &quot;cor:Preto&quot;). Todas as avaliações do
+              arquivo serão vinculadas ao produto selecionado.
+            </p>
           </div>
         </CardContent>
       </Card>

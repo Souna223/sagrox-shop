@@ -117,6 +117,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const overrideProduct = typeof form.get("product") === "string" ? (form.get("product") as string).trim() : "";
+    let overrideProductId: string | null = null;
+    let overrideProductLabel: string | null = null;
+    if (overrideProduct) {
+      const bySku = await prisma.product.findFirst({
+        where: { sku: overrideProduct },
+        select: { id: true, name: true },
+      });
+      const bySlug = bySku
+        ? null
+        : await prisma.product.findFirst({ where: { slug: overrideProduct }, select: { id: true, name: true } });
+      const byName = bySlug
+        ? null
+        : await prisma.product.findFirst({
+            where: { name: { equals: overrideProduct, mode: "insensitive" } },
+            select: { id: true, name: true },
+          });
+      const match = bySku ?? bySlug ?? byName;
+      if (match) {
+        overrideProductId = match.id;
+        overrideProductLabel = match.name;
+      }
+    }
+
     const skuSet = new Set<string>();
     const slugSet = new Set<string>();
     const nameSet = new Set<string>();
@@ -183,10 +207,17 @@ export async function POST(request: NextRequest) {
       const productId =
         (sku && productIdBySku.get(sku.toLowerCase())) ||
         (slug && productIdBySlug.get(slug.toLowerCase())) ||
-        (productName && productIdByName.get(productName.toLowerCase()));
+        (productName && productIdByName.get(productName.toLowerCase())) ||
+        overrideProductId;
 
       if (!productId) {
-        errors.push({ row: rowNumber, name: productName || sku, error: "Produto não encontrado (verifique SKU, slug ou nome)." });
+        errors.push({
+          row: rowNumber,
+          name: productName || sku,
+          error: overrideProduct
+            ? "Produto informado não encontrado (verifique o SKU, slug ou nome no campo 'Produto')."
+            : "Produto não encontrado (verifique SKU, slug ou nome).",
+        });
         continue;
       }
 
@@ -234,7 +265,7 @@ export async function POST(request: NextRequest) {
           },
           select: { id: true },
         });
-        created.push({ id: review.id, product: productName || sku, email });
+        created.push({ id: review.id, product: overrideProductLabel || productName || sku, email });
         touchedProducts.add(productId);
       } catch (error) {
         errors.push({
