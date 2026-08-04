@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
-import { parseCsv, decodeCsvBuffer, normalizeHeader, splitList, toNumber, toInt } from "@/lib/csv";
+import { parseCsv, decodeCsvBuffer, normalizeHeader, splitList, toNumber, toInt, htmlToText, extractHtmlImages } from "@/lib/csv";
 import { productSchema } from "@/lib/validators";
 import { applyProductPayload } from "@/lib/admin-products";
 import type { ProductStatus, ProductVisibility } from "@/generated/prisma/enums";
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
       return fail(`O CSV pode conter no máximo ${MAX_ROWS} produtos.`, 422);
     }
 
-    const resolveColumn = (keywords: string[], exclude: string[]): string => {
+    const resolveColumn = (keywords: string[], exclude: string[], prefer = ""): string => {
       const normHeaders = headers.map(normalizeHeader);
       const normKeywords = keywords.map(normalizeHeader);
       const normExclude = exclude.map(normalizeHeader);
@@ -75,8 +75,9 @@ export async function POST(request: NextRequest) {
         if (normExclude.some((e) => h.includes(e))) continue;
         for (const kw of normKeywords) {
           if (h.includes(kw) || kw.includes(h)) {
-            if (h.length < bestScore) {
-              bestScore = h.length;
+            const score = h.length - (prefer && h.includes(prefer) ? 100 : 0);
+            if (score < bestScore) {
+              bestScore = score;
               best = headers[i];
             }
             break;
@@ -95,7 +96,7 @@ export async function POST(request: NextRequest) {
       return fallback;
     };
 
-    const NAME_COL = resolveColumn(["name", "nome", "produto", "titulo", "title"], ["sku"]);
+    const NAME_COL = resolveColumn(["name", "nome", "produto", "titulo", "title"], ["sku", "store", "loja"], "title");
     if (!NAME_COL) {
       return fail(
         "Nenhuma coluna de nome encontrada (esperado: name, nome ou produto). Verifique se a primeira linha contém os cabeçalhos do CSV.",
@@ -103,16 +104,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const SKU_COL = resolveColumn(["sku", "codigo", "barcode"], []);
-    const PRICE_COL = resolveColumn(["price", "preco", "valor", "precovenda"], ["compare", "original", "oferta", "de"]);
-    const COMPARE_COL = resolveColumn(["compareatprice", "precode", "compararpreco", "precooriginal"], []);
-    const STOCK_COL = resolveColumn(["stock", "estoque", "quantidade", "qty"], []);
+    const SKU_COL =
+      resolveColumn(["sku", "codigo", "barcode"], ["properties", "propriedades", "variacao", "variation", "total", "available", "disponivel"]) ||
+      resolveColumn(["id"], ["category", "store"]);
+    const PRICE_COL = resolveColumn(["price", "preco", "valor", "precovenda", "saleprice", "precovendaatual"], ["compare", "original", "oferta", "de"]);
+    const COMPARE_COL = resolveColumn(["compareatprice", "precode", "compararpreco", "precooriginal", "originalprice", "pricedepromo"], []);
+    const STOCK_COL = resolveColumn(["stock", "estoque", "quantidade", "qty", "inventory"], []);
     const DESC_COL = resolveColumn(["description", "descricao"], ["curta", "short", "resumo"]);
-    const SHORT_DESC_COL = resolveColumn(["shortdescription", "descricaocurta", "resumo"], []);
-    const IMAGES_COL = resolveColumn(["images", "image", "imagens", "fotos", "foto", "gallery"], []);
+    const SHORT_DESC_COL = resolveColumn(["shortdescription", "descricaocurta", "resumo", "resume"], []);
+    const IMAGES_COL = resolveColumn(["images", "image", "imagens", "fotos", "foto", "gallery"], [], "all");
     const TAGS_COL = resolveColumn(["tags", "etiquetas", "palavraschave"], []);
     const BRAND_COL = resolveColumn(["brand", "marca"], []);
-    const CATEGORY_COL = resolveColumn(["category", "categoria"], []);
+    const CATEGORY_COL = resolveColumn(["category", "categoria"], ["id", "path"]);
     const STATUS_COL = resolveColumn(["status", "situacao"], []);
     const VISIBILITY_COL = resolveColumn(["visibility", "visibilidade"], []);
 
@@ -135,8 +138,11 @@ export async function POST(request: NextRequest) {
       const priceRaw = column(row, PRICE_COL);
       const compareRaw = column(row, COMPARE_COL);
       const stockRaw = column(row, STOCK_COL);
-      const description = column(row, DESC_COL);
-      const shortDescription = column(row, SHORT_DESC_COL);
+      const descriptionRaw = column(row, DESC_COL);
+      const description = htmlToText(descriptionRaw);
+      const shortDescription =
+        column(row, SHORT_DESC_COL) ||
+        (description ? description.replace(/\s+/g, " ").slice(0, 160) : "");
       const imagesRaw = column(row, IMAGES_COL);
       const tagsRaw = column(row, TAGS_COL);
       const brandName = column(row, BRAND_COL);
@@ -176,7 +182,13 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      const images = splitList(imagesRaw).filter(isValidUrl).slice(0, 8);
+      const images = [
+        ...splitList(imagesRaw),
+        ...extractHtmlImages(descriptionRaw).filter(isValidUrl),
+      ]
+        .filter(isValidUrl)
+        .filter((url, i, arr) => arr.indexOf(url) === i)
+        .slice(0, 8);
 
       const payload = {
         name,
@@ -185,7 +197,7 @@ export async function POST(request: NextRequest) {
         compareAtPrice: toNumber(compareRaw),
         stock: toInt(stockRaw) ?? 0,
         lowStockThreshold: 5,
-        status: statusFrom(statusRaw),
+        status: STATUS_COL ? statusFrom(statusRaw) : "ACTIVE",
         visibility: visibilityFrom(visibilityRaw),
         description,
         shortDescription,

@@ -100,6 +100,50 @@ export function splitList(raw: string): string[] {
     .filter(Boolean);
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  "&ccedil;": "ç", "&Ccedil;": "Ç", "&atilde;": "ã", "&Atilde;": "Ã", "&otilde;": "õ",
+  "&aacute;": "á", "&eacute;": "é", "&iacute;": "í", "&oacute;": "ó", "&uacute;": "ú",
+  "&auml;": "ä", "&euml;": "ë", "&iuml;": "ï", "&ouml;": "ö", "&uuml;": "ü",
+  "&agrave;": "à", "&egrave;": "è", "&igrave;": "ì", "&ograve;": "ò", "&ugrave;": "ù",
+  "&acirc;": "â", "&ecirc;": "ê", "&icirc;": "î", "&ocirc;": "ô", "&ucirc;": "û",
+  "&Acirc;": "Â", "&Ecirc;": "Ê", "&Icirc;": "Î", "&Ocirc;": "Ô", "&Ucirc;": "Û",
+  "&Agrave;": "À", "&Egrave;": "È", "&Igrave;": "Ì", "&Ograve;": "Ò", "&Ugrave;": "Ù",
+  "&Aacute;": "Á", "&Eacute;": "É", "&Iacute;": "Í", "&Oacute;": "Ó", "&Uacute;": "Ú",
+  "&amp;": "&", "&quot;": '"', "&lt;": "<", "&gt;": ">", "&nbsp;": " ",
+  "&rsquo;": "'", "&lsquo;": "'", "&ldquo;": '"', "&rdquo;": '"', "&mdash;": "—", "&ndash;": "–",
+};
+
+export function decodeHtmlEntities(s: string): string {
+  return s.replace(/&[a-zA-Z]+;|&#\d+;/g, (m) => {
+    if (m.startsWith("&#")) {
+      return String.fromCharCode(Number(m.slice(2, -1)));
+    }
+    return HTML_ENTITIES[m] ?? m;
+  });
+}
+
+export function htmlToText(html: string): string {
+  let s = (html ?? "").replace(/<script[\s\S]*?<\/script>/gi, " ");
+  s = s.replace(/<br\s*\/?>/gi, "\n");
+  s = s.replace(/<\/(p|div|li|h[1-6]|tr|table)>/gi, "\n");
+  s = s.replace(/<\/[a-z]+>/gi, "");
+  s = s.replace(/<[^>]+>/g, "");
+  s = decodeHtmlEntities(s);
+  s = s.replace(/[ \t]+/g, " ");
+  s = s.replace(/\n{3,}/g, "\n\n");
+  return s.trim();
+}
+
+export function extractHtmlImages(html: string): string[] {
+  const urls: string[] = [];
+  const re = /<img[^>]+src=["']([^"']+)["']/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(html ?? "")) !== null) {
+    urls.push(match[1]);
+  }
+  return urls;
+}
+
 export function toNumber(raw: string): number | null {
   const s = String(raw ?? "").trim().replace(/[^\d.,-]/g, "");
   if (!s) return null;

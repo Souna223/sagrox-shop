@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { readFileSync } from "node:fs";
 import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -49,6 +50,9 @@ const ENTITIES: Record<string, string> = {
   "&auml;": "ä", "&euml;": "ë", "&iuml;": "ï", "&ouml;": "ö", "&uuml;": "ü",
   "&agrave;": "à", "&egrave;": "è", "&igrave;": "ì", "&ograve;": "ò", "&ugrave;": "ù",
   "&acirc;": "â", "&ecirc;": "ê", "&icirc;": "î", "&ocirc;": "ô", "&ucirc;": "û",
+  "&Acirc;": "Â", "&Ecirc;": "Ê", "&Icirc;": "Î", "&Ocirc;": "Ô", "&Ucirc;": "Û",
+  "&Agrave;": "À", "&Egrave;": "È", "&Igrave;": "Ì", "&Ograve;": "Ò", "&Ugrave;": "Ù",
+  "&Aacute;": "Á", "&Eacute;": "É", "&Iacute;": "Í", "&Oacute;": "Ó", "&Uacute;": "Ú",
   "&amp;": "&", "&quot;": '"', "&lt;": "<", "&gt;": ">", "&nbsp;": " ",
   "&rsquo;": "'", "&lsquo;": "'", "&ldquo;": '"', "&rdquo;": '"', "&mdash;": "—", "&ndash;": "–",
 };
@@ -95,8 +99,7 @@ function slugify(s: string): string {
 
 function parsePrice(s: string): number | null {
   if (!s) return null;
-  let clean = s.replace(/[^0-9.,]/g, "");
-  if (!clean) return null;
+  const clean = s.replace(/[^0-9.,]/g, "");  if (!clean) return null;
   let value: number;
   if (clean.includes(",") && clean.includes(".")) {
     const lastComma = clean.lastIndexOf(",");
@@ -246,7 +249,7 @@ async function main() {
 
       let brandId: string | null = null;
       const brandName = get("brand");
-      if (brandName) {
+      if (brandName && !/^not\s*available$/i.test(brandName)) {
         const brandSlug = slugify(brandName) || `marca-${sku}`;
         const brand = await prisma.brand.upsert({
           where: { slug: brandSlug },

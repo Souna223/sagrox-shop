@@ -53,7 +53,7 @@ const ACCEPTED_COLUMNS = [
   ["tags", "Tags separadas por | ou ;"],
   ["brand", "Marca (precisa já existir no cadastro)"],
   ["category", "Categoria (precisa já existir no cadastro)"],
-  ["status", "DRAFT | ACTIVE | INACTIVE (padrão: DRAFT)"],
+  ["status", "DRAFT | ACTIVE | INACTIVE (padrão: ACTIVE)"],
   ["visibility", "VISIBLE | HIDDEN (padrão: VISIBLE)"],
 ] as const;
 
