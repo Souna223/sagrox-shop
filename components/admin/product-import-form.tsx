@@ -23,8 +23,23 @@ const TEMPLATE_HEADERS = [
   "visibility",
 ];
 
-const TEMPLATE_ROW =
-  "Produto Exemplo,SKU-001,49.90,69.90,10,Descrição completa do produto,Descrição curta,https://exemplo.com.br/foto1.jpg|https://exemplo.com.br/foto2.jpg,oferta;novo,Marca,Electrônicos,ACTIVE,VISIBLE";
+const TEMPLATE_SEP = ";";
+
+const TEMPLATE_ROW = [
+  "Produto Exemplo",
+  "SKU-001",
+  "49.90",
+  "69.90",
+  "10",
+  "Descrição completa do produto",
+  "Descrição curta",
+  "https://exemplo.com.br/foto1.jpg|https://exemplo.com.br/foto2.jpg",
+  "oferta|novo",
+  "Marca",
+  "Electrônicos",
+  "ACTIVE",
+  "VISIBLE",
+].join(TEMPLATE_SEP);
 
 const ACCEPTED_COLUMNS = [
   ["name", "Nome do produto (obrigatório)"],
@@ -60,7 +75,7 @@ export default function ProductImportForm() {
   const [result, setResult] = useState<ImportResult["data"] | null>(null);
 
   const downloadTemplate = () => {
-    const csv = [TEMPLATE_HEADERS.join(","), TEMPLATE_ROW].join("\n");
+    const csv = [TEMPLATE_HEADERS.join(TEMPLATE_SEP), TEMPLATE_ROW].join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
