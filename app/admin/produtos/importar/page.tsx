@@ -12,9 +12,9 @@ export default async function AdminProductImportPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Importar produto</h1>
+        <h1 className="text-2xl font-bold">Importar produtos</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Crie produtos rapidamente copiando o link de outra loja.
+          Importe vários produtos de uma vez enviando um arquivo CSV.
         </p>
       </div>
       <ProductImportForm />

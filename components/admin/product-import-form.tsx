@@ -1,198 +1,207 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Import, Loader2, Plus, Trash2, X } from "lucide-react";
+import { Download, FileUp, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 
-type ImportedProduct = {
-  name: string;
-  price: number;
-  compareAtPrice: number | null;
-  images: string[];
-  description: string;
-  source: string;
+const TEMPLATE_HEADERS = [
+  "name",
+  "sku",
+  "price",
+  "compareAtPrice",
+  "stock",
+  "description",
+  "shortDescription",
+  "images",
+  "tags",
+  "brand",
+  "category",
+  "status",
+  "visibility",
+];
+
+const TEMPLATE_ROW =
+  "Produto Exemplo,SKU-001,49.90,69.90,10,Descrição completa do produto,Descrição curta,https://exemplo.com.br/foto1.jpg|https://exemplo.com.br/foto2.jpg,oferta;novo,Marca,Electrônicos,ACTIVE,VISIBLE";
+
+const ACCEPTED_COLUMNS = [
+  ["name", "Nome do produto (obrigatório)"],
+  ["sku", "Código/SKU (se vazio, gerado automaticamente)"],
+  ["price", "Preço (obrigatório) — ex.: 49.90 ou 49,90"],
+  ["compareAtPrice", "Preço de (de/por)"],
+  ["stock", "Estoque"],
+  ["description", "Descrição completa"],
+  ["shortDescription", "Descrição curta"],
+  ["images", "Fotos: URLs separadas por | ou ;"],
+  ["tags", "Tags separadas por | ou ;"],
+  ["brand", "Marca (precisa já existir no cadastro)"],
+  ["category", "Categoria (precisa já existir no cadastro)"],
+  ["status", "DRAFT | ACTIVE | INACTIVE (padrão: DRAFT)"],
+  ["visibility", "VISIBLE | HIDDEN (padrão: VISIBLE)"],
+] as const;
+
+type ImportResult = {
+  ok: boolean;
+  data?: {
+    total: number;
+    created: number;
+    errors: number;
+    issues: { row: number; name: string; error: string }[];
+  };
+  error?: string;
 };
 
 export default function ProductImportForm() {
   const router = useRouter();
-  const [url, setUrl] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
   const [loading, setLoading] = useState(false);
-  const [imported, setImported] = useState<ImportedProduct | null>(null);
-  const [images, setImages] = useState<string[]>([]);
-  const [creating, setCreating] = useState(false);
+  const [result, setResult] = useState<ImportResult["data"] | null>(null);
 
-  const handleImport = async () => {
-    const trimmed = url.trim();
-    if (!trimmed) {
-      toast.error("Informe a URL do produto.");
+  const downloadTemplate = () => {
+    const csv = [TEMPLATE_HEADERS.join(","), TEMPLATE_ROW].join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "modelo-produtos.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleFile = async (file: File | undefined) => {
+    if (!file) return;
+    if (!file.name.toLowerCase().endsWith(".csv")) {
+      toast.error("Envie um arquivo no formato .csv.");
       return;
     }
     setLoading(true);
+    setResult(null);
     try {
-      const res = await fetch("/api/admin/import-product", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url: trimmed }),
-      });
-      const data = (await res.json()) as { ok: boolean; data?: ImportedProduct; error?: string };
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch("/api/admin/import-csv", { method: "POST", body: fd });
+      const data = (await res.json()) as ImportResult;
       if (!res.ok || !data.ok || !data.data) {
-        toast.error(data.error ?? "Não foi possível importar o produto.");
+        toast.error(data.error ?? "Não foi possível importar o CSV.");
         return;
       }
-      setImported(data.data);
-      setImages(data.data.images);
+      setResult(data.data);
+      if (data.data.created > 0) {
+        toast.success(`${data.data.created} produto(s) importado(s).`);
+      } else {
+        toast.error("Nenhum produto foi importado. Verifique os erros.");
+      }
     } catch {
-      toast.error("Falha ao importar o produto.");
+      toast.error("Falha ao importar o CSV.");
     } finally {
       setLoading(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
   };
-
-  const handleCreate = async () => {
-    if (!imported) return;
-    setCreating(true);
-    try {
-      const res = await fetch("/api/admin/products", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: imported.name,
-          price: imported.price,
-          compareAtPrice: imported.compareAtPrice,
-          description: imported.description,
-          shortDescription: imported.description.slice(0, 150),
-          images,
-          stock: 0,
-          status: "DRAFT",
-          visibility: "VISIBLE",
-        }),
-      });
-      const data = (await res.json()) as { ok: boolean; data?: { id: string }; error?: string };
-      if (!res.ok || !data.ok) {
-        toast.error(data.error ?? "Não foi possível criar o produto.");
-        return;
-      }
-      toast.success("Produto importado como rascunho!");
-      router.push(`/admin/produtos/${data.data?.id}/editar`);
-    } catch {
-      toast.error("Falha ao criar o produto.");
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const removeImage = (i: number) =>
-    setImages((list) => list.filter((_, index) => index !== i));
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Importar produto de outra loja</CardTitle>
-        <CardDescription>
-          Cole o link de um produto de qualquer loja (Amazon, Shopee, Mercado Livre, sites de
-          nicho etc.). Vamos extrair nome, preço, fotos e descrição automaticamente.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex gap-2">
-          <Input
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://www.exemplo.com.br/produto/123"
-            onKeyDown={(e) => {
-              if (e.key === "Enter") handleImport();
-            }}
-          />
-          <Button onClick={handleImport} disabled={loading || creating}>
-            {loading ? <Loader2 className="size-4 animate-spin" /> : <Import className="size-4" />}
-            {loading ? "Buscando..." : "Buscar"}
-          </Button>
-        </div>
-
-        {imported && (
-          <div className="space-y-4 rounded-lg border p-4">
-            <div className="grid gap-4 sm:grid-cols-[120px_1fr]">
-              <div className="flex flex-col gap-2">
-                {images[0] ? (
-                  <img
-                    src={images[0]}
-                    alt={imported.name}
-                    className="aspect-square w-full rounded-md border object-cover"
-                  />
-                ) : (
-                  <div className="flex aspect-square w-full items-center justify-center rounded-md border text-muted-foreground">
-                    Sem foto
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <div className="text-sm font-medium">{imported.name}</div>
-                <div className="text-lg font-semibold">
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(imported.price)}
-                  {imported.compareAtPrice && (
-                    <span className="ml-2 text-sm font-normal text-muted-foreground line-through">
-                      {new Intl.NumberFormat("pt-BR", {
-                        style: "currency",
-                        currency: "BRL",
-                      }).format(imported.compareAtPrice)}
-                    </span>
-                  )}
-                </div>
-                <p className="text-sm text-muted-foreground">{imported.source}</p>
-                <p className="line-clamp-3 text-sm text-muted-foreground">{imported.description}</p>
-              </div>
-            </div>
-
-            <div>
-              <Label>Fotos ({images.length})</Label>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {images.map((img, i) => (
-                  <div key={img} className="group relative">
-                    <img
-                      src={img}
-                      alt={`Foto ${i + 1}`}
-                      className="size-16 rounded-md border object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeImage(i)}
-                      className="absolute -right-1.5 -top-1.5 rounded-full bg-destructive p-0.5 text-destructive-foreground"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <Button onClick={handleCreate} disabled={loading || creating}>
-                {creating ? (
-                  <Loader2 className="size-4 animate-spin" />
-                ) : (
-                  <Plus className="size-4" />
-                )}
-                {creating ? "Criando..." : "Criar produto como rascunho"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => setImported(null)}
-                disabled={creating}
-              >
-                <Trash2 className="size-4" /> Cancelar
-              </Button>
-            </div>
+    <div className="space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>Importar produtos via CSV</CardTitle>
+          <CardDescription>
+            Baixe o modelo, preencha com seus produtos e envie o arquivo. O sistema aceita CSV com
+            vírgula ou ponto e vírgula (Excel pt-BR) e detecta a codificação automaticamente.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={downloadTemplate}>
+              <Download className="size-4" /> Baixar modelo CSV
+            </Button>
+            <Button
+              type="button"
+              disabled={loading}
+              onClick={() => fileRef.current?.click()}
+            >
+              {loading ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <FileUp className="size-4" />
+              )}
+              {loading ? "Importando..." : "Selecionar arquivo CSV"}
+            </Button>
+            <input
+              ref={fileRef}
+              type="file"
+              accept=".csv,text/csv"
+              className="hidden"
+              onChange={(e) => handleFile(e.target.files?.[0])}
+            />
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Colunas aceitas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+            {ACCEPTED_COLUMNS.map(([col, desc]) => (
+              <div key={col} className="flex gap-2">
+                <code className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-xs font-medium">
+                  {col}
+                </code>
+                <span className="text-muted-foreground">{desc}</span>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {result && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Resultado da importação</CardTitle>
+            <CardDescription>
+              {result.created} de {result.total} produto(s) criado(s)
+              {result.errors > 0 ? ` · ${result.errors} erro(s)` : ""}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {result.created > 0 && (
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  type="button"
+                  onClick={() => router.push("/admin/produtos")}
+                >
+                  <Plus className="size-4" /> Ver produtos
+                </Button>
+              </div>
+            )}
+            {result.issues.length > 0 && (
+              <div className="overflow-hidden rounded-md border">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50 text-left">
+                      <th className="px-3 py-2 font-medium">Linha</th>
+                      <th className="px-3 py-2 font-medium">Produto</th>
+                      <th className="px-3 py-2 font-medium">Erro</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.issues.map((issue) => (
+                      <tr key={issue.row} className="border-b last:border-0">
+                        <td className="px-3 py-2">{issue.row}</td>
+                        <td className="px-3 py-2">{issue.name || "—"}</td>
+                        <td className="px-3 py-2 text-destructive">{issue.error}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
