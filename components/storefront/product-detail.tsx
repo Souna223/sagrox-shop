@@ -168,6 +168,12 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           </span>
           <span className="text-muted-foreground">•</span>
           <span className="text-muted-foreground">SKU: {sku}</span>
+          <a
+            href="#review-form"
+            className="ml-auto rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+          >
+            {t.productDetail.rateNow}
+          </a>
         </div>
 
         <div className="mt-5">

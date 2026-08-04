@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getProductDetail, getRelatedProducts, incrementProductView } from "@/lib/products";
-import { ProductDetail, ProductDescriptionTabs } from "@/components/storefront/product-detail";
+import { ProductDetail } from "@/components/storefront/product-detail";
+import { ProductDescriptionTabs } from "@/components/storefront/product-detail";
+import { ProductReviewForm } from "@/components/storefront/product-review-form";
 import { ProductCard } from "@/components/storefront/product-card";
 import {
   Breadcrumb,
@@ -14,6 +15,9 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { getDictionary } from "@/lib/i18n/server";
+import { getSessionUser } from "@/lib/api";
+
+import Link from "next/link";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -36,6 +40,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
   const t = await getDictionary();
+  const sessionUser = await getSessionUser();
 
   const [product, related] = await Promise.all([
     getProductDetail(slug),
@@ -82,6 +87,22 @@ export default async function ProductPage({ params }: PageProps) {
 
       <ProductDetail product={product} />
       <ProductDescriptionTabs product={product} />
+
+      <div id="review-form" className="mt-12 scroll-mt-24 rounded-xl border p-6">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-xl font-bold">{t.productDetail.addReview}</h2>
+        </div>
+        {sessionUser ? (
+          <ProductReviewForm productSlug={product.slug} />
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            {t.productDetail.loginToReview}{" "}
+            <Link href="/login" className="font-medium text-primary underline">
+              {t.productDetail.reviewLogin}
+            </Link>
+          </p>
+        )}
+      </div>
 
       {relatedProducts.length > 0 ? (
         <section className="mt-16">

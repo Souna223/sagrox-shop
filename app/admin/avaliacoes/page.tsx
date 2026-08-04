@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
 import { ReviewsTable } from "@/components/admin/reviews-table";
+import ReviewImportForm from "@/components/admin/review-import-form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
   title: "Avaliações",
@@ -65,11 +67,22 @@ export default async function AdminReviewsPage({ searchParams }: PageProps) {
           {total} avaliação{total === 1 ? "" : "ões"} registrada{total === 1 ? "" : "s"}.
         </p>
       </div>
-      <ReviewsTable
-        initial={{ items: serialized, total, pending, page, totalPages: Math.ceil(total / perPage) }}
-        q={q}
-        status={status}
-      />
+      <Tabs defaultValue="list">
+        <TabsList>
+          <TabsTrigger value="list">Avaliações</TabsTrigger>
+          <TabsTrigger value="import">Importar CSV</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="pt-4">
+          <ReviewsTable
+            initial={{ items: serialized, total, pending, page, totalPages: Math.ceil(total / perPage) }}
+            q={q}
+            status={status}
+          />
+        </TabsContent>
+        <TabsContent value="import" className="pt-4">
+          <ReviewImportForm />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

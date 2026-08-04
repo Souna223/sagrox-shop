@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 import { serializeRecord } from "@/lib/serialize";
 import { auditLog } from "@/lib/audit";
+import { recomputeProductRating } from "@/lib/reviews";
 import type { ReviewStatus } from "@/generated/prisma/enums";
 
 const STATUSES: ReviewStatus[] = ["PENDING", "APPROVED", "REJECTED"];
@@ -17,7 +18,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
       return fail("Status inválido.");
     }
 
-    const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+    const review = await prisma.review.findUnique({ where: { id } });
     if (!review) return fail("Avaliação não encontrada.", 404);
 
     const updated = await prisma.review.update({
@@ -28,6 +29,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         user: { select: { id: true, name: true, email: true } },
       },
     });
+
+    await recomputeProductRating(review.productId);
 
     await auditLog({
       userId: admin.id,
@@ -47,9 +50,11 @@ export async function DELETE(_request: NextRequest, { params }: { params: Promis
   try {
     const admin = await requireAdmin();
     const { id } = await params;
-    const review = await prisma.review.findUnique({ where: { id }, select: { id: true } });
+    const review = await prisma.review.findUnique({ where: { id } });
     if (!review) return fail("Avaliação não encontrada.", 404);
     await prisma.review.delete({ where: { id } });
+
+    await recomputeProductRating(review.productId);
 
     await auditLog({
       userId: admin.id,
