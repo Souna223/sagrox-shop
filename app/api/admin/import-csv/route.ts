@@ -60,19 +60,61 @@ export async function POST(request: NextRequest) {
       return fail(`O CSV pode conter no máximo ${MAX_ROWS} produtos.`, 422);
     }
 
-    const col = new Map<string, number>();
-    headers.forEach((h, i) => col.set(normalizeHeader(h), i));
-
-    const field = (row: string[], names: string[]) => {
-      for (const n of names) {
-        const idx = col.get(normalizeHeader(n));
-        if (idx !== undefined && idx < row.length) {
-          const value = row[idx].trim();
-          if (value) return value;
+    const resolveColumn = (keywords: string[], exclude: string[]): string => {
+      const normHeaders = headers.map(normalizeHeader);
+      const normKeywords = keywords.map(normalizeHeader);
+      const normExclude = exclude.map(normalizeHeader);
+      for (let i = 0; i < headers.length; i++) {
+        if (normKeywords.includes(normHeaders[i])) return headers[i];
+      }
+      let best = "";
+      let bestScore = Infinity;
+      for (let i = 0; i < headers.length; i++) {
+        const h = normHeaders[i];
+        if (!h) continue;
+        if (normExclude.some((e) => h.includes(e))) continue;
+        for (const kw of normKeywords) {
+          if (h.includes(kw) || kw.includes(h)) {
+            if (h.length < bestScore) {
+              bestScore = h.length;
+              best = headers[i];
+            }
+            break;
+          }
         }
       }
-      return "";
+      return best;
     };
+
+    const column = (row: string[], colName: string, fallback = "") => {
+      const idx = headers.indexOf(colName);
+      if (idx !== -1 && idx < row.length) {
+        const value = row[idx].trim();
+        if (value) return value;
+      }
+      return fallback;
+    };
+
+    const NAME_COL = resolveColumn(["name", "nome", "produto", "titulo", "title"], ["sku"]);
+    if (!NAME_COL) {
+      return fail(
+        "Nenhuma coluna de nome encontrada (esperado: name, nome ou produto). Verifique se a primeira linha contém os cabeçalhos do CSV.",
+        422,
+      );
+    }
+
+    const SKU_COL = resolveColumn(["sku", "codigo", "barcode"], []);
+    const PRICE_COL = resolveColumn(["price", "preco", "valor", "precovenda"], ["compare", "original", "oferta", "de"]);
+    const COMPARE_COL = resolveColumn(["compareatprice", "precode", "compararpreco", "precooriginal"], []);
+    const STOCK_COL = resolveColumn(["stock", "estoque", "quantidade", "qty"], []);
+    const DESC_COL = resolveColumn(["description", "descricao"], ["curta", "short", "resumo"]);
+    const SHORT_DESC_COL = resolveColumn(["shortdescription", "descricaocurta", "resumo"], []);
+    const IMAGES_COL = resolveColumn(["images", "image", "imagens", "fotos", "foto", "gallery"], []);
+    const TAGS_COL = resolveColumn(["tags", "etiquetas", "palavraschave"], []);
+    const BRAND_COL = resolveColumn(["brand", "marca"], []);
+    const CATEGORY_COL = resolveColumn(["category", "categoria"], []);
+    const STATUS_COL = resolveColumn(["status", "situacao"], []);
+    const VISIBILITY_COL = resolveColumn(["visibility", "visibilidade"], []);
 
     const [brands, categories] = await Promise.all([
       prisma.brand.findMany({ select: { id: true, name: true } }),
@@ -88,22 +130,35 @@ export async function POST(request: NextRequest) {
       const row = rows[r];
       const rowNumber = r + 2;
 
-      const name = field(row, ["name", "nome", "produto", "titulo", "title"]);
-      const sku = field(row, ["sku"]);
-      const priceRaw = field(row, ["price", "preco", "preco", "valor", "precovenda"]);
-      const compareRaw = field(row, ["compareatprice", "precode", "precode", "compararpreco"]);
-      const stockRaw = field(row, ["stock", "estoque", "quantidade", "qty"]);
-      const description = field(row, ["description", "descricao", "descricao"]);
-      const shortDescription = field(row, ["shortdescription", "descricaocurta", "resumo"]);
-      const imagesRaw = field(row, ["images", "image", "imagens", "fotos", "foto", "gallery"]);
-      const tagsRaw = field(row, ["tags", "etiquetas", "palavraschave"]);
-      const brandName = field(row, ["brand", "marca"]);
-      const categoryName = field(row, ["category", "categoria"]);
-      const statusRaw = field(row, ["status", "situacao"]);
-      const visibilityRaw = field(row, ["visibility", "visibilidade"]);
+      const name = column(row, NAME_COL);
+      const sku = column(row, SKU_COL);
+      const priceRaw = column(row, PRICE_COL);
+      const compareRaw = column(row, COMPARE_COL);
+      const stockRaw = column(row, STOCK_COL);
+      const description = column(row, DESC_COL);
+      const shortDescription = column(row, SHORT_DESC_COL);
+      const imagesRaw = column(row, IMAGES_COL);
+      const tagsRaw = column(row, TAGS_COL);
+      const brandName = column(row, BRAND_COL);
+      const categoryName = column(row, CATEGORY_COL);
+      const statusRaw = column(row, STATUS_COL);
+      const visibilityRaw = column(row, VISIBILITY_COL);
 
       if (!name) {
-        errors.push({ row: rowNumber, name: "", error: "Informe o nome do produto." });
+        errors.push({
+          row: rowNumber,
+          name: "",
+          error: `Não foi possível ler a coluna de nome (cabeçalho "${NAME_COL}").`,
+        });
+        continue;
+      }
+
+      if (!PRICE_COL) {
+        errors.push({
+          row: rowNumber,
+          name,
+          error: "Nenhuma coluna de preço encontrada (esperado: price, preco ou valor).",
+        });
         continue;
       }
 
