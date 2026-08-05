@@ -5,9 +5,10 @@ import Link from "next/link";
 import { Minus, Plus, ShoppingBag, Trash2, ArrowRight } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/lib/store/cart-store";
+import { useCartStore, getCartItemUnitPrice, getCartItemSubtotal } from "@/lib/store/cart-store";
 import { formatBRL } from "@/lib/format";
 import { useI18n } from "@/lib/i18n/provider";
+import { fmt } from "@/lib/i18n/dictionaries";
 
 export function CartSheet({
   open,
@@ -20,7 +21,7 @@ export function CartSheet({
   const items = useCartStore((s) => s.items);
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + getCartItemSubtotal(i), 0);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -119,7 +120,16 @@ export function CartSheet({
                             <Plus className="size-3.5" />
                           </Button>
                         </div>
-                        <p className="text-sm font-semibold">{formatBRL(item.price * item.quantity)}</p>
+                        <div className="flex flex-col items-end gap-0.5">
+                          {item.kind === "product" && getCartItemUnitPrice(item) < item.price ? (
+                            <p className="text-[10px] font-medium text-emerald-600">
+                              {fmt(t.cart.quantityDiscountApplied, {
+                                value: formatBRL(getCartItemUnitPrice(item)),
+                              })}
+                            </p>
+                          ) : null}
+                          <p className="text-sm font-semibold">{formatBRL(getCartItemSubtotal(item))}</p>
+                        </div>
                       </div>
                     </div>
                   </li>

@@ -30,6 +30,11 @@ type VariationForm = {
   active: boolean;
 };
 
+type QuantityPriceForm = {
+  minQuantity: string;
+  discountPercent: string;
+};
+
 type ProductFormProps = {
   productId?: string;
   initial?: {
@@ -69,6 +74,7 @@ type ProductFormProps = {
       imageUrl: string | null;
       active: boolean;
     }[];
+    quantityPrices: { minQuantity: number; discountPercent: number }[];
   };
   categories: Option[];
   brands: Option[];
@@ -183,6 +189,87 @@ function VariationEditor({
   );
 }
 
+function QuantityPriceEditor({
+  tiers,
+  basePrice,
+  onChange,
+}: {
+  tiers: QuantityPriceForm[];
+  basePrice: string;
+  onChange: (next: QuantityPriceForm[]) => void;
+}) {
+  const update = (index: number, patch: Partial<QuantityPriceForm>) => {
+    onChange(tiers.map((t, i) => (i === index ? { ...t, ...patch } : t)));
+  };
+
+  const base = Number(basePrice);
+
+  return (
+    <div className="space-y-3">
+      {tiers.map((tier, index) => {
+        const minQty = Number(tier.minQuantity);
+        const pct = Number(tier.discountPercent);
+        const unitPrice = base > 0 && minQty >= 2 && pct > 0 ? (base * (1 - pct / 100)).toFixed(2) : null;
+        return (
+          <div key={index} className="flex flex-wrap items-end gap-3 rounded-lg border p-3">
+            <div className="space-y-1">
+              <Label>Comprar a partir de (un.)</Label>
+              <Input
+                type="number"
+                min="2"
+                step="1"
+                value={tier.minQuantity}
+                onChange={(e) => update(index, { minQuantity: e.target.value })}
+                placeholder="3"
+                className="w-32"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label>Desconto (%)</Label>
+              <Input
+                type="number"
+                min="0.01"
+                max="100"
+                step="0.01"
+                value={tier.discountPercent}
+                onChange={(e) => update(index, { discountPercent: e.target.value })}
+                placeholder="10"
+                className="w-32"
+              />
+            </div>
+            {unitPrice ? (
+              <p className="pb-2 text-sm text-muted-foreground">
+                Cada unidade sai por{" "}
+                <span className="font-semibold text-emerald-600">
+                  R$ {unitPrice.replace(".", ",")}
+                </span>
+              </p>
+            ) : null}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              className="mb-0.5 ml-auto text-muted-foreground hover:text-destructive"
+              onClick={() => onChange(tiers.filter((_, i) => i !== index))}
+              aria-label="Remover faixa de preço"
+            >
+              <Trash2 className="size-4" />
+            </Button>
+          </div>
+        );
+      })}
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => onChange([...tiers, { minQuantity: "", discountPercent: "" }])}
+      >
+        <Plus className="size-4" /> Adicionar faixa de preço
+      </Button>
+    </div>
+  );
+}
+
 export function ProductForm({ productId, initial, categories, brands }: ProductFormProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
@@ -226,6 +313,12 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
       stock: String(v.stock),
       imageUrl: v.imageUrl ?? "",
       active: v.active,
+    })) ?? [],
+  );
+  const [quantityPrices, setQuantityPrices] = useState<QuantityPriceForm[]>(
+    initial?.quantityPrices.map((t) => ({
+      minQuantity: String(t.minQuantity),
+      discountPercent: String(t.discountPercent),
     })) ?? [],
   );
   const [imageInput, setImageInput] = useState("");
@@ -390,6 +483,12 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
           imageUrl: v.imageUrl || undefined,
           active: v.active,
         })),
+        quantityPrices: quantityPrices
+          .filter((t) => t.minQuantity !== "" && t.discountPercent !== "")
+          .map((t) => ({
+            minQuantity: Number(t.minQuantity),
+            discountPercent: Number(t.discountPercent),
+          })),
       };
 
       const res = await fetch(productId ? `/api/admin/products/${productId}` : "/api/admin/products", {
@@ -633,6 +732,17 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Checkbox checked={freeShipping} onCheckedChange={(v) => setFreeShipping(!!v)} /> Frete grátis
             </label>
+          </div>
+
+          <div className="space-y-3 border-t pt-4">
+            <div>
+              <p className="text-sm font-medium">Preço por quantidade</p>
+              <p className="text-xs text-muted-foreground">
+                Ofereça desconto ao comprar mais de 1 unidade do mesmo produto. O desconto é
+                aplicado automaticamente no carrinho conforme a quantidade.
+              </p>
+            </div>
+            <QuantityPriceEditor tiers={quantityPrices} basePrice={price} onChange={setQuantityPrices} />
           </div>
         </CardContent>
       </Card>

@@ -51,3 +51,20 @@ export function round(value: number, precision = 2): number {
   const factor = 10 ** precision;
   return Math.round((value + Number.EPSILON) * factor) / factor;
 }
+
+export type QuantityPriceTier = { minQuantity: number; discountPercent: number };
+
+export function getTierUnitPrice(
+  price: number,
+  quantity: number,
+  tiers: QuantityPriceTier[] | null | undefined,
+): number {
+  if (!tiers || tiers.length === 0 || quantity < 2) return price;
+  let best: QuantityPriceTier | null = null;
+  for (const tier of tiers) {
+    if (quantity >= tier.minQuantity && (!best || tier.discountPercent > best.discountPercent)) {
+      best = tier;
+    }
+  }
+  return best ? round(price * (1 - best.discountPercent / 100)) : price;
+}

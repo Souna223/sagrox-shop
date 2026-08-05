@@ -405,6 +405,7 @@ export const ModelName = {
   Category: 'Category',
   Brand: 'Brand',
   Product: 'Product',
+  ProductQuantityPrice: 'ProductQuantityPrice',
   ProductImage: 'ProductImage',
   ProductVariation: 'ProductVariation',
   Kit: 'Kit',
@@ -462,7 +463,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "account" | "session" | "verificationToken" | "authenticator" | "category" | "brand" | "product" | "productImage" | "productVariation" | "kit" | "kitItem" | "review" | "wishlistItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "refund" | "coupon" | "couponUsage" | "flashSale" | "flashSaleProduct" | "subscriber" | "marketingCampaign" | "referral" | "loyaltyTransaction" | "giftCard" | "abandonedCart" | "pushDevice" | "notification" | "customerNote" | "customerTag" | "customerTagsOnCustomers" | "customerSegment" | "address" | "shipment" | "shippingQuote" | "analyticsEvent" | "dailyMetric" | "sessionActivity" | "auditLog" | "setting" | "appmaxInstallation" | "fAQ" | "page" | "translation" | "announcement" | "stockMovement"
+    modelProps: "user" | "account" | "session" | "verificationToken" | "authenticator" | "category" | "brand" | "product" | "productQuantityPrice" | "productImage" | "productVariation" | "kit" | "kitItem" | "review" | "wishlistItem" | "cart" | "cartItem" | "order" | "orderItem" | "payment" | "refund" | "coupon" | "couponUsage" | "flashSale" | "flashSaleProduct" | "subscriber" | "marketingCampaign" | "referral" | "loyaltyTransaction" | "giftCard" | "abandonedCart" | "pushDevice" | "notification" | "customerNote" | "customerTag" | "customerTagsOnCustomers" | "customerSegment" | "address" | "shipment" | "shippingQuote" | "analyticsEvent" | "dailyMetric" | "sessionActivity" | "auditLog" | "setting" | "appmaxInstallation" | "fAQ" | "page" | "translation" | "announcement" | "stockMovement"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1055,6 +1056,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProductCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProductCountAggregateOutputType> | number
+        }
+      }
+    }
+    ProductQuantityPrice: {
+      payload: Prisma.$ProductQuantityPricePayload<ExtArgs>
+      fields: Prisma.ProductQuantityPriceFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductQuantityPriceFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductQuantityPriceFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        findFirst: {
+          args: Prisma.ProductQuantityPriceFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductQuantityPriceFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        findMany: {
+          args: Prisma.ProductQuantityPriceFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>[]
+        }
+        create: {
+          args: Prisma.ProductQuantityPriceCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        createMany: {
+          args: Prisma.ProductQuantityPriceCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductQuantityPriceCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>[]
+        }
+        delete: {
+          args: Prisma.ProductQuantityPriceDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        update: {
+          args: Prisma.ProductQuantityPriceUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductQuantityPriceDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductQuantityPriceUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductQuantityPriceUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductQuantityPriceUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductQuantityPricePayload>
+        }
+        aggregate: {
+          args: Prisma.ProductQuantityPriceAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductQuantityPrice>
+        }
+        groupBy: {
+          args: Prisma.ProductQuantityPriceGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductQuantityPriceGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductQuantityPriceCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductQuantityPriceCountAggregateOutputType> | number
         }
       }
     }
@@ -4356,6 +4431,17 @@ export const ProductScalarFieldEnum = {
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
 
 
+export const ProductQuantityPriceScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  minQuantity: 'minQuantity',
+  discountPercent: 'discountPercent',
+  createdAt: 'createdAt'
+} as const
+
+export type ProductQuantityPriceScalarFieldEnum = (typeof ProductQuantityPriceScalarFieldEnum)[keyof typeof ProductQuantityPriceScalarFieldEnum]
+
+
 export const ProductImageScalarFieldEnum = {
   id: 'id',
   productId: 'productId',
@@ -5535,6 +5621,7 @@ export type GlobalOmitConfig = {
   category?: Prisma.CategoryOmit
   brand?: Prisma.BrandOmit
   product?: Prisma.ProductOmit
+  productQuantityPrice?: Prisma.ProductQuantityPriceOmit
   productImage?: Prisma.ProductImageOmit
   productVariation?: Prisma.ProductVariationOmit
   kit?: Prisma.KitOmit

@@ -20,7 +20,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatBRL } from "@/lib/format";
-import { calcPriceInfo } from "@/lib/prices";
+import { calcPriceInfo, getTierUnitPrice } from "@/lib/prices";
 import { useCartStore } from "@/lib/store/cart-store";
 import { useWishlistStore } from "@/lib/store/wishlist-store";
 import { toast } from "sonner";
@@ -50,7 +50,11 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   const stock = variation?.stock ?? product.stock;
   const sku = variation?.sku ?? product.sku;
 
-  const info = calcPriceInfo(price, compareAtPrice);
+  const tierUnitPrice = getTierUnitPrice(price, quantity, product.quantityPrices);
+  const tierApplied = tierUnitPrice < price;
+  const displayPrice = tierApplied ? tierUnitPrice : price;
+
+  const info = calcPriceInfo(displayPrice, compareAtPrice);
   const images = product.images.length > 0 ? product.images : null;
   const mainImage = variation?.imageUrl ?? images?.[selectedImage]?.url;
   const inWishlist = wishlist.includes(product.id);
@@ -74,10 +78,11 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
         compareAtPrice,
         image: mainImage ?? "",
         stock,
+        quantityPrices: product.quantityPrices,
       },
       quantity,
     );
-    trackClient("ADD_TO_CART", { productId: product.id, value: price * quantity });
+    trackClient("ADD_TO_CART", { productId: product.id, value: displayPrice * quantity });
     toast.success(t.productDetail.addedToCart);
     if (buyNow) router.push("/checkout");
   };
@@ -182,12 +187,17 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             <p className="text-sm text-muted-foreground line-through">{formatBRL(compareAtPrice)}</p>
           ) : null}
           <div className="flex items-end gap-3">
-            <p className="text-4xl font-bold">{formatBRL(price)}</p>
+            <p className="text-4xl font-bold">{formatBRL(displayPrice)}</p>
             {info.hasDiscount ? (
               <Badge variant="secondary">
                 {fmt(t.productDetail.economy, {
-                  value: formatBRL((compareAtPrice ?? price) - price),
+                  value: formatBRL((compareAtPrice ?? price) - displayPrice),
                 })}
+              </Badge>
+            ) : null}
+            {tierApplied ? (
+              <Badge variant="secondary" className="bg-emerald-100 text-emerald-800">
+                {fmt(t.productDetail.quantityDiscount, { n: quantity })}
               </Badge>
             ) : null}
           </div>
@@ -201,6 +211,42 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             <span className="font-medium text-emerald-600">{t.productDetail.pixDiscount}</span> {t.productDetail.orBoleto}
           </p>
         </div>
+
+        {product.quantityPrices.length > 0 && !soldOut ? (
+          <div className="mt-6">
+            <p className="mb-2 text-sm font-semibold">{t.productDetail.bulkPriceTitle}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {product.quantityPrices.map((tier) => {
+                const active = quantity >= tier.minQuantity;
+                return (
+                  <button
+                    key={tier.minQuantity}
+                    type="button"
+                    onClick={() => setQuantity((q) => Math.max(tier.minQuantity, q))}
+                    className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                      active
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "hover:border-primary/50"
+                    }`}
+                  >
+                    <span className="font-medium">
+                      {fmt(t.productDetail.bulkBuy, { n: tier.minQuantity })}
+                    </span>
+                    <span className="flex items-center gap-1.5">
+                      <span className="text-xs font-semibold text-emerald-600">
+                        -{Math.round(tier.discountPercent * 10) / 10}%
+                      </span>
+                      <span className="font-semibold">
+                        {formatBRL(getTierUnitPrice(price, tier.minQuantity, product.quantityPrices))}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{t.productDetail.each}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
 
         {product.variations.length > 0 ? (
           <div className="mt-6">

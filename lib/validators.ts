@@ -94,6 +94,17 @@ export const productSchema = z.object({
       }),
     )
     .default([]),
+  quantityPrices: z
+    .array(
+      z.object({
+        minQuantity: z.coerce.number().int().min(2, "A quantidade mínima deve ser ao menos 2."),
+        discountPercent: z.coerce
+          .number()
+          .min(0.01, "O desconto deve ser maior que zero.")
+          .max(100, "O desconto não pode passar de 100%."),
+      }),
+    )
+    .default([]),
 });
 
 export const kitSchema = z.object({

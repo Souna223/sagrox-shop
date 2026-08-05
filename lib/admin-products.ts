@@ -82,6 +82,11 @@ export async function applyProductPayload(payload: ProductInput, productId?: str
       active: v.active,
     })) ?? [];
 
+  const quantityPrices = payload.quantityPrices.map((t) => ({
+    minQuantity: t.minQuantity,
+    discountPercent: t.discountPercent,
+  }));
+
   const product = await prisma.$transaction(async (tx) => {
     const saved = productId
       ? await tx.product.update({
@@ -97,6 +102,13 @@ export async function applyProductPayload(payload: ProductInput, productId?: str
 
     await tx.productVariation.deleteMany({ where: { productId: saved.id } });
     await tx.productVariation.createMany({ data: variations.map((v) => ({ ...v, productId: saved.id })) });
+
+    await tx.productQuantityPrice.deleteMany({ where: { productId: saved.id } });
+    if (quantityPrices.length > 0) {
+      await tx.productQuantityPrice.createMany({
+        data: quantityPrices.map((t) => ({ ...t, productId: saved.id })),
+      });
+    }
 
     return saved;
   });

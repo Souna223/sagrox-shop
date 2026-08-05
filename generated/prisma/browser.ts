@@ -58,6 +58,11 @@ export type Brand = Prisma.BrandModel
  */
 export type Product = Prisma.ProductModel
 /**
+ * Model ProductQuantityPrice
+ * 
+ */
+export type ProductQuantityPrice = Prisma.ProductQuantityPriceModel
+/**
  * Model ProductImage
  * 
  */

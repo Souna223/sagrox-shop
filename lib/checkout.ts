@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
-import { applyCouponDiscount, round } from "@/lib/prices";
+import { applyCouponDiscount, getTierUnitPrice, round } from "@/lib/prices";
 import { isValidCEP } from "@/lib/br";
 import { getShippingMethods } from "@/lib/shipping-methods";
 import { resolveKit } from "@/lib/kits";
@@ -73,7 +73,7 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
 
   const productIds = [...new Set(productGroups.map((g) => g.productId))];
 
-  const [products, variations, kitRows] = await Promise.all([
+  const [products, variations, kitRows, quantityTiers] = await Promise.all([
     prisma.product.findMany({
       where: { id: { in: productIds }, status: "ACTIVE", visibility: "VISIBLE" },
       select: {
@@ -120,10 +120,21 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
         },
       },
     }),
+    prisma.productQuantityPrice.findMany({
+      where: { productId: { in: productIds } },
+      orderBy: { minQuantity: "asc" },
+      select: { productId: true, minQuantity: true, discountPercent: true },
+    }),
   ]);
 
   const productById = new Map(products.map((p) => [p.id, p]));
   const variationByKey = new Map(variations.map((v) => [`${v.productId}:${v.id}`, v]));
+  const tiersByProduct = new Map<string, { minQuantity: number; discountPercent: number }[]>();
+  for (const tier of quantityTiers) {
+    const list = tiersByProduct.get(tier.productId) ?? [];
+    list.push({ minQuantity: tier.minQuantity, discountPercent: Number(tier.discountPercent) });
+    tiersByProduct.set(tier.productId, list);
+  }
 
   const resolved: ResolvedCartItem[] = [];
 
@@ -134,7 +145,7 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
     const variation = variationId ? variationByKey.get(`${productId}:${variationId}`) : null;
     if (variationId && !variation) throw new Error("Variação do produto não disponível.");
 
-    const unitPrice = variation?.price != null ? Number(variation.price) : Number(product.price);
+    const basePrice = variation?.price != null ? Number(variation.price) : Number(product.price);
     const compareAtPrice = variation?.compareAtPrice ?? product.compareAtPrice;
     const stock = variation ? variation.stock : product.stock;
 
@@ -142,6 +153,8 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
       const label = variation ? `${product.name} (${variation.name})` : product.name;
       throw new Error(`Estoque insuficiente para "${label}". Restam ${stock} unidade${stock === 1 ? "" : "s"}.`);
     }
+
+    const unitPrice = getTierUnitPrice(basePrice, quantity, tiersByProduct.get(productId));
 
     resolved.push({
       kind: "product",

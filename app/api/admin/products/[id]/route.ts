@@ -20,6 +20,10 @@ export async function GET(request: Request, context: Context) {
           orderBy: { createdAt: "asc" },
           select: { id: true, name: true, sku: true, price: true, compareAtPrice: true, stock: true, imageUrl: true, attributes: true, active: true },
         },
+        quantityPrices: {
+          orderBy: { minQuantity: "asc" },
+          select: { id: true, minQuantity: true, discountPercent: true },
+        },
       },
     });
 

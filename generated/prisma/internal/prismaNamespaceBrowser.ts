@@ -59,6 +59,7 @@ export const ModelName = {
   Category: 'Category',
   Brand: 'Brand',
   Product: 'Product',
+  ProductQuantityPrice: 'ProductQuantityPrice',
   ProductImage: 'ProductImage',
   ProductVariation: 'ProductVariation',
   Kit: 'Kit',
@@ -268,6 +269,17 @@ export const ProductScalarFieldEnum = {
 } as const
 
 export type ProductScalarFieldEnum = (typeof ProductScalarFieldEnum)[keyof typeof ProductScalarFieldEnum]
+
+
+export const ProductQuantityPriceScalarFieldEnum = {
+  id: 'id',
+  productId: 'productId',
+  minQuantity: 'minQuantity',
+  discountPercent: 'discountPercent',
+  createdAt: 'createdAt'
+} as const
+
+export type ProductQuantityPriceScalarFieldEnum = (typeof ProductQuantityPriceScalarFieldEnum)[keyof typeof ProductQuantityPriceScalarFieldEnum]
 
 
 export const ProductImageScalarFieldEnum = {

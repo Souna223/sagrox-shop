@@ -25,6 +25,10 @@ export default async function EditProductPage({ params }: PageProps) {
           orderBy: { createdAt: "asc" },
           select: { id: true, name: true, sku: true, price: true, compareAtPrice: true, stock: true, imageUrl: true, active: true },
         },
+        quantityPrices: {
+          orderBy: { minQuantity: "asc" },
+          select: { minQuantity: true, discountPercent: true },
+        },
       },
     }),
     prisma.category.findMany({
@@ -82,6 +86,10 @@ export default async function EditProductPage({ params }: PageProps) {
           stock: v.stock,
           imageUrl: v.imageUrl,
           active: v.active,
+        })),
+        quantityPrices: product.quantityPrices.map((t) => ({
+          minQuantity: t.minQuantity,
+          discountPercent: Number(t.discountPercent.toString()),
         })),
       }}
     />

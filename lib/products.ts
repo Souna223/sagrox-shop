@@ -353,6 +353,7 @@ export type ProductDetailData = {
     stock: number;
     imageUrl: string | null;
   }[];
+  quantityPrices: { minQuantity: number; discountPercent: number }[];
   brand: { name: string; slug: string } | null;
   category: { name: string; slug: string; parent: { name: string; slug: string } | null } | null;
   reviews: {
@@ -382,6 +383,7 @@ export async function getProductDetail(slug: string): Promise<ProductDetailData 
     include: {
       images: { orderBy: { sortOrder: "asc" } },
       variations: { where: { active: true }, orderBy: { name: "asc" } },
+      quantityPrices: { orderBy: { minQuantity: "asc" } },
       brand: true,
       category: { include: { parent: true } },
       reviews: {
@@ -424,6 +426,10 @@ export async function getProductDetail(slug: string): Promise<ProductDetailData 
       compareAtPrice: decimalToNumber(v.compareAtPrice),
       stock: v.stock,
       imageUrl: v.imageUrl,
+    })),
+    quantityPrices: product.quantityPrices.map((t) => ({
+      minQuantity: t.minQuantity,
+      discountPercent: decimalToNumber(t.discountPercent) ?? 0,
     })),
     brand: product.brand ? { name: product.brand.name, slug: product.brand.slug } : null,
     category: product.category

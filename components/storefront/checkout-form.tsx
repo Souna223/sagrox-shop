@@ -28,7 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useCartStore } from "@/lib/store/cart-store";
+import { useCartStore, getCartItemSubtotal, getCartItemUnitPrice } from "@/lib/store/cart-store";
 import { formatBRL } from "@/lib/format";
 import { getMaxInstallments } from "@/lib/prices";
 import { toast } from "sonner";
@@ -76,7 +76,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
   useEffect(() => {
     if (itemsRef.current.length > 0) {
       trackClient("BEGIN_CHECKOUT", {
-        value: itemsRef.current.reduce((s, i) => s + i.price * i.quantity, 0),
+        value: itemsRef.current.reduce((s, i) => s + getCartItemSubtotal(i), 0),
       });
     }
   }, []);
@@ -115,7 +115,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + getCartItemSubtotal(i), 0);
   const selectedShipping = shippingOptions.find((o) => o.code === shippingCode) ?? null;
   const shippingFee =
     shippingCode && shippingOptions.length > 0
@@ -770,9 +770,12 @@ function OrderSummary({
             </div>
             <div className="min-w-0 flex-1">
               <p className="line-clamp-2 text-sm">{item.name}</p>
-              <p className="text-xs text-muted-foreground">{formatBRL(item.price)}</p>
+              <p className="text-xs text-muted-foreground">
+                {formatBRL(getCartItemUnitPrice(item))}
+                {item.kind === "product" && getCartItemUnitPrice(item) < item.price ? " / un." : ""}
+              </p>
             </div>
-            <p className="text-sm font-semibold">{formatBRL(item.price * item.quantity)}</p>
+            <p className="text-sm font-semibold">{formatBRL(getCartItemSubtotal(item))}</p>
           </li>
         ))}
       </ul>

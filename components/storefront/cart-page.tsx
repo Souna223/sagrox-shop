@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Minus, Plus, Trash2, ShoppingBag, ArrowRight, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useCartStore } from "@/lib/store/cart-store";
+import { useCartStore, getCartItemUnitPrice, getCartItemSubtotal } from "@/lib/store/cart-store";
 import { formatBRL } from "@/lib/format";
 import { calcPriceInfo } from "@/lib/prices";
 import { useI18n } from "@/lib/i18n/provider";
@@ -18,7 +18,7 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
   const removeItem = useCartStore((s) => s.removeItem);
   const updateQuantity = useCartStore((s) => s.updateQuantity);
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + getCartItemSubtotal(i), 0);
   const count = items.reduce((sum, i) => sum + i.quantity, 0);
 
   const remaining = freeShippingThreshold > 0 ? freeShippingThreshold - subtotal : null;
@@ -86,7 +86,9 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
 
           <ul className="space-y-3">
             {items.map((item) => {
-              const info = calcPriceInfo(item.price, item.compareAtPrice);
+              const unitPrice = getCartItemUnitPrice(item);
+              const tiered = item.kind === "product" && unitPrice < item.price;
+              const info = calcPriceInfo(unitPrice, item.compareAtPrice);
               return (
                 <li
                   key={`${item.kind ?? "product"}:${item.productId}:${item.variationId ?? ""}`}
@@ -163,7 +165,14 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
                             {formatBRL(item.compareAtPrice! * item.quantity)}
                           </p>
                         ) : null}
-                        <p className="font-bold">{formatBRL(item.price * item.quantity)}</p>
+                        {tiered ? (
+                          <p className="text-xs font-medium text-emerald-600">
+                            {fmt(t.cart.quantityDiscountApplied, {
+                              value: formatBRL(unitPrice),
+                            })}
+                          </p>
+                        ) : null}
+                        <p className="font-bold">{formatBRL(getCartItemSubtotal(item))}</p>
                       </div>
                     </div>
                   </div>

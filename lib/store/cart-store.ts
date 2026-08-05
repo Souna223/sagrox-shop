@@ -2,6 +2,8 @@
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { getTierUnitPrice } from "@/lib/prices";
+import type { QuantityPriceTier } from "@/lib/prices";
 
 export type CartItem = {
   kind: "product" | "kit";
@@ -16,7 +18,18 @@ export type CartItem = {
   image: string;
   quantity: number;
   stock: number;
+  quantityPrices?: QuantityPriceTier[];
 };
+
+export function getCartItemUnitPrice(item: CartItem): number {
+  return item.kind === "product"
+    ? getTierUnitPrice(item.price, item.quantity, item.quantityPrices)
+    : item.price;
+}
+
+export function getCartItemSubtotal(item: CartItem): number {
+  return getCartItemUnitPrice(item) * item.quantity;
+}
 
 type CartState = {
   items: CartItem[];
@@ -78,7 +91,7 @@ export const useCartStore = create<CartState>()(
       clear: () => set({ items: [], lastUpdated: Date.now() }),
 
       getSubtotal: () =>
-        get().items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+        get().items.reduce((sum, item) => sum + getCartItemSubtotal(item), 0),
 
       getCount: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
