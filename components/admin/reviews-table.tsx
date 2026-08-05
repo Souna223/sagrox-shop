@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Check, Loader2, Pencil, Search, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -174,6 +174,20 @@ export function ReviewsTable({ initial, q, status }: ReviewsTableProps) {
 
   const pages = getPageNumbers(initial.page, initial.totalPages);
 
+  const groups = useMemo(() => {
+    const map = new Map<string, { key: string; product: ReviewRow["product"]; reviews: ReviewRow[] }>();
+    for (const review of initial.items) {
+      const key = review.product?.id ?? "none";
+      const existing = map.get(key);
+      if (existing) {
+        existing.reviews.push(review);
+      } else {
+        map.set(key, { key, product: review.product, reviews: [review] });
+      }
+    }
+    return [...map.values()];
+  }, [initial.items]);
+
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -217,120 +231,130 @@ export function ReviewsTable({ initial, q, status }: ReviewsTableProps) {
         </div>
       </div>
 
-      <div className="rounded-xl border bg-background">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Produto</TableHead>
-              <TableHead className="hidden md:table-cell">Avaliação</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden lg:table-cell">Data</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {initial.items.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
-                  Nenhuma avaliação encontrada.
-                </TableCell>
-              </TableRow>
-            ) : (
-              initial.items.map((review) => {
-                const meta = STATUS_META[review.status] ?? STATUS_META.PENDING;
-                return (
-                  <TableRow key={review.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
-                          {review.product?.images[0] ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img src={review.product.images[0].url} alt="" className="size-full object-cover" />
-                          ) : null}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="line-clamp-1 text-sm font-medium">{review.product?.name ?? "Produto removido"}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {review.user?.name ?? review.user?.email ?? "Cliente anônimo"}
-                          </p>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="hidden max-w-sm md:table-cell">
-                      <div className="flex items-center gap-1">
-                        {[1, 2, 3, 4, 5].map((s) => (
-                          <Star key={s} className={`size-3.5 ${s <= review.rating ? "fill-current" : "opacity-30"}`} />
-                        ))}
-                        <span className="ml-1 text-xs font-medium text-muted-foreground">{review.rating}/5</span>
-                      </div>
-                      {review.title ? <p className="mt-1 text-sm font-medium">{review.title}</p> : null}
-                      {review.comment ? (
-                        <p className="line-clamp-2 text-xs text-muted-foreground">{review.comment}</p>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", meta.className)}>
-                        {meta.label}
-                      </span>
-                    </TableCell>
-                    <TableCell className="hidden text-xs text-muted-foreground lg:table-cell">
-                      {formatDateTime(review.createdAt)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end gap-1">
-                        {review.status !== "APPROVED" ? (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Aprovar"
-                            className="text-green-600 hover:text-green-700"
-                            onClick={() => setStatus(review, "APPROVED")}
-                            disabled={busyId === review.id}
-                          >
-                            <Check className="size-4" />
-                          </Button>
-                        ) : null}
-                        {review.status !== "REJECTED" ? (
-                          <Button
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Rejeitar"
-                            className="text-muted-foreground hover:text-destructive"
-                            onClick={() => setStatus(review, "REJECTED")}
-                            disabled={busyId === review.id}
-                          >
-                            <X className="size-4" />
-                          </Button>
-                        ) : null}
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Editar"
-                          className="text-muted-foreground hover:text-foreground"
-                          onClick={() => openEdit(review)}
-                          disabled={busyId === review.id}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          aria-label="Remover"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => remove(review)}
-                          disabled={busyId === review.id}
-                        >
-                          {busyId === review.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-                        </Button>
-                      </div>
-                    </TableCell>
+      {initial.items.length === 0 ? (
+        <div className="rounded-xl border bg-background px-4 py-10 text-center text-sm text-muted-foreground">
+          Nenhuma avaliação encontrada.
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {groups.map((group) => (
+            <div key={group.key} className="overflow-hidden rounded-xl border bg-background">
+              <div className="flex items-center gap-3 border-b px-4 py-3">
+                <div className="relative size-10 shrink-0 overflow-hidden rounded-lg bg-muted">
+                  {group.product?.images[0] ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={group.product.images[0].url} alt="" className="size-full object-cover" />
+                  ) : null}
+                </div>
+                <div className="min-w-0">
+                  <p className="line-clamp-1 text-sm font-semibold">
+                    {group.product?.name ?? "Produto removido"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {group.reviews.length} avaliação{group.reviews.length === 1 ? "" : "ões"} nesta página
+                  </p>
+                </div>
+              </div>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead className="hidden md:table-cell">Avaliação</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead className="hidden lg:table-cell">Data</TableHead>
+                    <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                </TableHeader>
+                <TableBody>
+                  {group.reviews.map((review) => {
+                    const meta = STATUS_META[review.status] ?? STATUS_META.PENDING;
+                    return (
+                      <TableRow key={review.id}>
+                        <TableCell>
+                          <div className="min-w-0">
+                            <p className="line-clamp-1 text-sm font-medium">
+                              {review.user?.name ?? "Cliente anônimo"}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{review.user?.email}</p>
+                          </div>
+                        </TableCell>
+                        <TableCell className="hidden max-w-sm md:table-cell">
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((s) => (
+                              <Star key={s} className={`size-3.5 ${s <= review.rating ? "fill-current" : "opacity-30"}`} />
+                            ))}
+                            <span className="ml-1 text-xs font-medium text-muted-foreground">{review.rating}/5</span>
+                          </div>
+                          {review.title ? <p className="mt-1 text-sm font-medium">{review.title}</p> : null}
+                          {review.comment ? (
+                            <p className="line-clamp-2 text-xs text-muted-foreground">{review.comment}</p>
+                          ) : null}
+                        </TableCell>
+                        <TableCell>
+                          <span className={cn("inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium", meta.className)}>
+                            {meta.label}
+                          </span>
+                        </TableCell>
+                        <TableCell className="hidden text-xs text-muted-foreground lg:table-cell">
+                          {formatDateTime(review.createdAt)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-end gap-1">
+                            {review.status !== "APPROVED" ? (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Aprovar"
+                                className="text-green-600 hover:text-green-700"
+                                onClick={() => setStatus(review, "APPROVED")}
+                                disabled={busyId === review.id}
+                              >
+                                <Check className="size-4" />
+                              </Button>
+                            ) : null}
+                            {review.status !== "REJECTED" ? (
+                              <Button
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Rejeitar"
+                                className="text-muted-foreground hover:text-destructive"
+                                onClick={() => setStatus(review, "REJECTED")}
+                                disabled={busyId === review.id}
+                              >
+                                <X className="size-4" />
+                              </Button>
+                            ) : null}
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Editar"
+                              className="text-muted-foreground hover:text-foreground"
+                              onClick={() => openEdit(review)}
+                              disabled={busyId === review.id}
+                            >
+                              <Pencil className="size-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              aria-label="Remover"
+                              className="text-muted-foreground hover:text-destructive"
+                              onClick={() => remove(review)}
+                              disabled={busyId === review.id}
+                            >
+                              {busyId === review.id ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+          ))}
+        </div>
+      )}
 
       {initial.totalPages > 1 ? (
         <Pagination>

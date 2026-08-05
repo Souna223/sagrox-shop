@@ -35,7 +35,7 @@ export default async function AdminReviewsPage({ searchParams }: PageProps) {
   const [items, total, pending] = await Promise.all([
     prisma.review.findMany({
       where,
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ product: { name: "asc" } }, { createdAt: "desc" }],
       skip: (page - 1) * perPage,
       take: perPage,
       include: {

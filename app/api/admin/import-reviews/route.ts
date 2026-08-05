@@ -222,7 +222,8 @@ export async function POST(request: NextRequest) {
       const customerName = column(row, CUSTOMER_NAME_COL) || email.split("@")[0] || "Cliente";
       const rawRating = column(row, RATING_COL);
       const rating = parseRating(rawRating);
-      const title = column(row, TITLE_COL);
+      const rawTitle = column(row, TITLE_COL);
+      const title = rawTitle && parseRating(rawTitle) !== null ? null : rawTitle;
       const comment = column(row, COMMENT_COL);
       const status = STATUS_COL ? reviewStatusFrom(column(row, STATUS_COL)) : "APPROVED";
       const createdAt = DATE_COL ? parseDate(column(row, DATE_COL)) : null;
