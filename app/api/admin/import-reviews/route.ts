@@ -278,6 +278,15 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
+      if (!comment.trim()) {
+        errors.push({
+          row: rowNumber,
+          name: productName || sku,
+          error: "Avaliação sem comentário — linha ignorada.",
+        });
+        continue;
+      }
+
       let userId = userIdByEmail.get(email);
       if (!userId) {
         try {
