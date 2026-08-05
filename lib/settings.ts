@@ -42,7 +42,16 @@ export async function getSettings(): Promise<SiteSettings> {
   try {
     const rows = await prisma.setting.findMany();
     const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
-    return { ...DEFAULTS, ...map };
+    const shippingEnabled =
+      map.shippingEnabled === undefined
+        ? DEFAULTS.shippingEnabled
+        : map.shippingEnabled === true || map.shippingEnabled === "true";
+    return {
+      ...DEFAULTS,
+      ...map,
+      freeShippingThreshold: Number(map.freeShippingThreshold ?? DEFAULTS.freeShippingThreshold),
+      shippingEnabled,
+    };
   } catch {
     return DEFAULTS;
   }
