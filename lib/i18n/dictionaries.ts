@@ -45,6 +45,7 @@ export const dictionaries = {
     },
     home: {
       freeShippingOver: "Frete grátis acima de {value}",
+      freeShippingBadge: "FRETE GRÁTIS PARA TODO O BRASIL | PARCELE EM ATÉ 12X",
       heroTitle: "As melhores ofertas para você comprar online",
       heroSubtitle:
         "Pagamento em até 12x, Pix com desconto e entrega para todo o Brasil. Compre com segurança e receba no conforto da sua casa.",
@@ -773,6 +774,7 @@ export const dictionaries = {
     },
     home: {
       freeShippingOver: "Free shipping over {value}",
+      freeShippingBadge: "FREE SHIPPING ALL OVER BRAZIL | PAY IN UP TO 12X",
       heroTitle: "The best deals to shop online",
       heroSubtitle:
         "Pay in up to 12 installments, Pix with discount and delivery nationwide. Shop safely and receive your order at home.",

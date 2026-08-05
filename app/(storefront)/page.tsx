@@ -138,6 +138,9 @@ function Hero({ t, featured }: { t: Dictionary; featured: ProductCardData[] }) {
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-16 lg:grid-cols-2 lg:py-24">
         <div>
+          <p className="mb-3 inline-flex items-center rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-medium tracking-wide">
+            {t.home.freeShippingBadge}
+          </p>
           <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
             {t.home.heroTitle}
           </h1>
