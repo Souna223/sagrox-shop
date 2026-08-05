@@ -3,9 +3,18 @@
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Loader2, Search, Star, Trash2, X } from "lucide-react";
+import { Check, Loader2, Pencil, Search, Star, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -77,6 +86,43 @@ export function ReviewsTable({ initial, q, status }: ReviewsTableProps) {
   const pathname = usePathname();
   const [search, setSearch] = useState(q);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [editing, setEditing] = useState<ReviewRow | null>(null);
+  const [editRating, setEditRating] = useState(5);
+  const [editTitle, setEditTitle] = useState("");
+  const [editComment, setEditComment] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const openEdit = (review: ReviewRow) => {
+    setEditing(review);
+    setEditRating(review.rating);
+    setEditTitle(review.title ?? "");
+    setEditComment(review.comment ?? "");
+  };
+
+  const saveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const res = await fetch(`/api/admin/reviews/${editing.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ rating: editRating, title: editTitle, comment: editComment }),
+      });
+      const data = (await res.json()) as { ok: boolean; error?: string };
+      if (!res.ok || !data.ok) {
+        toast.error(data.error ?? "Erro ao salvar a avaliação.");
+        return;
+      }
+      toast.success("Avaliação atualizada.");
+      setEditing(null);
+      router.refresh();
+    } catch {
+      toast.error("Erro ao salvar a avaliação.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const navigate = (nextQ: string, nextStatus: string, page = 1) => {
     router.push(buildUrl(pathname, nextQ, nextStatus, page));
@@ -259,6 +305,16 @@ export function ReviewsTable({ initial, q, status }: ReviewsTableProps) {
                         <Button
                           variant="ghost"
                           size="icon-sm"
+                          aria-label="Editar"
+                          className="text-muted-foreground hover:text-foreground"
+                          onClick={() => openEdit(review)}
+                          disabled={busyId === review.id}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
                           aria-label="Remover"
                           className="text-muted-foreground hover:text-destructive"
                           onClick={() => remove(review)}
@@ -313,6 +369,71 @@ export function ReviewsTable({ initial, q, status }: ReviewsTableProps) {
           </PaginationContent>
         </Pagination>
       ) : null}
+
+      <Dialog open={editing !== null} onOpenChange={(open) => { if (!open) setEditing(null); }}>
+        {editing && (
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Editar avaliação</DialogTitle>
+              <DialogDescription>
+                {editing.product?.name ?? "Produto removido"} — {editing.user?.name ?? editing.user?.email ?? "Cliente anônimo"}
+              </DialogDescription>
+            </DialogHeader>
+            <form onSubmit={saveEdit} className="space-y-4">
+              <div className="space-y-1.5">
+                <Label>Nota</Label>
+                <div className="flex items-center gap-1">
+                  {[1, 2, 3, 4, 5].map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setEditRating(s)}
+                      className="rounded p-0.5 transition-colors hover:scale-110"
+                      aria-label={`${s} estrelas`}
+                    >
+                      <Star
+                        className={`size-6 ${s <= editRating ? "fill-current text-amber-500" : "opacity-30"}`}
+                      />
+                    </button>
+                  ))}
+                  <span className="ml-2 text-sm font-medium text-muted-foreground">{editRating}/5</span>
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-title">Título</Label>
+                <Input
+                  id="edit-title"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  maxLength={100}
+                  placeholder="Título da avaliação"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-comment">Comentário</Label>
+                <textarea
+                  id="edit-comment"
+                  value={editComment}
+                  onChange={(e) => setEditComment(e.target.value)}
+                  maxLength={1000}
+                  rows={4}
+                  placeholder="Comentário da avaliação"
+                  className="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                />
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setEditing(null)} disabled={saving}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={saving}>
+                  {saving ? <Loader2 className="size-4 animate-spin" /> : null}
+                  {saving ? "Salvando..." : "Salvar"}
+                </Button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
