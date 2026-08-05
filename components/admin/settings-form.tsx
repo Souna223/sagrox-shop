@@ -47,6 +47,7 @@ export function SettingsForm({ initial }: SettingsFormProps) {
     try {
       const payload = { ...values };
       payload.freeShippingThreshold = Number(payload.freeShippingThreshold ?? 0);
+      payload.shippingEnabled = !!payload.shippingEnabled;
 
       const res = await fetch("/api/admin/settings", {
         method: "PATCH",

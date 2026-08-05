@@ -4,12 +4,20 @@ import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 import { settingsSchema, SETTING_KEYS, type SettingValues } from "@/lib/admin-settings";
 import { auditLog } from "@/lib/audit";
 
+function toSettings(rows: { key: string; value: unknown }[]): SettingValues {
+  const map = Object.fromEntries(rows.map((r) => [r.key, r.value]));
+  return {
+    ...(map as SettingValues),
+    freeShippingThreshold: Number(map.freeShippingThreshold ?? 0),
+    shippingEnabled: map.shippingEnabled === true || map.shippingEnabled === "true",
+  };
+}
+
 export async function GET() {
   try {
     await requireAdmin();
     const rows = await prisma.setting.findMany();
-    const settings: SettingValues = Object.fromEntries(rows.map((r) => [r.key, r.value as never]));
-    return ok(settings);
+    return ok(toSettings(rows));
   } catch (error) {
     return handleError(error);
   }
@@ -44,8 +52,7 @@ export async function PATCH(request: NextRequest) {
     });
 
     const rows = await prisma.setting.findMany();
-    const settings: SettingValues = Object.fromEntries(rows.map((r) => [r.key, r.value as never]));
-    return ok(settings);
+    return ok(toSettings(rows));
   } catch (error) {
     return handleError(error);
   }

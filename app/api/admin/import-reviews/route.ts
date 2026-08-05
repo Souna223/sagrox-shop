@@ -29,7 +29,7 @@ function syntheticEmail(name: string, rowNumber: number): string {
 }
 
 function cleanReviewerName(raw: string): string {
-  const s = (raw ?? "").trim();
+  const s = (raw ?? "").trim().replace(/\d+/g, "").trim();
   if (!s) return "Anônimo";
   if (/^[#*\-_•·.—–|,;.\s]+$/.test(s)) return "Anônimo";
   if (s.length < 2) return "Anônimo";
