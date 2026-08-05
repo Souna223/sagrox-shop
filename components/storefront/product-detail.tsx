@@ -234,22 +234,22 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                         : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                   >
-                    <span className="text-base font-bold">
-                      {tier.minQuantity}
-                      {isLast ? (
-                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
-                          {t.productDetail.orMore}
-                        </span>
-                      ) : null}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-sm text-muted-foreground line-through">
-                        {formatBRL(originalTotal)}
+                    <span className="flex items-baseline gap-1.5">
+                      <span className="text-base font-bold sm:text-lg">
+                        {fmt(
+                          isLast ? t.productDetail.buyOrMoreAndGet : t.productDetail.buyAndGet,
+                          { n: tier.minQuantity },
+                        )}
                       </span>
-                      <span className="text-lg font-bold">
+                      <span className="text-2xl font-extrabold text-emerald-600">
                         {formatBRL(newTotal)}
                       </span>
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                    </span>
+                    <span className="flex items-center gap-2">
+                      <span className="text-base text-muted-foreground line-through">
+                        {formatBRL(originalTotal)}
+                      </span>
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-sm font-bold text-emerald-700">
                         -{off}%
                       </span>
                     </span>
