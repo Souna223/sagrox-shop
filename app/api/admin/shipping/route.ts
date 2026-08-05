@@ -29,7 +29,7 @@ export async function GET() {
     return ok({
       methods,
       shippingEnabled: map.shippingEnabled === "true" || map.shippingEnabled === true,
-      freeShippingThreshold: Number(map.freeShippingThreshold ?? 299),
+      freeShippingThreshold: Number(map.freeShippingThreshold ?? 0),
     });
   } catch (error) {
     return handleError(error);

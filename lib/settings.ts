@@ -31,7 +31,7 @@ const DEFAULTS: SiteSettings = {
   facebook: "",
   tiktok: "",
   businessHours: "",
-  freeShippingThreshold: 299,
+  freeShippingThreshold: 0,
   shippingEnabled: true,
   appmaxPublicKey: "",
   announcement: "",

@@ -38,7 +38,7 @@ async function main() {
     facebook: "",
     tiktok: "",
     businessHours: "Segunda a sexta, das 9h às 18h",
-    freeShippingThreshold: 299,
+    freeShippingThreshold: 0,
     shippingEnabled: true,
     appmaxPublicKey: process.env.APPMax_PUBLIC_KEY ?? "",
     announcement: "",

@@ -15,7 +15,7 @@ import {
 import { prisma } from "@/lib/prisma";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import { getDictionary } from "@/lib/i18n/server";
-import { fmt, type Dictionary } from "@/lib/i18n/dictionaries";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getDictionary();
@@ -138,9 +138,6 @@ function Hero({ t, featured }: { t: Dictionary; featured: ProductCardData[] }) {
     <section className="relative overflow-hidden bg-gradient-to-br from-primary via-primary to-primary/80 text-primary-foreground">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 py-16 lg:grid-cols-2 lg:py-24">
         <div>
-          <p className="mb-3 inline-flex items-center rounded-full bg-primary-foreground/10 px-3 py-1 text-xs font-medium">
-            {fmt(t.home.freeShippingOver, { value: "R$ 299" })}
-          </p>
           <h1 className="text-3xl font-bold tracking-tight text-balance sm:text-4xl lg:text-5xl">
             {t.home.heroTitle}
           </h1>
