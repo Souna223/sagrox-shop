@@ -214,32 +214,38 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
 
         {product.quantityPrices.length > 0 && !soldOut ? (
           <div className="mt-6">
-            <p className="mb-2 text-sm font-semibold">{t.productDetail.bulkPriceTitle}</p>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <p className="mb-2 text-base font-bold">{t.productDetail.bulkPriceTitle}</p>
+            <div className="flex flex-col gap-2.5">
               {product.quantityPrices.map((tier) => {
                 const active = quantity >= tier.minQuantity;
+                const tierUnitPrice = getTierUnitPrice(price, tier.minQuantity, product.quantityPrices);
+                const originalTotal = price * tier.minQuantity;
+                const newTotal = tierUnitPrice * tier.minQuantity;
+                const off = Math.round((1 - newTotal / originalTotal) * 100);
                 return (
                   <button
                     key={tier.minQuantity}
                     type="button"
                     onClick={() => setQuantity((q) => Math.max(tier.minQuantity, q))}
-                    className={`flex items-center justify-between gap-2 rounded-lg border px-3 py-2 text-left text-sm transition-colors ${
+                    className={`flex w-full items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
                       active
-                        ? "border-primary bg-primary/10 text-foreground"
-                        : "hover:border-primary/50"
+                        ? "border-primary bg-primary/10 shadow-sm"
+                        : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                   >
-                    <span className="font-medium">
+                    <span className="text-base font-bold">
                       {fmt(t.productDetail.bulkBuy, { n: tier.minQuantity })}
                     </span>
-                    <span className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-emerald-600">
-                        -{Math.round(tier.discountPercent * 10) / 10}%
+                    <span className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground line-through">
+                        {formatBRL(originalTotal)}
                       </span>
-                      <span className="font-semibold">
-                        {formatBRL(getTierUnitPrice(price, tier.minQuantity, product.quantityPrices))}
+                      <span className="text-lg font-bold">
+                        {formatBRL(newTotal)}
                       </span>
-                      <span className="text-xs text-muted-foreground">{t.productDetail.each}</span>
+                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                        -{off}%
+                      </span>
                     </span>
                   </button>
                 );
