@@ -1,6 +1,7 @@
 import { Header } from "@/components/storefront/header";
 import { Footer } from "@/components/storefront/footer";
 import { AnalyticsTracker } from "@/components/storefront/analytics-tracker";
+import { WhatsAppWidget } from "@/components/storefront/whatsapp-widget";
 import { prisma } from "@/lib/prisma";
 import { getSettings } from "@/lib/settings";
 import { I18nProvider } from "@/lib/i18n/provider";
@@ -38,6 +39,7 @@ export default async function StorefrontLayout({
         />
         <main className="flex-1">{children}</main>
         <Footer settings={settings} />
+        <WhatsAppWidget whatsapp={settings.whatsapp} />
       </div>
     </I18nProvider>
   );

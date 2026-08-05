@@ -227,6 +227,10 @@ export const dictionaries = {
       itemsCount: "({n} item(ns))",
       quantityDiscountApplied: "{value} por unidade",
     },
+    whatsapp: {
+      tooltip: "Fale conosco no WhatsApp",
+      defaultMessage: "Olá! Vim pelo site da loja e gostaria de mais informações.",
+    },
     checkout: {
       checkout: "Checkout",
       identification: "Identificação",
@@ -986,6 +990,10 @@ export const dictionaries = {
       freeShippingProgress: "Only {value} away from free shipping",
       itemsCount: "({n} item(s))",
       quantityDiscountApplied: "{value} per unit",
+    },
+    whatsapp: {
+      tooltip: "Chat with us on WhatsApp",
+      defaultMessage: "Hi! I came from the store website and would like more information.",
     },
     checkout: {
       checkout: "Checkout",
