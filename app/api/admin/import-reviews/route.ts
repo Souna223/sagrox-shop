@@ -28,6 +28,14 @@ function syntheticEmail(name: string, rowNumber: number): string {
   return `${base}${rowNumber}@import.local`;
 }
 
+function cleanReviewerName(raw: string): string {
+  const s = (raw ?? "").trim();
+  if (!s) return "Anônimo";
+  if (/^[#*\-_•·.—–|,;.\s]+$/.test(s)) return "Anônimo";
+  if (s.length < 2) return "Anônimo";
+  return s;
+}
+
 function parseRating(raw: string): number | null {
   const s = String(raw ?? "").trim();
   if (!s) return null;
@@ -125,7 +133,7 @@ export async function POST(request: NextRequest) {
     const SLUG_COL = resolveColumn(["slug"]);
     const PRODUCT_NAME_COL = resolveColumn(["product", "produto", "productname", "nomeproduto"]);
     const EMAIL_COL = resolveColumn(["email", "customeremail", "cliente", "user", "customer"]);
-    const CUSTOMER_NAME_COL = resolveColumn(["name", "nome", "customername", "clientenome"]);
+    const CUSTOMER_NAME_COL = resolveColumn(["name", "nome", "customername", "clientenome", "author", "buyer", "reviewer", "shopper", "username", "nickname", "comprador", "autor"]);
     const RATING_COL = resolveColumn(["rating", "nota", "estrelas", "stars", "avaliacao", "score", "star", "estrela"]);
     const TITLE_COL = resolveColumn(["title", "titulo", "assunto", "subject"]);
     const COMMENT_COL = resolveColumn(["comment", "comentario", "review", "texto", "mensagem", "description"]);
@@ -217,13 +225,13 @@ export async function POST(request: NextRequest) {
       const sku = column(row, SKU_COL);
       const slug = column(row, SLUG_COL);
       const productName = column(row, PRODUCT_NAME_COL);
+      const rawName = column(row, CUSTOMER_NAME_COL);
       const rawEmail = column(row, EMAIL_COL);
-      const email = rawEmail ? rawEmail.toLowerCase() : syntheticEmail(column(row, CUSTOMER_NAME_COL), rowNumber);
-      const customerName = column(row, CUSTOMER_NAME_COL) || email.split("@")[0] || "Cliente";
+      const email = rawEmail ? rawEmail.toLowerCase() : syntheticEmail(rawName, rowNumber);
+      const customerName = cleanReviewerName(rawName);
       const rawRating = column(row, RATING_COL);
       const rating = parseRating(rawRating);
-      const rawTitle = column(row, TITLE_COL);
-      const title = rawTitle && parseRating(rawTitle) !== null ? null : rawTitle;
+      const title = null;
       const comment = column(row, COMMENT_COL);
       const status = STATUS_COL ? reviewStatusFrom(column(row, STATUS_COL)) : "APPROVED";
       const createdAt = DATE_COL ? parseDate(column(row, DATE_COL)) : null;
