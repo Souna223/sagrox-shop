@@ -17,6 +17,7 @@ import {
   BarChart3,
   PackageCheck,
   Truck,
+  PackagePlus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/fulfillment", label: "Fulfillment", icon: PackageCheck },
   { href: "/admin/frete", label: "Frete", icon: Truck },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
+  { href: "/admin/kits", label: "Kits", icon: PackagePlus },
   { href: "/admin/clientes", label: "Clientes", icon: Users },
   { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
   { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },

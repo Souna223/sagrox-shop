@@ -88,7 +88,10 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
             {items.map((item) => {
               const info = calcPriceInfo(item.price, item.compareAtPrice);
               return (
-                <li key={`${item.productId}:${item.variationId ?? ""}`} className="flex gap-4 rounded-xl border p-3">
+                <li
+                  key={`${item.kind ?? "product"}:${item.productId}:${item.variationId ?? ""}`}
+                  className="flex gap-4 rounded-xl border p-3"
+                >
                   <div className="relative size-24 shrink-0 overflow-hidden rounded-lg bg-muted">
                     {item.image ? (
                       <Image
@@ -104,9 +107,17 @@ export function CartPage({ freeShippingThreshold }: { freeShippingThreshold: num
 
                   <div className="flex flex-1 flex-col">
                     <div className="flex items-start justify-between gap-3">
-                      <Link href={`/produtos/${item.slug}`} className="line-clamp-2 text-sm font-medium hover:underline">
+                      <Link
+                        href={item.kind === "kit" ? `/kits/${item.slug}` : `/produtos/${item.slug}`}
+                        className="line-clamp-2 text-sm font-medium hover:underline"
+                      >
                         {item.name}
                       </Link>
+                      {item.kind === "kit" ? (
+                        <span className="ml-1 shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-semibold uppercase text-primary">
+                          Kit
+                        </span>
+                      ) : null}
                       <Button
                         variant="ghost"
                         size="icon"

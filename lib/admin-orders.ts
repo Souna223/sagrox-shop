@@ -20,11 +20,47 @@ type StatusUpdateInput = {
   ip?: string | null;
 };
 
+type StockLine = {
+  productId: string;
+  variationId: string | null;
+  quantity: number;
+};
+
+type StockLineItem = {
+  productId: string | null;
+  variationId: string | null;
+  kitId: string | null;
+  quantity: number;
+  components?: unknown;
+};
+
+function expandStockLines(items: StockLineItem[]): StockLine[] {
+  const lines: StockLine[] = [];
+  for (const item of items) {
+    if (item.kitId && Array.isArray(item.components)) {
+      for (const c of item.components as { productId?: string; variationId?: string | null; quantity?: number }[]) {
+        if (!c?.productId || !c.quantity) continue;
+        lines.push({
+          productId: c.productId,
+          variationId: c.variationId ?? null,
+          quantity: c.quantity * item.quantity,
+        });
+      }
+      continue;
+    }
+    if (!item.productId) continue;
+    lines.push({ productId: item.productId, variationId: item.variationId ?? null, quantity: item.quantity });
+  }
+  return lines;
+}
+
 export async function updateOrderStatus(input: StatusUpdateInput) {
   const order = await prisma.order.findUnique({
     where: { id: input.orderId },
     include: {
-      items: { select: { productId: true, variationId: true, quantity: true } },
+      items: {
+        select: { productId: true, variationId: true, kitId: true, quantity: true, components: true },
+      },
     },
   });
   if (!order) throw new Error("Pedido não encontrado.");
@@ -62,8 +98,7 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
     });
 
     if (wasActive && becomingTerminal) {
-      for (const item of order.items) {
-        if (!item.productId) continue;
+      for (const item of expandStockLines(order.items)) {
         if (item.variationId) {
           await tx.productVariation.update({
             where: { id: item.variationId },
@@ -133,7 +168,11 @@ type DeleteOrderInput = {
 export async function deleteOrder(input: DeleteOrderInput) {
   const order = await prisma.order.findUnique({
     where: { id: input.orderId },
-    include: { items: { select: { productId: true, variationId: true, quantity: true } } },
+    include: {
+      items: {
+        select: { productId: true, variationId: true, kitId: true, quantity: true, components: true },
+      },
+    },
   });
   if (!order) throw new Error("Pedido não encontrado.");
 
@@ -141,8 +180,7 @@ export async function deleteOrder(input: DeleteOrderInput) {
 
   const deleted = await prisma.$transaction(async (tx) => {
     if (stockReserved) {
-      for (const item of order.items) {
-        if (!item.productId) continue;
+      for (const item of expandStockLines(order.items)) {
         if (item.variationId) {
           await tx.productVariation.update({
             where: { id: item.variationId },

@@ -218,6 +218,7 @@ model Product {
   orderItems    OrderItem[]
   stockMovements StockMovement[]
   flashSaleProducts FlashSaleProduct[]
+  kitItems      KitItem[]
 
   @@index([status, visibility])
   @@index([categoryId])
@@ -257,8 +258,48 @@ model ProductVariation {
   cartItems     CartItem[]
   orderItems    OrderItem[]
   stockMovements StockMovement[]
+  kitItems      KitItem[]
 
   @@unique([productId, sku])
+  @@index([productId])
+}
+
+model Kit {
+  id              String        @id @default(cuid())
+  name            String
+  slug            String        @unique
+  sku             String        @unique
+  description     String?
+  image           String?
+  price           Decimal?      @db.Decimal(10, 2)
+  discountPercent Decimal?      @db.Decimal(5, 2)
+  status          ProductStatus @default(DRAFT)
+  seoTitle        String?
+  seoDescription  String?
+  views           Int           @default(0)
+  salesCount      Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  items      KitItem[]
+  orderItems OrderItem[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model KitItem {
+  id          String             @id @default(cuid())
+  kitId       String
+  kit         Kit                @relation(fields: [kitId], references: [id], onDelete: Cascade)
+  productId   String
+  product     Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variationId String?
+  variation   ProductVariation?  @relation(fields: [variationId], references: [id], onDelete: SetNull)
+  quantity    Int                @default(1)
+
+  @@unique([kitId, productId, variationId])
+  @@index([kitId])
   @@index([productId])
 }
 
@@ -426,12 +467,15 @@ model OrderItem {
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   variationId String?
   variation   ProductVariation? @relation(fields: [variationId], references: [id], onDelete: SetNull)
+  kitId       String?
+  kit         Kit?     @relation(fields: [kitId], references: [id], onDelete: SetNull)
   name        String
   sku         String
   imageUrl    String?
   quantity    Int
   unitPrice   Decimal  @db.Decimal(10, 2)
   totalPrice  Decimal  @db.Decimal(10, 2)
+  components  Json?
 
   @@index([orderId])
   @@index([productId])

@@ -68,6 +68,16 @@ export type ProductImage = Prisma.ProductImageModel
  */
 export type ProductVariation = Prisma.ProductVariationModel
 /**
+ * Model Kit
+ * 
+ */
+export type Kit = Prisma.KitModel
+/**
+ * Model KitItem
+ * 
+ */
+export type KitItem = Prisma.KitItemModel
+/**
  * Model Review
  * 
  */

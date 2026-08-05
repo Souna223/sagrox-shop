@@ -55,6 +55,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
       return;
     }
     addItem({
+      kind: "product",
       productId: product.id,
       slug: product.slug,
       name: product.name,

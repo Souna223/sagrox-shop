@@ -113,6 +113,16 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                   <SheetClose
                     render={
                       <Link
+                        href="/kits"
+                        className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
+                      />
+                    }
+                  >
+                    {t.header.kits}
+                  </SheetClose>
+                  <SheetClose
+                    render={
+                      <Link
                         href="/contato"
                         className="rounded-md px-3 py-2 text-sm font-medium hover:bg-muted"
                       />
@@ -214,6 +224,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem render={<Link href="/produtos" />}>{t.header.allProducts}</DropdownMenuItem>
+              <DropdownMenuItem render={<Link href="/kits" />}>{t.header.kits}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/mais-vendidos" />}>{t.header.bestSellers}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/lancamentos" />}>{t.header.launches}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/contato" />}>{t.header.contact}</DropdownMenuItem>

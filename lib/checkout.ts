@@ -3,18 +3,22 @@ import { getSettings } from "@/lib/settings";
 import { applyCouponDiscount, round } from "@/lib/prices";
 import { isValidCEP } from "@/lib/br";
 import { getShippingMethods } from "@/lib/shipping-methods";
+import { resolveKit } from "@/lib/kits";
 import type { Prisma } from "@/generated/prisma/client";
 
 export type CheckoutItemInput = {
+  kind?: "product" | "kit";
   productId: string;
   variationId?: string | null;
   quantity: number;
 };
 
 export type ResolvedCartItem = {
+  kind: "product" | "kit";
   productId: string;
   variationId: string | null;
   productSlug: string;
+  kitId: string | null;
   name: string;
   sku: string;
   imageUrl: string | null;
@@ -24,6 +28,7 @@ export type ResolvedCartItem = {
   stock: number;
   freeShipping: boolean;
   weightGrams: number;
+  components: { productId: string; variationId: string | null; quantity: number }[];
 };
 
 export type ShippingOption = {
@@ -34,61 +39,102 @@ export type ShippingOption = {
   deliveryBusinessDays: number;
 };
 
+type GroupedItem = {
+  kind: "product" | "kit";
+  productId: string;
+  variationId: string | null;
+  quantity: number;
+};
+
 export async function resolveCartItems(items: CheckoutItemInput[]): Promise<ResolvedCartItem[]> {
   if (!items.length) throw new Error("Carrinho vazio.");
 
-  const grouped = new Map<string, { productId: string; variationId: string | null; quantity: number }>();
+  const grouped = new Map<string, GroupedItem>();
   for (const item of items) {
     if (!item.productId || item.quantity < 1) continue;
-    const key = `${item.productId}:${item.variationId ?? ""}`;
+    const key = `${item.kind ?? "product"}:${item.productId}:${item.variationId ?? ""}`;
     const existing = grouped.get(key);
     if (existing) existing.quantity += item.quantity;
-    else grouped.set(key, { productId: item.productId, variationId: item.variationId ?? null, quantity: item.quantity });
+    else
+      grouped.set(key, {
+        kind: item.kind ?? "product",
+        productId: item.productId,
+        variationId: item.variationId ?? null,
+        quantity: item.quantity,
+      });
   }
 
-  const productIds = [...new Set([...grouped.keys()].map((k) => k.split(":")[0]))];
+  const productGroups: GroupedItem[] = [];
+  const kitGroups: GroupedItem[] = [];
 
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, status: "ACTIVE", visibility: "VISIBLE" },
-    select: {
-      id: true,
-      slug: true,
-      name: true,
-      sku: true,
-      price: true,
-      compareAtPrice: true,
-      stock: true,
-      freeShipping: true,
-      weight: true,
-      images: { where: { isMain: true }, take: 1, select: { url: true } },
-    },
-  });
+  for (const group of grouped.values()) {
+    (group.kind === "kit" ? kitGroups : productGroups).push(group);
+  }
 
-  const requestedVariationIds = [...grouped.values()]
-    .filter((v) => v.variationId)
-    .map((v) => v.variationId as string);
+  const productIds = [...new Set(productGroups.map((g) => g.productId))];
 
-  const variations =
-    requestedVariationIds.length > 0
-      ? await prisma.productVariation.findMany({
-          where: { id: { in: requestedVariationIds } },
-          select: { id: true, productId: true, name: true, sku: true, price: true, compareAtPrice: true, stock: true, imageUrl: true },
-        })
-      : [];
+  const [products, variations, kitRows] = await Promise.all([
+    prisma.product.findMany({
+      where: { id: { in: productIds }, status: "ACTIVE", visibility: "VISIBLE" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        sku: true,
+        price: true,
+        compareAtPrice: true,
+        stock: true,
+        freeShipping: true,
+        weight: true,
+        images: { where: { isMain: true }, take: 1, select: { url: true } },
+      },
+    }),
+    prisma.productVariation.findMany({
+      where: { id: { in: productGroups.map((g) => g.variationId).filter((v): v is string => !!v) } },
+      select: { id: true, productId: true, name: true, sku: true, price: true, compareAtPrice: true, stock: true, imageUrl: true },
+    }),
+    prisma.kit.findMany({
+      where: {
+        id: { in: kitGroups.map((g) => g.productId) },
+        status: "ACTIVE",
+      },
+      include: {
+        items: {
+          orderBy: { id: "asc" },
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                sku: true,
+                price: true,
+                stock: true,
+                weight: true,
+                images: { where: { isMain: true }, take: 1, select: { url: true } },
+              },
+            },
+            variation: {
+              select: { id: true, name: true, sku: true, price: true, stock: true, imageUrl: true },
+            },
+          },
+        },
+      },
+    }),
+  ]);
 
   const productById = new Map(products.map((p) => [p.id, p]));
   const variationByKey = new Map(variations.map((v) => [`${v.productId}:${v.id}`, v]));
 
   const resolved: ResolvedCartItem[] = [];
 
-  for (const { productId, variationId, quantity } of grouped.values()) {
+  for (const { productId, variationId, quantity } of productGroups) {
     const product = productById.get(productId);
     if (!product) throw new Error("Um dos produtos não está mais disponível.");
 
     const variation = variationId ? variationByKey.get(`${productId}:${variationId}`) : null;
     if (variationId && !variation) throw new Error("Variação do produto não disponível.");
 
-    const unitPrice = variation?.price ? Number(variation.price) : Number(product.price);
+    const unitPrice = variation?.price != null ? Number(variation.price) : Number(product.price);
     const compareAtPrice = variation?.compareAtPrice ?? product.compareAtPrice;
     const stock = variation ? variation.stock : product.stock;
 
@@ -98,9 +144,11 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
     }
 
     resolved.push({
+      kind: "product",
       productId,
       variationId,
       productSlug: product.slug,
+      kitId: null,
       name: variation ? `${product.name} — ${variation.name}` : product.name,
       sku: variation ? variation.sku : product.sku,
       imageUrl: variation?.imageUrl ?? product.images[0]?.url ?? null,
@@ -110,6 +158,43 @@ export async function resolveCartItems(items: CheckoutItemInput[]): Promise<Reso
       stock,
       freeShipping: product.freeShipping,
       weightGrams: product.weight ? Math.round(Number(product.weight) * 1000) : 0,
+      components: [],
+    });
+  }
+
+  const kitById = new Map(kitRows.map((k) => [k.id, k]));
+
+  for (const { productId, quantity } of kitGroups) {
+    const kit = kitById.get(productId);
+    if (!kit) throw new Error("Um dos kits não está mais disponível.");
+
+    const resolvedKit = resolveKit(kit);
+    if (resolvedKit.maxQuantity < quantity) {
+      throw new Error(
+        `Estoque insuficiente para o kit "${kit.name}". Restam ${resolvedKit.maxQuantity} unidade${resolvedKit.maxQuantity === 1 ? "" : "s"}.`,
+      );
+    }
+
+    resolved.push({
+      kind: "kit",
+      productId: kit.id,
+      variationId: null,
+      productSlug: kit.slug,
+      kitId: kit.id,
+      name: kit.name,
+      sku: kit.sku,
+      imageUrl: kit.image,
+      unitPrice: resolvedKit.unitPrice,
+      compareAtPrice: resolvedKit.compareAtPrice,
+      quantity,
+      stock: resolvedKit.maxQuantity,
+      freeShipping: false,
+      weightGrams: resolvedKit.weightGrams,
+      components: resolvedKit.components.map((c) => ({
+        productId: c.productId,
+        variationId: c.variationId,
+        quantity: c.quantity,
+      })),
     });
   }
 
@@ -288,14 +373,19 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
         utmContent: input.utmContent ?? null,
         items: {
           create: items.map((item) => ({
-            productId: item.productId,
-            variationId: item.variationId,
+            productId: item.kind === "kit" ? null : item.productId,
+            variationId: item.kind === "kit" ? null : item.variationId,
+            kitId: item.kind === "kit" ? item.kitId : null,
             name: item.name,
             sku: item.sku,
             imageUrl: item.imageUrl,
             quantity: item.quantity,
             unitPrice: item.unitPrice,
             totalPrice: round(item.unitPrice * item.quantity),
+            components:
+              item.kind === "kit"
+                ? (item.components as unknown as Prisma.InputJsonValue)
+                : undefined,
           })),
         },
         payments: {
@@ -312,6 +402,39 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
     });
 
     for (const item of items) {
+      if (item.kind === "kit" && item.components.length > 0) {
+        for (const component of item.components) {
+          const totalQty = component.quantity * item.quantity;
+          if (component.variationId) {
+            await tx.productVariation.update({
+              where: { id: component.variationId },
+              data: { stock: { decrement: totalQty } },
+            });
+          } else {
+            await tx.product.update({
+              where: { id: component.productId },
+              data: { stock: { decrement: totalQty } },
+            });
+          }
+          await tx.stockMovement.create({
+            data: {
+              productId: component.productId,
+              variationId: component.variationId,
+              quantity: totalQty,
+              type: "RESERVED",
+              orderId: created.id,
+              note: `Kit "${item.name}" (${item.quantity}x)`,
+            },
+          });
+        }
+        if (item.kitId) {
+          await tx.kit.update({
+            where: { id: item.kitId },
+            data: { salesCount: { increment: item.quantity } },
+          });
+        }
+        continue;
+      }
       if (item.variationId) {
         await tx.productVariation.update({
           where: { id: item.variationId },

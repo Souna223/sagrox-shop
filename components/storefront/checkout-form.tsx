@@ -181,6 +181,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
         body: JSON.stringify({
           cep: cepDigits,
           items: items.map((i) => ({
+            kind: i.kind ?? "product",
             productId: i.productId,
             variationId: i.variationId ?? null,
             quantity: i.quantity,
@@ -257,6 +258,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
         cpf: cpf.replace(/\D/g, "") || undefined,
         phone: phone.replace(/\D/g, "") || undefined,
         items: items.map((i) => ({
+          kind: i.kind ?? "product",
           productId: i.productId,
           variationId: i.variationId ?? null,
           quantity: i.quantity,

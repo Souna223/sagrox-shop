@@ -5,6 +5,7 @@ import { ArrowRight, ShieldCheck, Truck, CreditCard, Headset } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 import { ProductCarousel } from "@/components/storefront/product-carousel";
+import { KitCard } from "@/components/storefront/kit-card";
 import {
   getFeaturedProducts,
   getBestSellers,
@@ -12,6 +13,7 @@ import {
   getDiscountedProducts,
   getActiveFlashSales,
 } from "@/lib/products";
+import { getActiveKits } from "@/lib/kits";
 import { prisma } from "@/lib/prisma";
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import { getDictionary } from "@/lib/i18n/server";
@@ -24,7 +26,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const t = await getDictionary();
-  const [featured, bestSellers, newProducts, discounted, flashSales, categories] =
+  const [featured, bestSellers, newProducts, discounted, flashSales, categories, kits] =
     await Promise.all([
       getFeaturedProducts(8),
       getBestSellers(8),
@@ -37,6 +39,7 @@ export default async function HomePage() {
         orderBy: { sortOrder: "asc" },
         take: 6,
       }),
+      getActiveKits(),
     ]);
 
   return (
@@ -123,6 +126,34 @@ export default async function HomePage() {
         <section className="mx-auto max-w-7xl px-4 py-12">
           <SectionHeader title={t.home.newProducts} href="/lancamentos" linkLabel={t.home.viewAll} />
           <ProductGrid products={newProducts} />
+        </section>
+      ) : null}
+
+      {kits.length > 0 ? (
+        <section className="bg-muted/40 py-12">
+          <div className="mx-auto max-w-7xl px-4">
+            <SectionHeader title={t.home.kits} href="/kits" linkLabel={t.home.viewAll} />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+              {kits.map((kit) => (
+                <KitCard
+                  key={kit.id}
+                  kit={{
+                    id: kit.id,
+                    name: kit.name,
+                    slug: kit.slug,
+                    sku: kit.sku,
+                    description: kit.description,
+                    image: kit.image,
+                    unitPrice: kit.unitPrice,
+                    compareAtPrice: kit.compareAtPrice,
+                    discountPercent: kit.discountPercent,
+                    maxQuantity: kit.maxQuantity,
+                    componentsCount: kit.components.length,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
         </section>
       ) : null}
 

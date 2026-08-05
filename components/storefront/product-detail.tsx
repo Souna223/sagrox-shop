@@ -63,6 +63,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
     }
     addItem(
       {
+        kind: "product",
         productId: product.id,
         slug: product.slug,
         name: variation ? `${product.name} — ${variation.name}` : product.name,

@@ -4,6 +4,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 export type CartItem = {
+  kind: "product" | "kit";
   productId: string;
   slug: string;
   name: string;
@@ -36,7 +37,7 @@ export const useCartStore = create<CartState>()(
 
       addItem: (item, quantity = 1) => {
         const items = [...get().items];
-        const key = (i: CartItem) => `${i.productId}:${i.variationId ?? ""}`;
+        const key = (i: CartItem) => `${i.kind ?? "product"}:${i.productId}:${i.variationId ?? ""}`;
         const existing = items.find((i) => key(i) === key(item as CartItem));
 
         if (existing) {

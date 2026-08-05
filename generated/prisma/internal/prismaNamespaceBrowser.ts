@@ -61,6 +61,8 @@ export const ModelName = {
   Product: 'Product',
   ProductImage: 'ProductImage',
   ProductVariation: 'ProductVariation',
+  Kit: 'Kit',
+  KitItem: 'KitItem',
   Review: 'Review',
   WishlistItem: 'WishlistItem',
   Cart: 'Cart',
@@ -298,6 +300,38 @@ export const ProductVariationScalarFieldEnum = {
 export type ProductVariationScalarFieldEnum = (typeof ProductVariationScalarFieldEnum)[keyof typeof ProductVariationScalarFieldEnum]
 
 
+export const KitScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  slug: 'slug',
+  sku: 'sku',
+  description: 'description',
+  image: 'image',
+  price: 'price',
+  discountPercent: 'discountPercent',
+  status: 'status',
+  seoTitle: 'seoTitle',
+  seoDescription: 'seoDescription',
+  views: 'views',
+  salesCount: 'salesCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type KitScalarFieldEnum = (typeof KitScalarFieldEnum)[keyof typeof KitScalarFieldEnum]
+
+
+export const KitItemScalarFieldEnum = {
+  id: 'id',
+  kitId: 'kitId',
+  productId: 'productId',
+  variationId: 'variationId',
+  quantity: 'quantity'
+} as const
+
+export type KitItemScalarFieldEnum = (typeof KitItemScalarFieldEnum)[keyof typeof KitItemScalarFieldEnum]
+
+
 export const ReviewScalarFieldEnum = {
   id: 'id',
   productId: 'productId',
@@ -398,12 +432,14 @@ export const OrderItemScalarFieldEnum = {
   orderId: 'orderId',
   productId: 'productId',
   variationId: 'variationId',
+  kitId: 'kitId',
   name: 'name',
   sku: 'sku',
   imageUrl: 'imageUrl',
   quantity: 'quantity',
   unitPrice: 'unitPrice',
-  totalPrice: 'totalPrice'
+  totalPrice: 'totalPrice',
+  components: 'components'
 } as const
 
 export type OrderItemScalarFieldEnum = (typeof OrderItemScalarFieldEnum)[keyof typeof OrderItemScalarFieldEnum]

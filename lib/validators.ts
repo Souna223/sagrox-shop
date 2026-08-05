@@ -96,6 +96,28 @@ export const productSchema = z.object({
     .default([]),
 });
 
+export const kitSchema = z.object({
+  name: z.string().min(2, "Informe o nome do kit."),
+  slug: z.string().optional(),
+  sku: z.string().min(1, "Informe o SKU do kit."),
+  description: z.string().optional(),
+  image: z.string().optional(),
+  price: z.coerce.number().min(0).optional().nullable(),
+  discountPercent: z.coerce.number().min(0).max(100).optional().nullable(),
+  status: z.enum(["DRAFT", "ACTIVE", "INACTIVE"]).default("DRAFT"),
+  seoTitle: z.string().optional(),
+  seoDescription: z.string().optional(),
+  items: z
+    .array(
+      z.object({
+        productId: z.string().min(1),
+        variationId: z.string().optional().nullable(),
+        quantity: z.coerce.number().int().min(1, "Quantidade mínima de 1 por item.").default(1),
+      }),
+    )
+    .min(1, "Adicione ao menos um item ao kit."),
+});
+
 export const categorySchema = z.object({
   name: z.string().min(2, "Informe o nome da categoria."),
   slug: z.string().optional(),
@@ -197,6 +219,7 @@ export const checkoutSchema = z.object({
   items: z
     .array(
       z.object({
+        kind: z.enum(["product", "kit"]).optional().default("product"),
         productId: z.string().min(1),
         variationId: z.string().optional().nullable(),
         quantity: z.number().int().min(1),
@@ -231,6 +254,7 @@ export const shippingSchema = z.object({
   items: z
     .array(
       z.object({
+        kind: z.enum(["product", "kit"]).optional().default("product"),
         productId: z.string().min(1),
         variationId: z.string().optional().nullable(),
         quantity: z.number().int().min(1),
