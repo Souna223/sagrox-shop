@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 import { parseCsv, decodeCsvBuffer, normalizeHeader, toInt, toNumber } from "@/lib/csv";
 import { recomputeProductRating } from "@/lib/reviews";
+import { translateToPortuguese } from "@/lib/translate";
 import type { ReviewStatus } from "@/generated/prisma/enums";
 
 const MAX_FILE_SIZE = 2 * 1024 * 1024;
@@ -148,6 +149,7 @@ export async function POST(request: NextRequest) {
     }
 
     const overrideProduct = typeof form.get("product") === "string" ? (form.get("product") as string).trim() : "";
+    const translate = form.get("translate") === "true";
     let overrideProductId: string | null = null;
     let overrideProductLabel: string | null = null;
     if (overrideProduct) {
@@ -213,6 +215,25 @@ export async function POST(request: NextRequest) {
     const productIdByName = new Map(productsByName.map((p) => [p.name.toLowerCase(), p.id]));
     const userIdByEmail = new Map(usersByEmail.map((u) => [u.email.toLowerCase(), u.id]));
 
+    const translatedComments = new Map<string, string>();
+    if (translate) {
+      const unique = new Set<string>();
+      for (const row of rows) {
+        const c = column(row, COMMENT_COL).trim();
+        if (c) unique.add(c);
+      }
+      const pool = [...unique];
+      const concurrency = 5;
+      let idx = 0;
+      const worker = async () => {
+        while (idx < pool.length) {
+          const c = pool[idx++];
+          translatedComments.set(c, await translateToPortuguese(c));
+        }
+      };
+      await Promise.all(Array.from({ length: Math.min(concurrency, pool.length) }, worker));
+    }
+
     const created: { id: string; product: string; email: string }[] = [];
     const errors: ImportError[] = [];
     const touchedProducts = new Set<string>();
@@ -232,7 +253,10 @@ export async function POST(request: NextRequest) {
       const rawRating = column(row, RATING_COL);
       const rating = parseRating(rawRating);
       const title = null;
-      const comment = column(row, COMMENT_COL);
+      const rawComment = column(row, COMMENT_COL);
+      const comment = translate
+        ? (translatedComments.get(rawComment.trim()) ?? rawComment)
+        : rawComment;
       const status = STATUS_COL ? reviewStatusFrom(column(row, STATUS_COL)) : "APPROVED";
       const createdAt = DATE_COL ? parseDate(column(row, DATE_COL)) : null;
 

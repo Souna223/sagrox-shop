@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Download, FileUp, Loader2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 
 type ProductOption = { id: string; name: string; sku: string | null; slug: string };
 
@@ -178,6 +179,7 @@ export default function ReviewImportForm() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<ImportResult["data"] | null>(null);
   const [productOverride, setProductOverride] = useState("");
+  const [translateComments, setTranslateComments] = useState(true);
 
   const downloadTemplate = () => {
     const csv = [TEMPLATE_HEADERS.join(TEMPLATE_SEP), TEMPLATE_ROW].join("\n");
@@ -202,6 +204,7 @@ export default function ReviewImportForm() {
       const fd = new FormData();
       fd.append("file", file);
       if (productOverride.trim()) fd.append("product", productOverride.trim());
+      if (translateComments) fd.append("translate", "true");
       const res = await fetch("/api/admin/import-reviews", { method: "POST", body: fd });
       const data = (await res.json()) as ImportResult;
       if (!res.ok || !data.ok || !data.data) {
@@ -251,6 +254,13 @@ export default function ReviewImportForm() {
               onChange={(e) => handleFile(e.target.files?.[0])}
             />
           </div>
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Checkbox
+              checked={translateComments}
+              onCheckedChange={(v) => setTranslateComments(!!v)}
+            />
+            Traduzir comentários para português
+          </label>
           <div className="max-w-md space-y-1.5">
             <label htmlFor="review-product-override" className="text-sm font-medium">
               Produto (opcional)
