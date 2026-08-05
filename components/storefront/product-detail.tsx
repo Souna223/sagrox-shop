@@ -216,8 +216,9 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           <div className="mt-6">
             <p className="mb-2 text-base font-bold">{t.productDetail.bulkPriceTitle}</p>
             <div className="flex flex-col gap-2.5">
-              {product.quantityPrices.map((tier) => {
-                const active = quantity >= tier.minQuantity;
+              {product.quantityPrices.map((tier, index) => {
+                const isLast = index === product.quantityPrices.length - 1;
+                const active = quantity === tier.minQuantity;
                 const tierUnitPrice = getTierUnitPrice(price, tier.minQuantity, product.quantityPrices);
                 const originalTotal = price * tier.minQuantity;
                 const newTotal = tierUnitPrice * tier.minQuantity;
@@ -226,7 +227,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                   <button
                     key={tier.minQuantity}
                     type="button"
-                    onClick={() => setQuantity((q) => Math.max(tier.minQuantity, q))}
+                    onClick={() => setQuantity(Math.min(tier.minQuantity, stock))}
                     className={`flex w-full items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
                       active
                         ? "border-primary bg-primary/10 shadow-sm"
@@ -234,7 +235,12 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     }`}
                   >
                     <span className="text-base font-bold">
-                      {fmt(t.productDetail.bulkBuy, { n: tier.minQuantity })}
+                      {tier.minQuantity}
+                      {isLast ? (
+                        <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                          {t.productDetail.orMore}
+                        </span>
+                      ) : null}
                     </span>
                     <span className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground line-through">
