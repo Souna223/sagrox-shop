@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin, ok, fail, handleError } from "@/lib/api";
 import { parseCsv, decodeCsvBuffer, normalizeHeader, toInt, toNumber } from "@/lib/csv";
-import { recomputeProductRating } from "@/lib/reviews";
+import { recomputeProductRating, cleanReviewerName } from "@/lib/reviews";
 import { translateToPortuguese } from "@/lib/translate";
 import type { ReviewStatus } from "@/generated/prisma/enums";
 
@@ -27,14 +27,6 @@ function syntheticEmail(name: string, rowNumber: number): string {
       .replace(/[^a-z0-9]/g, "")
       .slice(0, 20) || "cliente";
   return `${base}${rowNumber}@import.local`;
-}
-
-function cleanReviewerName(raw: string): string {
-  const s = (raw ?? "").trim().replace(/\d+/g, "").trim();
-  if (!s) return "Anônimo";
-  if (/^[#*\-_•·.—–|,;.\s]+$/.test(s)) return "Anônimo";
-  if (s.length < 2) return "Anônimo";
-  return s;
 }
 
 function parseRating(raw: string): number | null {

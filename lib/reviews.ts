@@ -1,5 +1,14 @@
 import { prisma } from "@/lib/prisma";
 
+export function cleanReviewerName(raw: string): string {
+  const s = (raw ?? "").trim().replace(/\d+/g, "").trim();
+  if (!s) return "Anônimo";
+  if (/[*#]/.test(s)) return "Anônimo";
+  if (/^[-_•·.—–|,;.\s]+$/.test(s)) return "Anônimo";
+  if (s.length < 2) return "Anônimo";
+  return s;
+}
+
 export async function recomputeProductRating(productId: string) {
   const reviews = await prisma.review.findMany({
     where: { productId, status: "APPROVED" },
