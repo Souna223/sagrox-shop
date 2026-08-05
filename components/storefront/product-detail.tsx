@@ -241,7 +241,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                           { n: tier.minQuantity },
                         )}
                       </span>
-                      <span className="text-2xl font-extrabold text-emerald-600">
+                      <span className="text-xl font-bold text-emerald-600">
                         {formatBRL(newTotal)}
                       </span>
                     </span>
