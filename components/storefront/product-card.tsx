@@ -118,7 +118,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
         ) : null}
         <Link
           href={`/produtos/${product.slug}`}
-          className="line-clamp-2 text-sm font-medium hover:underline"
+          className="line-clamp-2 text-sm font-medium text-foreground hover:underline"
         >
           {product.name}
         </Link>
@@ -147,7 +147,7 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
           ) : null}
           <div className="flex items-end justify-between gap-2">
             <div>
-              <p className="text-lg font-bold">{formatBRL(price)}</p>
+              <p className="text-lg font-bold text-foreground">{formatBRL(price)}</p>
               <p className="text-xs text-muted-foreground">
                 {fmt(t.productCard.installmentOf, { x: info.installment, y: formatBRL(info.installmentValue) })}
               </p>
