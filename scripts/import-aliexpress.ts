@@ -287,7 +287,6 @@ async function main() {
           stock: parseStock(get("stock")),
           status: "ACTIVE",
           visibility: "VISIBLE",
-          isNew: true,
           weight: weightKg,
           attributes,
           tags: ["aliexpress"],
