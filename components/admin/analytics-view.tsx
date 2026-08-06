@@ -11,6 +11,11 @@ import {
   PackageCheck,
   AlertCircle,
   BarChart3,
+  Megaphone,
+  Leaf,
+  FileText,
+  Share2,
+  MousePointerClick,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -22,6 +27,8 @@ import {
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { formatBRL, formatNumber } from "@/lib/format";
 
+type TrafficChannel = "paid" | "organic" | "social" | "referral" | "direct";
+
 type Stats = {
   visitors: number;
   sessions: number;
@@ -32,6 +39,10 @@ type Stats = {
   orders: number;
   revenue: number;
   purchaseEvents: number;
+  paidVisitors: number;
+  paidRevenue: number;
+  organicVisitors: number;
+  organicRevenue: number;
 };
 
 type SeriesPoint = {
@@ -43,13 +54,51 @@ type SeriesPoint = {
   revenue: number;
 };
 
+type PageRow = { path: string; views: number; visitors: number };
+
+type ChannelRow = {
+  key: TrafficChannel;
+  visitors: number;
+  views: number;
+  orders: number;
+  revenue: number;
+};
+
 const RANGES = [
   { value: "7", label: "7 dias" },
   { value: "30", label: "30 dias" },
   { value: "90", label: "90 dias" },
 ];
 
-export function AnalyticsView({ range, stats, series }: { range: string; stats: Stats; series: SeriesPoint[] }) {
+const CHANNEL_META: Record<TrafficChannel, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
+  paid: { label: "Pago", icon: Megaphone },
+  organic: { label: "Orgânico", icon: Leaf },
+  social: { label: "Redes sociais", icon: Share2 },
+  referral: { label: "Indicação", icon: MousePointerClick },
+  direct: { label: "Direto", icon: MousePointerClick },
+};
+
+function pageLabel(path: string): string {
+  if (path === "/") return "Página inicial";
+  const clean = path.split("?")[0].split("#")[0];
+  if (clean.startsWith("/produtos/")) return "Produto: " + clean.split("/").filter(Boolean).pop();
+  if (clean.startsWith("/categoria/")) return "Categoria: " + clean.split("/").filter(Boolean).pop();
+  return clean;
+}
+
+export function AnalyticsView({
+  range,
+  stats,
+  series,
+  pages,
+  channels,
+}: {
+  range: string;
+  stats: Stats;
+  series: SeriesPoint[];
+  pages: PageRow[];
+  channels: ChannelRow[];
+}) {
   const router = useRouter();
 
   const conversion =
@@ -74,6 +123,8 @@ export function AnalyticsView({ range, stats, series }: { range: string; stats: 
   }[] = [
     { label: "Visitantes", value: formatNumber(stats.visitors), hint: `${formatNumber(stats.sessions)} sessões`, icon: Users },
     { label: "Visualizações de página", value: formatNumber(stats.pageViews), hint: "páginas visitadas", icon: Eye },
+    { label: "Tráfego pago", value: formatNumber(stats.paidVisitors), hint: `${formatBRL(stats.paidRevenue)} em vendas`, icon: Megaphone },
+    { label: "Tráfego orgânico", value: formatNumber(stats.organicVisitors), hint: `${formatBRL(stats.organicRevenue)} em vendas`, icon: Leaf },
     { label: "Adições ao carrinho", value: formatNumber(stats.addToCart), hint: "itens adicionados", icon: ShoppingCart },
     { label: "Checkouts iniciados", value: formatNumber(stats.checkoutsStarted), hint: "clientes no checkout", icon: CreditCard },
     { label: "Checkouts abandonados", value: formatNumber(stats.abandoned), hint: `${checkoutConversion}% concluíram`, icon: AlertCircle },
@@ -82,13 +133,16 @@ export function AnalyticsView({ range, stats, series }: { range: string; stats: 
     { label: "Taxa de conversão", value: `${conversion}%`, hint: `${cartConversion}% de carrinho`, icon: BarChart3 },
   ];
 
+  const maxChannelVisitors = Math.max(1, ...channels.map((c) => c.visitors));
+  const maxPageViews = Math.max(1, ...pages.map((p) => p.views));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">Analíticas</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Visitantes, checkouts e vendas da sua loja.
+            Visitantes, páginas, canais de tráfego e vendas da sua loja.
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-lg border p-1">
@@ -127,7 +181,7 @@ export function AnalyticsView({ range, stats, series }: { range: string; stats: 
       <div className="grid gap-6 xl:grid-cols-3">
         <Card className="xl:col-span-2">
           <CardHeader>
-            <CardTitle>Visitantes e pedidos por dia</CardTitle>
+            <CardTitle>Visitantes, visualizações e pedidos por dia</CardTitle>
           </CardHeader>
           <CardContent>
             <ChartContainer config={chartConfig} className="aspect-auto h-72 w-full">
@@ -143,6 +197,14 @@ export function AnalyticsView({ range, stats, series }: { range: string; stats: 
                   fill="hsl(var(--primary))"
                   fillOpacity={0.15}
                   name="visitors"
+                />
+                <Area
+                  dataKey="pageViews"
+                  type="monotone"
+                  stroke="hsl(var(--chart-2))"
+                  fill="hsl(var(--chart-2))"
+                  fillOpacity={0.15}
+                  name="pageViews"
                 />
                 <Area
                   dataKey="orders"
@@ -178,6 +240,79 @@ export function AnalyticsView({ range, stats, series }: { range: string; stats: 
                 />
               </AreaChart>
             </ChartContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Páginas mais visitadas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {pages.length === 0 ? (
+              <p className="text-sm text-muted-foreground">Sem dados no período selecionado.</p>
+            ) : (
+              <div className="space-y-3">
+                {pages.map((p) => (
+                  <div key={p.path}>
+                    <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                      <span className="flex min-w-0 items-center gap-1.5 truncate font-medium">
+                        <FileText className="size-3.5 shrink-0 text-muted-foreground" />
+                        <span className="truncate">{pageLabel(p.path)}</span>
+                      </span>
+                      <span className="shrink-0 text-muted-foreground">
+                        {formatNumber(p.views)} ({formatNumber(p.visitors)} visitantes)
+                      </span>
+                    </div>
+                    <div className="h-2 overflow-hidden rounded-full bg-muted">
+                      <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max(2, (p.views / maxPageViews) * 100)}%` }} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Tráfego por origem</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {channels.every((c) => c.visitors === 0 && c.views === 0) ? (
+              <p className="text-sm text-muted-foreground">Sem dados no período selecionado.</p>
+            ) : (
+              <div className="space-y-4">
+                {channels.map((c) => {
+                  const meta = CHANNEL_META[c.key];
+                  const Icon = meta.icon;
+                  return (
+                    <div key={c.key}>
+                      <div className="mb-1 flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-2 font-medium">
+                          <Icon className="size-4 text-muted-foreground" />
+                          {meta.label}
+                        </span>
+                        <span className="text-muted-foreground">
+                          {formatNumber(c.visitors)} visitantes · {formatNumber(c.views)} visualizações
+                        </span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-muted">
+                        <div
+                          className="h-full rounded-full bg-primary"
+                          style={{ width: `${Math.max(2, (c.visitors / maxChannelVisitors) * 100)}%` }}
+                        />
+                      </div>
+                      <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                        <span>{formatNumber(c.orders)} pedidos</span>
+                        <span className="font-medium text-foreground">{formatBRL(c.revenue)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

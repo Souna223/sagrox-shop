@@ -15,6 +15,49 @@ type PageProps = {
 
 const RANGES: Record<string, number> = { "7": 7, "30": 30, "90": 90 };
 
+export type TrafficChannel = "paid" | "organic" | "social" | "referral" | "direct";
+
+export function classifyTraffic(input: {
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  referrer?: string | null;
+}): TrafficChannel {
+  const s = (input.utmSource ?? "").toLowerCase();
+  const m = (input.utmMedium ?? "").toLowerCase();
+  const r = (input.referrer ?? "").toLowerCase();
+
+  if (
+    m === "cpc" ||
+    m === "paid" ||
+    m === "ppc" ||
+    m === "ads" ||
+    m === "shopping" ||
+    /ads|paid|cpc/.test(s)
+  ) {
+    return "paid";
+  }
+
+  if (
+    m === "organic" ||
+    m === "search" ||
+    ["google", "bing", "duckduckgo", "yahoo"].includes(s) ||
+    /google\.|bing\.|duckduckgo\.|search\.yahoo|br\.search\./.test(r)
+  ) {
+    return "organic";
+  }
+
+  if (
+    m === "social" ||
+    ["facebook", "instagram", "tiktok", "whatsapp", "youtube", "twitter"].includes(s) ||
+    /facebook\.|instagram\.|tiktok\.|wa\.me|whatsapp\.|youtube\.|twitter\.|x\.com/.test(r)
+  ) {
+    return "social";
+  }
+
+  if (r) return "referral";
+  return "direct";
+}
+
 export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
   await requireAdmin();
   const { range = "30" } = await searchParams;
@@ -26,7 +69,15 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
   const [events, orderStats, dailyPurchases] = await Promise.all([
     prisma.analyticsEvent.findMany({
       where: { eventType: { in: eventTypes }, createdAt: { gte: since } },
-      select: { eventType: true, sessionId: true, createdAt: true },
+      select: {
+        eventType: true,
+        sessionId: true,
+        createdAt: true,
+        pagePath: true,
+        referrer: true,
+        utmSource: true,
+        utmMedium: true,
+      },
     }),
     prisma.order.aggregate({
       where: { paymentStatus: "APPROVED", createdAt: { gte: since } },
@@ -35,7 +86,7 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
     }),
     prisma.order.findMany({
       where: { paymentStatus: "APPROVED", createdAt: { gte: since } },
-      select: { createdAt: true, total: true },
+      select: { createdAt: true, total: true, utmSource: true, utmMedium: true },
     }),
   ]);
 
@@ -53,6 +104,52 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
 
   const revenue = orderStats._sum.total ?? 0;
   const visitorsCount = visitors.size;
+
+  // Páginas mais visitadas
+  const pageMap = new Map<string, { views: number; visitors: Set<string> }>();
+  for (const e of events) {
+    if (e.eventType !== "PAGE_VIEW") continue;
+    const path = e.pagePath || "/";
+    const rec = pageMap.get(path) ?? { views: 0, visitors: new Set<string>() };
+    rec.views += 1;
+    if (e.sessionId) rec.visitors.add(e.sessionId);
+    pageMap.set(path, rec);
+  }
+  const pages = [...pageMap.entries()]
+    .map(([path, rec]) => ({ path, views: rec.views, visitors: rec.visitors.size }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 15);
+
+  // Canal de tráfego por sessão (primeiro evento da sessão define o canal)
+  const sessionChannel = new Map<string, TrafficChannel>();
+  for (const e of events) {
+    if (!e.sessionId || sessionChannel.has(e.sessionId)) continue;
+    sessionChannel.set(e.sessionId, classifyTraffic(e));
+  }
+
+  const emptyChannel = { visitors: 0, views: 0, orders: 0, revenue: 0 };
+  const channelStats: Record<TrafficChannel, typeof emptyChannel> = {
+    paid: { ...emptyChannel },
+    organic: { ...emptyChannel },
+    social: { ...emptyChannel },
+    referral: { ...emptyChannel },
+    direct: { ...emptyChannel },
+  };
+
+  for (const ch of sessionChannel.values()) channelStats[ch].visitors += 1;
+  for (const e of events) {
+    if (e.eventType === "PAGE_VIEW") channelStats[classifyTraffic(e)].views += 1;
+  }
+  for (const o of dailyPurchases) {
+    const ch = classifyTraffic({ utmSource: o.utmSource, utmMedium: o.utmMedium });
+    channelStats[ch].orders += 1;
+    channelStats[ch].revenue += Number(o.total);
+  }
+
+  const channels = (Object.keys(channelStats) as TrafficChannel[]).map((key) => ({
+    key,
+    ...channelStats[key],
+  }));
 
   const daysArr = eachDayOfInterval({ start: since, end: new Date() });
   const series = daysArr.map((day) => {
@@ -83,11 +180,15 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
     orders: orderStats._count,
     revenue: Number(revenue),
     purchaseEvents: counts.get("PURCHASE") ?? 0,
+    paidVisitors: channelStats.paid.visitors,
+    paidRevenue: channelStats.paid.revenue,
+    organicVisitors: channelStats.organic.visitors,
+    organicRevenue: channelStats.organic.revenue,
   };
 
   return (
     <div className="space-y-6">
-      <AnalyticsView range={range} stats={stats} series={series} />
+      <AnalyticsView range={range} stats={stats} series={series} pages={pages} channels={channels} />
     </div>
   );
 }

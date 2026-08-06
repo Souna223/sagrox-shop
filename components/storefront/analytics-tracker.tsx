@@ -2,7 +2,7 @@
 
 import { usePathname, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef } from "react";
-import { trackClient } from "@/lib/client-tracking";
+import { trackClient, getAttribution } from "@/lib/client-tracking";
 
 function Tracker() {
   const pathname = usePathname();
@@ -15,15 +15,11 @@ function Tracker() {
     trackedRef.current = full;
 
     const params = new URLSearchParams(searchParams?.toString() ?? "");
+    const { utm, referrer } = getAttribution(params);
     trackClient("PAGE_VIEW", {
       pagePath: full,
-      metadata: {
-        utm_source: params.get("utm_source"),
-        utm_medium: params.get("utm_medium"),
-        utm_campaign: params.get("utm_campaign"),
-        utm_content: params.get("utm_content"),
-        utm_term: params.get("utm_term"),
-      },
+      referrer,
+      metadata: { ...utm },
     });
   }, [pathname, searchParams]);
 

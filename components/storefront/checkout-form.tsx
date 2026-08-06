@@ -35,7 +35,7 @@ import { toast } from "sonner";
 import { PixIcon, BoletoIcon } from "@/components/icons";
 import { useI18n } from "@/lib/i18n/provider";
 import { fmt } from "@/lib/i18n/dictionaries";
-import { trackClient } from "@/lib/client-tracking";
+import { trackClient, getAttribution } from "@/lib/client-tracking";
 
 type CheckoutUser = {
   id: string;
@@ -252,6 +252,7 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
     try {
       const qs = new URLSearchParams(window.location.search);
       const expParts = cardExpiry.split("/");
+      const { utm } = getAttribution(qs);
       const payload = {
         email: email.trim().toLowerCase(),
         customerName: name.trim(),
@@ -287,11 +288,11 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
               }
             : undefined,
         sessionId: localStorage.getItem("wbsite.session-id") ?? undefined,
-        utmSource: qs.get("utm_source") ?? undefined,
-        utmMedium: qs.get("utm_medium") ?? undefined,
-        utmCampaign: qs.get("utm_campaign") ?? undefined,
-        utmTerm: qs.get("utm_term") ?? undefined,
-        utmContent: qs.get("utm_content") ?? undefined,
+        utmSource: utm.utm_source ?? undefined,
+        utmMedium: utm.utm_medium ?? undefined,
+        utmCampaign: utm.utm_campaign ?? undefined,
+        utmTerm: utm.utm_term ?? undefined,
+        utmContent: utm.utm_content ?? undefined,
       };
 
       const res = await fetch("/api/checkout", {
