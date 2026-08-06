@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     const sessionId = body.sessionId ?? null;
     const userAgent = request.headers.get("user-agent") ?? "";
     const { device, browser, os } = detectDevice(userAgent);
-    const geo = getGeoFromRequest(request);
+    const geo = await getGeoFromRequest(request);
 
     await recordEvent({
       eventType: eventType as AnalyticsEventType,

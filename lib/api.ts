@@ -81,11 +81,37 @@ export function getClientIp(request: Request): string {
   return request.headers.get("x-real-ip") ?? "unknown";
 }
 
-export function getGeoFromRequest(request: Request): { country: string | null; state: string | null; city: string | null } {
+export async function getGeoFromRequest(request: Request): Promise<{ country: string | null; state: string | null; city: string | null }> {
   const h = (name: string) => request.headers.get(name);
   const country =
     h("x-vercel-ip-country") ?? h("cf-ipcountry") ?? h("cloudfront-viewer-country") ?? h("x-country-code") ?? null;
   const state = h("x-vercel-ip-country-region") ?? h("x-region-code") ?? null;
   const city = h("x-vercel-ip-city") ?? null;
+
+  if (!country) {
+    const ip = getClientIp(request);
+    if (isPublicIp(ip)) {
+      try {
+        const geoip = await import("geoip-lite");
+        const geo = geoip.lookup(ip);
+        if (geo?.country) {
+          return { country: geo.country.toUpperCase(), state: geo.region ?? state, city: geo.city ?? city };
+        }
+      } catch {
+        // geolocation indisponível
+      }
+    }
+  }
+
   return { country: country ? country.toUpperCase() : null, state, city };
+}
+
+function isPublicIp(ip: string): boolean {
+  if (!ip || ip === "unknown" || ip === "::1") return false;
+  if (ip.startsWith("127.") || ip.startsWith("10.") || ip.startsWith("192.168.")) return false;
+  if (ip.startsWith("172.")) {
+    const parts = ip.split(".").map(Number);
+    if (parts[1] >= 16 && parts[1] <= 31) return false;
+  }
+  return true;
 }
