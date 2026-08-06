@@ -65,6 +65,7 @@ type ChannelRow = {
 };
 
 const RANGES = [
+  { value: "1", label: "Hoje" },
   { value: "7", label: "7 dias" },
   { value: "30", label: "30 dias" },
   { value: "90", label: "90 dias" },

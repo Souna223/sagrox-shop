@@ -13,7 +13,7 @@ type PageProps = {
   searchParams: Promise<{ range?: string }>;
 };
 
-const RANGES: Record<string, number> = { "7": 7, "30": 30, "90": 90 };
+const RANGES: Record<string, number> = { "1": 1, "7": 7, "30": 30, "90": 90 };
 
 export type TrafficChannel = "paid" | "organic" | "social" | "referral" | "direct";
 
