@@ -206,8 +206,6 @@ export async function POST(request: NextRequest) {
         brandId: brandName ? brandIdByName.get(brandName.toLowerCase()) ?? null : null,
         categoryId: categoryName ? categoryIdByName.get(categoryName.toLowerCase()) ?? null : null,
         isFeatured: false,
-        isBestSeller: false,
-        isNew: false,
         freeShipping: false,
         variations: [],
       };

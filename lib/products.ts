@@ -11,8 +11,6 @@ export const productListSelect = {
   compareAtPrice: true,
   stock: true,
   isFeatured: true,
-  isBestSeller: true,
-  isNew: true,
   freeShipping: true,
   ratingAvg: true,
   ratingCount: true,
@@ -38,8 +36,6 @@ export type ProductListItem = {
   compareAtPrice: { toString(): string } | null;
   stock: number;
   isFeatured: boolean;
-  isBestSeller: boolean;
-  isNew: boolean;
   freeShipping: boolean;
   ratingAvg: { toString(): string };
   ratingCount: number;
@@ -78,8 +74,6 @@ export type PublicProductListParams = {
   minRating?: number;
   tags?: string[];
   featured?: boolean;
-  bestSeller?: boolean;
-  isNew?: boolean;
   inStockOnly?: boolean;
   onSale?: boolean;
   freeShipping?: boolean;
@@ -98,8 +92,6 @@ export async function getPublicProducts(params: PublicProductListParams = {}) {
     minRating,
     tags,
     featured,
-    bestSeller,
-    isNew,
     inStockOnly,
     onSale,
     freeShipping,
@@ -115,8 +107,6 @@ export async function getPublicProducts(params: PublicProductListParams = {}) {
   }
   if (brand) where.brand = { slug: brand };
   if (featured) where.isFeatured = true;
-  if (bestSeller) where.isBestSeller = true;
-  if (isNew) where.isNew = true;
   if (inStockOnly) where.stock = { gt: 0 };
   if (minRating) where.ratingAvg = { gte: minRating };
   if (minPrice !== undefined || maxPrice !== undefined) {
@@ -213,24 +203,6 @@ export async function getFeaturedProducts(limit = 8) {
   return prisma.product.findMany({
     where: { status: "ACTIVE", visibility: "VISIBLE", isFeatured: true },
     select: productListSelect,
-    take: limit,
-  });
-}
-
-export async function getBestSellers(limit = 8) {
-  return prisma.product.findMany({
-    where: { status: "ACTIVE", visibility: "VISIBLE" },
-    select: productListSelect,
-    orderBy: { salesCount: "desc" },
-    take: limit,
-  });
-}
-
-export async function getNewProducts(limit = 8) {
-  return prisma.product.findMany({
-    where: { status: "ACTIVE", visibility: "VISIBLE", isNew: true },
-    select: productListSelect,
-    orderBy: { createdAt: "desc" },
     take: limit,
   });
 }

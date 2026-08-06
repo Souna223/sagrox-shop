@@ -191,8 +191,6 @@ model Product {
   status           ProductStatus   @default(DRAFT)
   visibility       ProductVisibility @default(VISIBLE)
   isFeatured       Boolean   @default(false)
-  isBestSeller     Boolean   @default(false)
-  isNew            Boolean   @default(false)
   weight           Decimal?  @db.Decimal(8, 2)
   height           Decimal?  @db.Decimal(8, 2)
   width            Decimal?  @db.Decimal(8, 2)
@@ -225,7 +223,6 @@ model Product {
   @@index([categoryId])
   @@index([brandId])
   @@index([isFeatured])
-  @@index([isBestSeller])
   @@index([createdAt])
 }
 

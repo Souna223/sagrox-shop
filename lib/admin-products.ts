@@ -48,8 +48,6 @@ export async function applyProductPayload(payload: ProductInput, productId?: str
     status: payload.status as ProductStatus,
     visibility: payload.visibility as ProductVisibility,
     isFeatured: payload.isFeatured,
-    isBestSeller: payload.isBestSeller,
-    isNew: payload.isNew,
     weight: payload.weight ?? null,
     height: payload.height ?? null,
     width: payload.width ?? null,

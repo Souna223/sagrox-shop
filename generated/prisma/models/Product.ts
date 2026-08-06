@@ -76,8 +76,6 @@ export type ProductMinAggregateOutputType = {
   status: $Enums.ProductStatus | null
   visibility: $Enums.ProductVisibility | null
   isFeatured: boolean | null
-  isBestSeller: boolean | null
-  isNew: boolean | null
   weight: runtime.Decimal | null
   height: runtime.Decimal | null
   width: runtime.Decimal | null
@@ -112,8 +110,6 @@ export type ProductMaxAggregateOutputType = {
   status: $Enums.ProductStatus | null
   visibility: $Enums.ProductVisibility | null
   isFeatured: boolean | null
-  isBestSeller: boolean | null
-  isNew: boolean | null
   weight: runtime.Decimal | null
   height: runtime.Decimal | null
   width: runtime.Decimal | null
@@ -148,8 +144,6 @@ export type ProductCountAggregateOutputType = {
   status: number
   visibility: number
   isFeatured: number
-  isBestSeller: number
-  isNew: number
   weight: number
   height: number
   width: number
@@ -220,8 +214,6 @@ export type ProductMinAggregateInputType = {
   status?: true
   visibility?: true
   isFeatured?: true
-  isBestSeller?: true
-  isNew?: true
   weight?: true
   height?: true
   width?: true
@@ -256,8 +248,6 @@ export type ProductMaxAggregateInputType = {
   status?: true
   visibility?: true
   isFeatured?: true
-  isBestSeller?: true
-  isNew?: true
   weight?: true
   height?: true
   width?: true
@@ -292,8 +282,6 @@ export type ProductCountAggregateInputType = {
   status?: true
   visibility?: true
   isFeatured?: true
-  isBestSeller?: true
-  isNew?: true
   weight?: true
   height?: true
   width?: true
@@ -417,8 +405,6 @@ export type ProductGroupByOutputType = {
   status: $Enums.ProductStatus
   visibility: $Enums.ProductVisibility
   isFeatured: boolean
-  isBestSeller: boolean
-  isNew: boolean
   weight: runtime.Decimal | null
   height: runtime.Decimal | null
   width: runtime.Decimal | null
@@ -478,8 +464,6 @@ export type ProductWhereInput = {
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFilter<"Product"> | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
-  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
-  isNew?: Prisma.BoolFilter<"Product"> | boolean
   weight?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -528,8 +512,6 @@ export type ProductOrderByWithRelationInput = {
   status?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
-  isBestSeller?: Prisma.SortOrder
-  isNew?: Prisma.SortOrder
   weight?: Prisma.SortOrderInput | Prisma.SortOrder
   height?: Prisma.SortOrderInput | Prisma.SortOrder
   width?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -581,8 +563,6 @@ export type ProductWhereUniqueInput = Prisma.AtLeast<{
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFilter<"Product"> | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
-  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
-  isNew?: Prisma.BoolFilter<"Product"> | boolean
   weight?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -631,8 +611,6 @@ export type ProductOrderByWithAggregationInput = {
   status?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
-  isBestSeller?: Prisma.SortOrder
-  isNew?: Prisma.SortOrder
   weight?: Prisma.SortOrderInput | Prisma.SortOrder
   height?: Prisma.SortOrderInput | Prisma.SortOrder
   width?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -677,8 +655,6 @@ export type ProductScalarWhereWithAggregatesInput = {
   status?: Prisma.EnumProductStatusWithAggregatesFilter<"Product"> | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityWithAggregatesFilter<"Product"> | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
-  isBestSeller?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
-  isNew?: Prisma.BoolWithAggregatesFilter<"Product"> | boolean
   weight?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.DecimalNullableWithAggregatesFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -713,8 +689,6 @@ export type ProductCreateInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -763,8 +737,6 @@ export type ProductUncheckedCreateInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -809,8 +781,6 @@ export type ProductUpdateInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -859,8 +829,6 @@ export type ProductUncheckedUpdateInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -907,8 +875,6 @@ export type ProductCreateManyInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -943,8 +909,6 @@ export type ProductUpdateManyMutationInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -981,8 +945,6 @@ export type ProductUncheckedUpdateManyInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1037,8 +999,6 @@ export type ProductCountOrderByAggregateInput = {
   status?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
-  isBestSeller?: Prisma.SortOrder
-  isNew?: Prisma.SortOrder
   weight?: Prisma.SortOrder
   height?: Prisma.SortOrder
   width?: Prisma.SortOrder
@@ -1091,8 +1051,6 @@ export type ProductMaxOrderByAggregateInput = {
   status?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
-  isBestSeller?: Prisma.SortOrder
-  isNew?: Prisma.SortOrder
   weight?: Prisma.SortOrder
   height?: Prisma.SortOrder
   width?: Prisma.SortOrder
@@ -1127,8 +1085,6 @@ export type ProductMinOrderByAggregateInput = {
   status?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   isFeatured?: Prisma.SortOrder
-  isBestSeller?: Prisma.SortOrder
-  isNew?: Prisma.SortOrder
   weight?: Prisma.SortOrder
   height?: Prisma.SortOrder
   width?: Prisma.SortOrder
@@ -1446,8 +1402,6 @@ export type ProductCreateWithoutCategoryInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1494,8 +1448,6 @@ export type ProductUncheckedCreateWithoutCategoryInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1571,8 +1523,6 @@ export type ProductScalarWhereInput = {
   status?: Prisma.EnumProductStatusFilter<"Product"> | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFilter<"Product"> | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFilter<"Product"> | boolean
-  isBestSeller?: Prisma.BoolFilter<"Product"> | boolean
-  isNew?: Prisma.BoolFilter<"Product"> | boolean
   weight?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.DecimalNullableFilter<"Product"> | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1607,8 +1557,6 @@ export type ProductCreateWithoutBrandInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1655,8 +1603,6 @@ export type ProductUncheckedCreateWithoutBrandInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1727,8 +1673,6 @@ export type ProductCreateWithoutQuantityPricesInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1776,8 +1720,6 @@ export type ProductUncheckedCreateWithoutQuantityPricesInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1837,8 +1779,6 @@ export type ProductUpdateWithoutQuantityPricesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1886,8 +1826,6 @@ export type ProductUncheckedUpdateWithoutQuantityPricesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1931,8 +1869,6 @@ export type ProductCreateWithoutImagesInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -1980,8 +1916,6 @@ export type ProductUncheckedCreateWithoutImagesInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2041,8 +1975,6 @@ export type ProductUpdateWithoutImagesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2090,8 +2022,6 @@ export type ProductUncheckedUpdateWithoutImagesInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2135,8 +2065,6 @@ export type ProductCreateWithoutVariationsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2184,8 +2112,6 @@ export type ProductUncheckedCreateWithoutVariationsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2245,8 +2171,6 @@ export type ProductUpdateWithoutVariationsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2294,8 +2218,6 @@ export type ProductUncheckedUpdateWithoutVariationsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2339,8 +2261,6 @@ export type ProductCreateWithoutKitItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2388,8 +2308,6 @@ export type ProductUncheckedCreateWithoutKitItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2449,8 +2367,6 @@ export type ProductUpdateWithoutKitItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2498,8 +2414,6 @@ export type ProductUncheckedUpdateWithoutKitItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2543,8 +2457,6 @@ export type ProductCreateWithoutReviewsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2592,8 +2504,6 @@ export type ProductUncheckedCreateWithoutReviewsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2653,8 +2563,6 @@ export type ProductUpdateWithoutReviewsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2702,8 +2610,6 @@ export type ProductUncheckedUpdateWithoutReviewsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2747,8 +2653,6 @@ export type ProductCreateWithoutWishlistItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2796,8 +2700,6 @@ export type ProductUncheckedCreateWithoutWishlistItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2857,8 +2759,6 @@ export type ProductUpdateWithoutWishlistItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2906,8 +2806,6 @@ export type ProductUncheckedUpdateWithoutWishlistItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -2951,8 +2849,6 @@ export type ProductCreateWithoutCartItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3000,8 +2896,6 @@ export type ProductUncheckedCreateWithoutCartItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3061,8 +2955,6 @@ export type ProductUpdateWithoutCartItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3110,8 +3002,6 @@ export type ProductUncheckedUpdateWithoutCartItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3155,8 +3045,6 @@ export type ProductCreateWithoutOrderItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3204,8 +3092,6 @@ export type ProductUncheckedCreateWithoutOrderItemsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3265,8 +3151,6 @@ export type ProductUpdateWithoutOrderItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3314,8 +3198,6 @@ export type ProductUncheckedUpdateWithoutOrderItemsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3359,8 +3241,6 @@ export type ProductCreateWithoutFlashSaleProductsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3408,8 +3288,6 @@ export type ProductUncheckedCreateWithoutFlashSaleProductsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3469,8 +3347,6 @@ export type ProductUpdateWithoutFlashSaleProductsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3518,8 +3394,6 @@ export type ProductUncheckedUpdateWithoutFlashSaleProductsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3563,8 +3437,6 @@ export type ProductCreateWithoutStockMovementsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3612,8 +3484,6 @@ export type ProductUncheckedCreateWithoutStockMovementsInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3673,8 +3543,6 @@ export type ProductUpdateWithoutStockMovementsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3722,8 +3590,6 @@ export type ProductUncheckedUpdateWithoutStockMovementsInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3768,8 +3634,6 @@ export type ProductCreateManyCategoryInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3804,8 +3668,6 @@ export type ProductUpdateWithoutCategoryInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3852,8 +3714,6 @@ export type ProductUncheckedUpdateWithoutCategoryInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3899,8 +3759,6 @@ export type ProductUncheckedUpdateManyWithoutCategoryInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3936,8 +3794,6 @@ export type ProductCreateManyBrandInput = {
   status?: $Enums.ProductStatus
   visibility?: $Enums.ProductVisibility
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -3972,8 +3828,6 @@ export type ProductUpdateWithoutBrandInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -4020,8 +3874,6 @@ export type ProductUncheckedUpdateWithoutBrandInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -4067,8 +3919,6 @@ export type ProductUncheckedUpdateManyWithoutBrandInput = {
   status?: Prisma.EnumProductStatusFieldUpdateOperationsInput | $Enums.ProductStatus
   visibility?: Prisma.EnumProductVisibilityFieldUpdateOperationsInput | $Enums.ProductVisibility
   isFeatured?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isBestSeller?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  isNew?: Prisma.BoolFieldUpdateOperationsInput | boolean
   weight?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   height?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
   width?: Prisma.NullableDecimalFieldUpdateOperationsInput | runtime.Decimal | runtime.DecimalJsLike | number | string | null
@@ -4217,8 +4067,6 @@ export type ProductSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs 
   status?: boolean
   visibility?: boolean
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: boolean
   height?: boolean
   width?: boolean
@@ -4268,8 +4116,6 @@ export type ProductSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   visibility?: boolean
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: boolean
   height?: boolean
   width?: boolean
@@ -4308,8 +4154,6 @@ export type ProductSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Exten
   status?: boolean
   visibility?: boolean
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: boolean
   height?: boolean
   width?: boolean
@@ -4348,8 +4192,6 @@ export type ProductSelectScalar = {
   status?: boolean
   visibility?: boolean
   isFeatured?: boolean
-  isBestSeller?: boolean
-  isNew?: boolean
   weight?: boolean
   height?: boolean
   width?: boolean
@@ -4368,7 +4210,7 @@ export type ProductSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "shortDescription" | "description" | "sku" | "barcode" | "brandId" | "categoryId" | "price" | "compareAtPrice" | "costPrice" | "stock" | "lowStockThreshold" | "status" | "visibility" | "isFeatured" | "isBestSeller" | "isNew" | "weight" | "height" | "width" | "length" | "freeShipping" | "seoTitle" | "seoDescription" | "metaKeywords" | "attributes" | "tags" | "views" | "salesCount" | "ratingAvg" | "ratingCount" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
+export type ProductOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "slug" | "shortDescription" | "description" | "sku" | "barcode" | "brandId" | "categoryId" | "price" | "compareAtPrice" | "costPrice" | "stock" | "lowStockThreshold" | "status" | "visibility" | "isFeatured" | "weight" | "height" | "width" | "length" | "freeShipping" | "seoTitle" | "seoDescription" | "metaKeywords" | "attributes" | "tags" | "views" | "salesCount" | "ratingAvg" | "ratingCount" | "createdAt" | "updatedAt", ExtArgs["result"]["product"]>
 export type ProductInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   brand?: boolean | Prisma.Product$brandArgs<ExtArgs>
   category?: boolean | Prisma.Product$categoryArgs<ExtArgs>
@@ -4427,8 +4269,6 @@ export type $ProductPayload<ExtArgs extends runtime.Types.Extensions.InternalArg
     status: $Enums.ProductStatus
     visibility: $Enums.ProductVisibility
     isFeatured: boolean
-    isBestSeller: boolean
-    isNew: boolean
     weight: runtime.Decimal | null
     height: runtime.Decimal | null
     width: runtime.Decimal | null
@@ -4897,8 +4737,6 @@ export interface ProductFieldRefs {
   readonly status: Prisma.FieldRef<"Product", 'ProductStatus'>
   readonly visibility: Prisma.FieldRef<"Product", 'ProductVisibility'>
   readonly isFeatured: Prisma.FieldRef<"Product", 'Boolean'>
-  readonly isBestSeller: Prisma.FieldRef<"Product", 'Boolean'>
-  readonly isNew: Prisma.FieldRef<"Product", 'Boolean'>
   readonly weight: Prisma.FieldRef<"Product", 'Decimal'>
   readonly height: Prisma.FieldRef<"Product", 'Decimal'>
   readonly width: Prisma.FieldRef<"Product", 'Decimal'>

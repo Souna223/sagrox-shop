@@ -8,8 +8,6 @@ import { ProductCarousel } from "@/components/storefront/product-carousel";
 import { KitCard } from "@/components/storefront/kit-card";
 import {
   getFeaturedProducts,
-  getBestSellers,
-  getNewProducts,
   getDiscountedProducts,
   getActiveFlashSales,
 } from "@/lib/products";
@@ -26,11 +24,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function HomePage() {
   const t = await getDictionary();
-  const [featured, bestSellers, newProducts, discounted, flashSales, categories, kits] =
+  const [featured, discounted, flashSales, categories, kits] =
     await Promise.all([
       getFeaturedProducts(8),
-      getBestSellers(8),
-      getNewProducts(8),
       getDiscountedProducts(8),
       getActiveFlashSales(),
       prisma.category.findMany({
@@ -110,22 +106,6 @@ export default async function HomePage() {
         <section className="mx-auto max-w-7xl px-4 pb-12">
           <SectionHeader title={t.home.promotions} href="/promocoes" linkLabel={t.home.seeDeals} />
           <ProductGrid products={discounted} />
-        </section>
-      ) : null}
-
-      {bestSellers.length > 0 ? (
-        <section className="bg-muted/40 py-12">
-          <div className="mx-auto max-w-7xl px-4">
-            <SectionHeader title={t.home.bestSellers} href="/mais-vendidos" linkLabel={t.home.viewAll} />
-            <ProductGrid products={bestSellers} />
-          </div>
-        </section>
-      ) : null}
-
-      {newProducts.length > 0 ? (
-        <section className="mx-auto max-w-7xl px-4 py-12">
-          <SectionHeader title={t.home.newProducts} href="/lancamentos" linkLabel={t.home.viewAll} />
-          <ProductGrid products={newProducts} />
         </section>
       ) : null}
 

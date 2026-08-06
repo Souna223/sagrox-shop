@@ -26,7 +26,6 @@ export type ProductCardData = {
   freeShipping?: boolean;
   ratingAvg?: string | number | { toString(): string };
   ratingCount?: number;
-  isNew?: boolean;
   images?: { url: string; alt: string | null }[];
   brand?: { name: string; slug: string } | null;
   category?: { name: string; slug: string } | null;
@@ -90,11 +89,6 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
           {info.hasDiscount ? (
             <Badge className="bg-destructive text-destructive-foreground">
               -{info.discountPercent}%
-            </Badge>
-          ) : null}
-          {product.isNew ? (
-            <Badge variant="secondary" className="bg-primary text-primary-foreground">
-              {t.productCard.new}
             </Badge>
           ) : null}
         </div>

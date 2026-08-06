@@ -157,8 +157,6 @@ type SeedProduct = {
   shortDescription: string;
   description: string;
   isFeatured?: boolean;
-  isBestSeller?: boolean;
-  isNew?: boolean;
   freeShipping?: boolean;
   tags: string[];
   images: string[];
@@ -182,8 +180,6 @@ const PRODUCTS: SeedProduct[] = [
     shortDescription: "Tela AMOLED 6.5\", câmera tripla de 50MP e bateria para o dia todo.",
     description: "Conheça o Smartphone Zephyr 5G. Tela AMOLED de 6.5 polegadas com 120Hz, câmera tripla de 50MP, 8GB de RAM e 128GB de armazenamento. Bateria de 5000mAh com carregamento rápido de 33W.",
     isFeatured: true,
-    isBestSeller: true,
-    isNew: true,
     freeShipping: true,
     tags: ["smartphone", "5g", "celular"],
     images: [img("zephyr"), img("zephyr-2"), img("zephyr-3")],
@@ -204,7 +200,6 @@ const PRODUCTS: SeedProduct[] = [
     shortDescription: "Cancelamento ativo de ruído, 40h de bateria e graves potentes.",
     description: "Fone de ouvido Bluetooth com cancelamento ativo de ruído (ANC), até 40 horas de bateria, carregamento rápido via USB-C e microfones com redução de ruído para chamadas claras.",
     isFeatured: true,
-    isBestSeller: true,
     freeShipping: true,
     tags: ["fone", "bluetooth", "audio"],
     images: [img("maxsound"), img("maxsound-2")],
@@ -229,7 +224,6 @@ const PRODUCTS: SeedProduct[] = [
     stock: 150,
     shortDescription: "Algodão penteado de alta durabilidade, toque macio e caimento perfeito.",
     description: "Camiseta básica confeccionada em algodão penteado fio 30.1, com costuras reforçadas e etiqueta estampada para maior conforto. Modelagem regular fit.",
-    isBestSeller: true,
     freeShipping: false,
     tags: ["camiseta", "moda", "casual"],
     images: [img("camiseta"), img("camiseta-2"), img("camiseta-3")],
@@ -256,7 +250,6 @@ const PRODUCTS: SeedProduct[] = [
     shortDescription: "Luz regulável com controle por app, 16 milhões de cores e modo de leitura.",
     description: "Luminária LED inteligente com controle por aplicativo, 16 milhões de cores, modos de luz (leitura, relaxamento e festa) e timer. Base em madeira com acabamento premium.",
     isFeatured: true,
-    isNew: true,
     freeShipping: true,
     tags: ["luminaria", "decoracao", "smart"],
     images: [img("lamp"), img("lamp-2"), img("lamp-3")],
@@ -275,8 +268,6 @@ const PRODUCTS: SeedProduct[] = [
     stock: 80,
     shortDescription: "Hidratação profunda, redução de linhas finas e viço imediato.",
     description: "Sérum facial com ácido hialurônico, vitamina C e esqualano. Proporciona hidratação profunda, reduz linhas finas e devolve o viço à pele. Dermatologicamente testado.",
-    isBestSeller: true,
-    isNew: true,
     freeShipping: false,
     tags: ["skincare", "beleza", "serum"],
     images: [img("serum"), img("serum-2")],
@@ -296,7 +287,6 @@ const PRODUCTS: SeedProduct[] = [
     stock: 45,
     shortDescription: "Amortecimento responsivo, cabedal respirável e solado antiderrapante.",
     description: "Tênis de corrida com espuma de amortecimento responsivo, cabedal em mesh respirável, solado de borracha antiderrapante e palmilha removível. Ideal para treinos diários e corridas de rua.",
-    isBestSeller: true,
     freeShipping: true,
     tags: ["tenis", "corrida", "esporte"],
     images: [img("tenis"), img("tenis-2"), img("tenis-3")],
@@ -323,7 +313,6 @@ const PRODUCTS: SeedProduct[] = [
     shortDescription: "Monitor cardíaco, GPS, 20 modos de treino e bateria de 10 dias.",
     description: "Smartwatch com monitoramento de batimentos cardíacos, GPS integrado, mais de 20 modos de treino, resistência à água 5ATM e bateria com duração de até 10 dias.",
     isFeatured: true,
-    isNew: true,
     freeShipping: true,
     tags: ["smartwatch", "wearable", "saude"],
     images: [img("watch"), img("watch-2")],
@@ -346,7 +335,6 @@ const PRODUCTS: SeedProduct[] = [
     stock: 20,
     shortDescription: "Revestimento cerâmico, alças frias e compatível com todas as fontes de calor.",
     description: "Jogo de panelas com revestimento cerâmico antiaderente, alças termo-resistentes e tampas de vidro temperado. Compatível com fogão a gás, indução e forno.",
-    isNew: true,
     freeShipping: true,
     tags: ["cozinha", "panelas", "casa"],
     images: [img("panela"), img("panela-2"), img("panela-3")],
@@ -454,8 +442,6 @@ async function seedCatalog() {
         status: "ACTIVE",
         visibility: "VISIBLE",
         isFeatured: p.isFeatured ?? false,
-        isBestSeller: p.isBestSeller ?? false,
-        isNew: p.isNew ?? false,
         freeShipping: p.freeShipping ?? false,
         tags: p.tags,
         attributes: p.attributes ? (p.attributes as object) : undefined,

@@ -54,8 +54,6 @@ type ProductFormProps = {
     status: string;
     visibility: string;
     isFeatured: boolean;
-    isBestSeller: boolean;
-    isNew: boolean;
     freeShipping: boolean;
     weight: number | null;
     height: number | null;
@@ -290,8 +288,6 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
   const [status, setStatus] = useState(initial?.status ?? "DRAFT");
   const [visibility, setVisibility] = useState(initial?.visibility ?? "VISIBLE");
   const [isFeatured, setIsFeatured] = useState(initial?.isFeatured ?? false);
-  const [isBestSeller, setIsBestSeller] = useState(initial?.isBestSeller ?? false);
-  const [isNew, setIsNew] = useState(initial?.isNew ?? false);
   const [freeShipping, setFreeShipping] = useState(initial?.freeShipping ?? false);
   const [weight, setWeight] = useState(num(initial?.weight));
   const [height, setHeight] = useState(num(initial?.height));
@@ -460,8 +456,6 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
         status,
         visibility,
         isFeatured,
-        isBestSeller,
-        isNew,
         freeShipping,
         weight: toNumber(weight),
         height: toNumber(height),
@@ -722,12 +716,6 @@ export function ProductForm({ productId, initial, categories, brands }: ProductF
           <div className="flex flex-wrap gap-5">
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Checkbox checked={isFeatured} onCheckedChange={(v) => setIsFeatured(!!v)} /> Em destaque
-            </label>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Checkbox checked={isBestSeller} onCheckedChange={(v) => setIsBestSeller(!!v)} /> Mais vendido
-            </label>
-            <label className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Checkbox checked={isNew} onCheckedChange={(v) => setIsNew(!!v)} /> Lançamento
             </label>
             <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <Checkbox checked={freeShipping} onCheckedChange={(v) => setFreeShipping(!!v)} /> Frete grátis

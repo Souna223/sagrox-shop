@@ -4408,8 +4408,6 @@ export const ProductScalarFieldEnum = {
   status: 'status',
   visibility: 'visibility',
   isFeatured: 'isFeatured',
-  isBestSeller: 'isBestSeller',
-  isNew: 'isNew',
   weight: 'weight',
   height: 'height',
   width: 'width',

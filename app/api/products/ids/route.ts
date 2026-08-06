@@ -23,7 +23,6 @@ export async function GET(request: Request) {
       compareAtPrice: true,
       stock: true,
       freeShipping: true,
-      isNew: true,
       ratingAvg: true,
       ratingCount: true,
       images: { select: { url: true, alt: true }, orderBy: { sortOrder: "asc" } },

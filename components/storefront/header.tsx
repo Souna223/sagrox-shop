@@ -225,8 +225,6 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
             <DropdownMenuContent align="end">
               <DropdownMenuItem render={<Link href="/produtos" />}>{t.header.allProducts}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/kits" />}>{t.header.kits}</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/mais-vendidos" />}>{t.header.bestSellers}</DropdownMenuItem>
-              <DropdownMenuItem render={<Link href="/lancamentos" />}>{t.header.launches}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/contato" />}>{t.header.contact}</DropdownMenuItem>
               <DropdownMenuItem render={<Link href="/faq" />}>{t.header.faq}</DropdownMenuItem>
             </DropdownMenuContent>

@@ -67,8 +67,6 @@ export default async function EditProductPage({ params }: PageProps) {
         status: product.status,
         visibility: product.visibility,
         isFeatured: product.isFeatured,
-        isBestSeller: product.isBestSeller,
-        isNew: product.isNew,
         freeShipping: product.freeShipping,
         weight: product.weight ? Number(product.weight.toString()) : null,
         height: product.height ? Number(product.height.toString()) : null,

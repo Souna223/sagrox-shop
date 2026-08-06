@@ -68,8 +68,6 @@ export const productSchema = z.object({
   status: z.enum(["DRAFT", "ACTIVE", "INACTIVE"]).default("DRAFT"),
   visibility: z.enum(["VISIBLE", "HIDDEN"]).default("VISIBLE"),
   isFeatured: z.boolean().default(false),
-  isBestSeller: z.boolean().default(false),
-  isNew: z.boolean().default(false),
   weight: z.coerce.number().optional().nullable(),
   height: z.coerce.number().optional().nullable(),
   width: z.coerce.number().optional().nullable(),
