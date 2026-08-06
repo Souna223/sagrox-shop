@@ -16,6 +16,7 @@ import {
   FileText,
   Share2,
   MousePointerClick,
+  Globe,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -56,6 +57,8 @@ type SeriesPoint = {
 
 type PageRow = { path: string; views: number; visitors: number };
 
+type CountryRow = { country: string; views: number; visitors: number };
+
 type ChannelRow = {
   key: TrafficChannel;
   visitors: number;
@@ -87,18 +90,29 @@ function pageLabel(path: string): string {
   return clean;
 }
 
+function countryLabel(code: string): string {
+  if (code === "unknown") return "Desconhecido";
+  try {
+    return new Intl.DisplayNames(["pt-BR"], { type: "region" }).of(code) ?? code;
+  } catch {
+    return code;
+  }
+}
+
 export function AnalyticsView({
   range,
   stats,
   series,
   pages,
   channels,
+  countries,
 }: {
   range: string;
   stats: Stats;
   series: SeriesPoint[];
   pages: PageRow[];
   channels: ChannelRow[];
+  countries: CountryRow[];
 }) {
   const router = useRouter();
 
@@ -136,6 +150,7 @@ export function AnalyticsView({
 
   const maxChannelVisitors = Math.max(1, ...channels.map((c) => c.visitors));
   const maxPageViews = Math.max(1, ...pages.map((p) => p.views));
+  const maxCountryVisitors = Math.max(1, ...countries.map((c) => c.visitors));
 
   return (
     <div className="space-y-6">
@@ -317,6 +332,39 @@ export function AnalyticsView({
           </CardContent>
         </Card>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Países das visitas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {countries.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Sem dados no período selecionado.</p>
+          ) : (
+            <div className="space-y-3">
+              {countries.map((c) => (
+                <div key={c.country}>
+                  <div className="mb-1 flex items-center justify-between gap-2 text-sm">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <Globe className="size-4 text-muted-foreground" />
+                      {countryLabel(c.country)}
+                    </span>
+                    <span className="shrink-0 text-muted-foreground">
+                      {formatNumber(c.visitors)} visitantes · {formatNumber(c.views)} visualizações
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary"
+                      style={{ width: `${Math.max(2, (c.visitors / maxCountryVisitors) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader className="flex-row items-center justify-between">

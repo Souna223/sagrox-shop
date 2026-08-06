@@ -80,3 +80,12 @@ export function getClientIp(request: Request): string {
   if (xff) return xff.split(",")[0].trim();
   return request.headers.get("x-real-ip") ?? "unknown";
 }
+
+export function getGeoFromRequest(request: Request): { country: string | null; state: string | null; city: string | null } {
+  const h = (name: string) => request.headers.get(name);
+  const country =
+    h("x-vercel-ip-country") ?? h("cf-ipcountry") ?? h("cloudfront-viewer-country") ?? h("x-country-code") ?? null;
+  const state = h("x-vercel-ip-country-region") ?? h("x-region-code") ?? null;
+  const city = h("x-vercel-ip-city") ?? null;
+  return { country: country ? country.toUpperCase() : null, state, city };
+}

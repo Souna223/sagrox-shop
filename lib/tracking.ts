@@ -17,6 +17,9 @@ type TrackParams = {
   device?: DeviceType | null;
   browser?: string | null;
   os?: string | null;
+  country?: string | null;
+  state?: string | null;
+  city?: string | null;
   utmSource?: string | null;
   utmMedium?: string | null;
   utmCampaign?: string | null;
@@ -43,6 +46,9 @@ export async function recordEvent(params: TrackParams): Promise<void> {
         device: params.device ?? null,
         browser: params.browser ?? null,
         os: params.os ?? null,
+        country: params.country ?? null,
+        state: params.state ?? null,
+        city: params.city ?? null,
         utmSource: params.utmSource ?? null,
         utmMedium: params.utmMedium ?? null,
         utmCampaign: params.utmCampaign ?? null,

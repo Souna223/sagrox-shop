@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { fail, ok, parseJson, rateLimit, getClientIp } from "@/lib/api";
+import { fail, ok, parseJson, rateLimit, getClientIp, getGeoFromRequest } from "@/lib/api";
 import { recordEvent, updateLiveVisitor } from "@/lib/tracking";
 import type { AnalyticsEventType, DeviceType } from "@/generated/prisma/enums";
 
@@ -70,6 +70,7 @@ export async function POST(request: Request) {
     const sessionId = body.sessionId ?? null;
     const userAgent = request.headers.get("user-agent") ?? "";
     const { device, browser, os } = detectDevice(userAgent);
+    const geo = getGeoFromRequest(request);
 
     await recordEvent({
       eventType: eventType as AnalyticsEventType,
@@ -85,6 +86,9 @@ export async function POST(request: Request) {
       device,
       browser,
       os,
+      country: geo.country,
+      state: geo.state,
+      city: geo.city,
       utmSource: body.metadata?.utm_source as string | null | undefined,
       utmMedium: body.metadata?.utm_medium as string | null | undefined,
       utmCampaign: body.metadata?.utm_campaign as string | null | undefined,

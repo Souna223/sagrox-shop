@@ -77,6 +77,7 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
         referrer: true,
         utmSource: true,
         utmMedium: true,
+        country: true,
       },
     }),
     prisma.order.aggregate({
@@ -119,6 +120,21 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
     .map(([path, rec]) => ({ path, views: rec.views, visitors: rec.visitors.size }))
     .sort((a, b) => b.views - a.views)
     .slice(0, 15);
+
+  // Países de origem das visitas
+  const countryMap = new Map<string, { views: number; visitors: Set<string> }>();
+  for (const e of events) {
+    if (e.eventType !== "PAGE_VIEW") continue;
+    const country = e.country ?? "unknown";
+    const rec = countryMap.get(country) ?? { views: 0, visitors: new Set<string>() };
+    rec.views += 1;
+    if (e.sessionId) rec.visitors.add(e.sessionId);
+    countryMap.set(country, rec);
+  }
+  const countries = [...countryMap.entries()]
+    .map(([country, rec]) => ({ country, views: rec.views, visitors: rec.visitors.size }))
+    .sort((a, b) => b.visitors - a.visitors)
+    .slice(0, 10);
 
   // Canal de tráfego por sessão (primeiro evento da sessão define o canal)
   const sessionChannel = new Map<string, TrafficChannel>();
@@ -188,7 +204,14 @@ export default async function AdminAnalyticsPage({ searchParams }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <AnalyticsView range={range} stats={stats} series={series} pages={pages} channels={channels} />
+      <AnalyticsView
+        range={range}
+        stats={stats}
+        series={series}
+        pages={pages}
+        channels={channels}
+        countries={countries}
+      />
     </div>
   );
 }
