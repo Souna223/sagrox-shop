@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
         render={
           <Button variant="ghost" size="sm" className="gap-1.5 text-sm" aria-label="Language">
             <Languages className="size-4" />
-            <span className="uppercase">{locale}</span>
+            <span className="hidden uppercase min-[420px]:inline">{locale}</span>
           </Button>
         }
       />

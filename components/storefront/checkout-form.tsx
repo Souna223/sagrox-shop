@@ -348,20 +348,26 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
       </Link>
       <h1 className="mb-6 text-2xl font-bold sm:text-3xl">{t.checkout.checkout}</h1>
 
-      <ol className="mb-8 flex items-center gap-2">
+      <ol className="mb-8 flex items-center gap-2 sm:gap-3">
         {steps.map((s, i) => (
-          <li key={s.id} className="flex items-center gap-2">
+          <li key={s.id} className="flex shrink-0 items-center gap-2 sm:gap-3">
             <span
-              className={`flex size-7 items-center justify-center rounded-full text-xs font-bold ${
+              aria-label={s.label}
+              title={s.label}
+              className={`flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                 i <= stepIndex ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground"
               }`}
             >
               {i < stepIndex ? <Check className="size-4" /> : i + 1}
             </span>
-            <span className={`text-sm ${i <= stepIndex ? "font-semibold" : "text-muted-foreground"}`}>
+            <span
+              className={`hidden text-sm sm:inline ${
+                i <= stepIndex ? "font-semibold" : "text-muted-foreground"
+              }`}
+            >
               {s.label}
             </span>
-            {i < steps.length - 1 ? <div className="mx-1 h-px w-8 bg-border" /> : null}
+            {i < steps.length - 1 ? <div className="mx-1 h-px w-6 bg-border sm:w-10" /> : null}
           </li>
         ))}
       </ol>

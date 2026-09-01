@@ -65,7 +65,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
       ) : null}
 
       <div className="mx-auto max-w-7xl px-4">
-        <div className="flex h-16 items-center justify-between gap-4">
+        <div className="flex h-16 items-center justify-between gap-2 sm:gap-4">
           <div className="flex items-center gap-2">
             <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
               <SheetTrigger
@@ -140,7 +140,7 @@ export function Header({ categories, announcement, storeName }: HeaderProps) {
                 alt={storeName ?? SITE_NAME}
                 width={1406}
                 height={768}
-                className="h-9 w-auto object-contain"
+                className="h-8 w-auto object-contain sm:h-9"
                 priority
               />
             </Link>

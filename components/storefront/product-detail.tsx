@@ -160,7 +160,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
           </Button>
         </div>
 
-        <div className="mt-3 flex items-center gap-3 text-sm">
+        <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-sm">
           <span className="flex items-center gap-1 text-amber-500">
             <Star className="size-4 fill-current" />
             <span className="font-semibold text-foreground">
@@ -173,10 +173,10 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
             })}
           </span>
           <span className="text-muted-foreground">•</span>
-          <span className="text-muted-foreground">SKU: {sku}</span>
+          <span className="min-w-0 truncate text-muted-foreground">SKU: {sku}</span>
           <a
             href="#review-form"
-            className="ml-auto rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
+            className="ml-auto shrink-0 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground transition-colors hover:bg-primary/90"
           >
             {t.productDetail.rateNow}
           </a>
@@ -228,13 +228,13 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                     key={tier.minQuantity}
                     type="button"
                     onClick={() => setQuantity(Math.min(tier.minQuantity, stock))}
-                    className={`flex w-full items-center justify-between gap-3 rounded-xl border-2 px-4 py-3 text-left transition-colors ${
+                    className={`flex w-full flex-col items-start gap-2 rounded-xl border-2 px-4 py-3 text-left transition-colors sm:flex-row sm:items-center sm:justify-between sm:gap-3 ${
                       active
                         ? "border-primary bg-primary/10 shadow-sm"
                         : "border-border hover:border-primary/50 hover:bg-muted/50"
                     }`}
                   >
-                    <span className="flex items-baseline gap-1.5">
+                    <span className="flex flex-wrap items-baseline gap-1.5">
                       <span className="text-base font-bold sm:text-lg">
                         {fmt(
                           isLast ? t.productDetail.buyOrMoreAndGet : t.productDetail.buyAndGet,
@@ -245,7 +245,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
                         {formatBRL(newTotal)}
                       </span>
                     </span>
-                    <span className="flex items-center gap-2">
+                    <span className="flex flex-wrap items-center gap-2">
                       <span className="text-base text-muted-foreground line-through">
                         {formatBRL(originalTotal)}
                       </span>
