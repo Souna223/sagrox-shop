@@ -24,37 +24,62 @@ type PageProps = {
 
 export default async function CheckoutSuccessPage({ searchParams }: PageProps) {
   const { order } = await searchParams;
-  if (!order) notFound();
 
   const orderNumber = Number(order);
-  if (Number.isNaN(orderNumber)) notFound();
+  const hasValidOrder = !Number.isNaN(orderNumber) && orderNumber > 0;
 
   const t = await getDictionary();
 
-  const data = await prisma.order.findUnique({
-    where: { number: orderNumber },
-    select: {
-      number: true,
-      customerName: true,
-      email: true,
-      status: true,
-      paymentStatus: true,
-      paymentMethod: true,
-      subtotal: true,
-      discount: true,
-      shippingFee: true,
-      total: true,
-      installments: true,
-      shippingService: true,
-      shippingEstimateDays: true,
-      shippingAddress: true,
-      items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true, totalPrice: true } },
-      payments: { select: { status: true, method: true, pixCode: true, pixQrCode: true, boletoUrl: true, boletoBarcode: true } },
-      createdAt: true,
-    },
-  });
+  const data = hasValidOrder
+    ? await prisma.order.findUnique({
+        where: { number: orderNumber },
+        select: {
+          number: true,
+          customerName: true,
+          email: true,
+          status: true,
+          paymentStatus: true,
+          paymentMethod: true,
+          subtotal: true,
+          discount: true,
+          shippingFee: true,
+          total: true,
+          installments: true,
+          shippingService: true,
+          shippingEstimateDays: true,
+          shippingAddress: true,
+          items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true, totalPrice: true } },
+          payments: { select: { status: true, method: true, pixCode: true, pixQrCode: true, boletoUrl: true, boletoBarcode: true } },
+          createdAt: true,
+        },
+      })
+    : null;
 
-  if (!data) notFound();
+  if (!data) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-12">
+        <div className="rounded-2xl border bg-card p-8 text-center shadow-sm">
+          <div className="flex flex-col items-center text-center">
+            <div className="flex size-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 dark:bg-emerald-950/40">
+              <CheckCircle2 className="size-9" />
+            </div>
+            <h1 className="mt-4 text-2xl font-bold sm:text-3xl">Pedido confirmado</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Obrigado! Seu pedido foi recebido e em breve você receberá a confirmação por e-mail.
+            </p>
+            <div className="mt-6 flex flex-col items-center gap-3">
+              <Button size="lg" render={<Link href="/" />}>
+                <Home className="size-4" /> Voltar à loja
+              </Button>
+              <p className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Mail className="size-3.5" /> Dúvidas? Fale conosco.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const address = (data.shippingAddress ?? {}) as {
     street?: string;
