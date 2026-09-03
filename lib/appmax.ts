@@ -111,6 +111,7 @@ export async function authorizeAppmaxInstall(input: {
       app_id: input.appId,
       external_key: input.externalKey,
       url_callback: input.urlCallback,
+      domain_name: process.env.APPMAX_DOMAIN_NAME?.trim() || "sagrox.shop",
     }),
   });
 
