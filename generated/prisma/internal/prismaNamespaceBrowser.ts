@@ -868,6 +868,7 @@ export const AppmaxInstallationScalarFieldEnum = {
   externalKey: 'externalKey',
   merchantClientId: 'merchantClientId',
   merchantClientSecret: 'merchantClientSecret',
+  externalId: 'externalId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const

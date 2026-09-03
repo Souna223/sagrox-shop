@@ -3,22 +3,26 @@ import {
   generateAppmaxMerchantCreds,
   saveAppmaxInstallation,
   getAppmaxInstallation,
+  validateAppmaxInstallation,
   appmaxEnabled,
 } from "@/lib/appmax";
 
-type InstallCallbackBody = {
-  app_id?: string;
-  external_key?: string;
-  client_key?: string;
+type ValidationBody = {
+  app_id?: number | string;
   client_id?: string;
   client_secret?: string;
+  client_key?: string;
+  external_key?: string;
 };
 
 /**
  * Callback de instalação do Appmax.
  *
- * - POST: health-check enviado pelo Appmax após o merchant autorizar. Entrega
- *   diretamente as credenciais do merchant (client_id/client_secret).
+ * - POST: URL de validação (health check) chamada server-to-server pela Appmax
+ *   durante `POST /app/client/generate`. A Appmax valida apenas a presença de
+ *   `app_id` (Numerical ID) e espera HTTP 200 exato com `external_id` UUID novo
+ *   por instalação. Sem isso o generate é abortado com 500 e nenhuma credencial
+ *   de merchant é emitida.
  * - GET ?token=HASH: retorno do fluxo OAuth quando o Appmax redireciona o
  *   navegador de volta; o hash é trocado por credenciais do merchant via
  *   /app/client/generate.
@@ -29,39 +33,25 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ ok: false, error: "AppMax não está habilitado." }, { status: 400 });
     }
 
-    const body = (await request.json().catch(() => ({}))) as InstallCallbackBody;
+    const body = (await request.json().catch(() => ({}))) as ValidationBody;
 
-    if (!body.app_id || !body.external_key || !body.client_key || !body.client_id || !body.client_secret) {
-      return NextResponse.json(
-        { ok: false, error: "app_id, external_key, client_key, client_id e client_secret são obrigatórios." },
-        { status: 400 },
-      );
+    const appId = body.app_id;
+    if (appId === undefined || appId === null || appId === "") {
+      return NextResponse.json({ ok: false, error: "Invalid payload." }, { status: 400 });
     }
 
-    const acceptedAppIds = [process.env.APPMAX_APP_ID_NUMERIC, process.env.APPMAX_APP_ID_UUID]
-      .filter(Boolean)
-      .map(String);
-    if (!acceptedAppIds.length || !acceptedAppIds.includes(String(body.app_id))) {
-      console.error(`[appmax-callback] app_id incompatível: esperado ${acceptedAppIds.join(" ou ")}, recebido ${body.app_id}`);
-      return NextResponse.json({ ok: false, error: "app_id inválido." }, { status: 400 });
-    }
-
-    if (body.client_key !== body.external_key) {
-      console.error("[appmax-callback] client_key não corresponde a external_key");
-      return NextResponse.json({ ok: false, error: "client_key inválido." }, { status: 400 });
-    }
-
-    const { externalId } = await saveAppmaxInstallation({
-      appId: String(body.app_id),
-      externalKey: body.external_key,
-      merchantClientId: body.client_id,
-      merchantClientSecret: body.client_secret,
+    const { externalId, alias } = await validateAppmaxInstallation({
+      appId: String(appId),
+      clientId: body.client_id,
+      clientSecret: body.client_secret,
+      externalKey: body.external_key ?? body.client_key,
+      alias: undefined,
     });
 
-    console.log(`[appmax-callback] Instalação salva (external_key=${body.external_key})`);
-    return NextResponse.json({ ok: true, external_id: externalId }, { status: 200 });
+    console.log(`[appmax-callback] health check concluído (app_id=${appId}, external_id=${externalId})`);
+    return NextResponse.json({ external_id: externalId, alias }, { status: 200 });
   } catch (error) {
-    console.error("[appmax-callback] Erro ao processar callback:", error);
+    console.error("[appmax-callback] Erro ao processar health check:", error);
     return NextResponse.json({ ok: false, error: "Erro interno do servidor." }, { status: 500 });
   }
 }

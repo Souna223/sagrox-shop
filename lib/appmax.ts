@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "@/lib/prisma";
 
 const ENVIRONMENTS = {
@@ -168,6 +169,7 @@ export async function saveAppmaxInstallation(input: {
   externalKey: string;
   merchantClientId: string;
   merchantClientSecret: string;
+  externalId?: string;
 }): Promise<{ externalId: string }> {
   const row = await prisma.appmaxInstallation.upsert({
     where: { externalKey: input.externalKey },
@@ -175,19 +177,70 @@ export async function saveAppmaxInstallation(input: {
       appId: input.appId,
       merchantClientId: input.merchantClientId,
       merchantClientSecret: input.merchantClientSecret,
+      ...(input.externalId ? { externalId: input.externalId } : {}),
     },
     create: {
       appId: input.appId,
       externalKey: input.externalKey,
       merchantClientId: input.merchantClientId,
       merchantClientSecret: input.merchantClientSecret,
+      ...(input.externalId ? { externalId: input.externalId } : {}),
     },
   });
-  return { externalId: row.id };
+  return { externalId: row.externalId ?? row.id };
 }
 
 export async function getAppmaxInstallation() {
-  return prisma.appmaxInstallation.findFirst();
+  const preferredKey = process.env.APPMAX_EXTERNAL_KEY?.trim() || "sagrox";
+  const byKey = await prisma.appmaxInstallation.findUnique({ where: { externalKey: preferredKey } });
+  if (byKey) return byKey;
+  return prisma.appmaxInstallation.findFirst({ orderBy: { updatedAt: "desc" } });
+}
+
+/**
+ * Handler da "URL de validação" do Appmax (health check de instalação).
+ *
+ * A Appmax envia um POST server-to-server durante `POST /app/client/generate`
+ * e espera como resposta HTTP 200 exato com um JSON contendo um `external_id`
+ * (UUID v4) novo por instalação. Sem ele, o generate é abortado com 500 e
+ * nenhuma credencial de merchant é emitida.
+ */
+export async function validateAppmaxInstallation(input: {
+  appId: number | string;
+  clientId?: string;
+  clientSecret?: string;
+  externalKey?: string;
+  alias?: string;
+}): Promise<{ externalId: string; alias?: string }> {
+  const appId = String(input.appId ?? "").trim();
+  if (!appId) {
+    throw new Error("AppMax health check: app_id ausente.");
+  }
+
+  const externalKey = input.externalKey?.trim() || "sagrox";
+  const externalId = randomUUID();
+
+  if (input.clientId && input.clientSecret) {
+    await saveAppmaxInstallation({
+      appId,
+      externalKey,
+      merchantClientId: input.clientId,
+      merchantClientSecret: input.clientSecret,
+      externalId,
+    });
+  } else {
+    const existing = await prisma.appmaxInstallation.findUnique({
+      where: { externalKey },
+    });
+    if (existing) {
+      await prisma.appmaxInstallation.update({
+        where: { externalKey },
+        data: { externalId },
+      });
+    }
+  }
+
+  return { externalId, alias: input.alias };
 }
 
 // ---------------------------------------------------------------------------

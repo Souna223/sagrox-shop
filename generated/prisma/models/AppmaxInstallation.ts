@@ -30,6 +30,7 @@ export type AppmaxInstallationMinAggregateOutputType = {
   externalKey: string | null
   merchantClientId: string | null
   merchantClientSecret: string | null
+  externalId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -40,6 +41,7 @@ export type AppmaxInstallationMaxAggregateOutputType = {
   externalKey: string | null
   merchantClientId: string | null
   merchantClientSecret: string | null
+  externalId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +52,7 @@ export type AppmaxInstallationCountAggregateOutputType = {
   externalKey: number
   merchantClientId: number
   merchantClientSecret: number
+  externalId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -62,6 +65,7 @@ export type AppmaxInstallationMinAggregateInputType = {
   externalKey?: true
   merchantClientId?: true
   merchantClientSecret?: true
+  externalId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -72,6 +76,7 @@ export type AppmaxInstallationMaxAggregateInputType = {
   externalKey?: true
   merchantClientId?: true
   merchantClientSecret?: true
+  externalId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -82,6 +87,7 @@ export type AppmaxInstallationCountAggregateInputType = {
   externalKey?: true
   merchantClientId?: true
   merchantClientSecret?: true
+  externalId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -165,6 +171,7 @@ export type AppmaxInstallationGroupByOutputType = {
   externalKey: string
   merchantClientId: string
   merchantClientSecret: string
+  externalId: string | null
   createdAt: Date
   updatedAt: Date
   _count: AppmaxInstallationCountAggregateOutputType | null
@@ -196,6 +203,7 @@ export type AppmaxInstallationWhereInput = {
   externalKey?: Prisma.StringFilter<"AppmaxInstallation"> | string
   merchantClientId?: Prisma.StringFilter<"AppmaxInstallation"> | string
   merchantClientSecret?: Prisma.StringFilter<"AppmaxInstallation"> | string
+  externalId?: Prisma.StringNullableFilter<"AppmaxInstallation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AppmaxInstallation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppmaxInstallation"> | Date | string
 }
@@ -206,6 +214,7 @@ export type AppmaxInstallationOrderByWithRelationInput = {
   externalKey?: Prisma.SortOrder
   merchantClientId?: Prisma.SortOrder
   merchantClientSecret?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -213,6 +222,7 @@ export type AppmaxInstallationOrderByWithRelationInput = {
 export type AppmaxInstallationWhereUniqueInput = Prisma.AtLeast<{
   id?: string
   externalKey?: string
+  externalId?: string
   AND?: Prisma.AppmaxInstallationWhereInput | Prisma.AppmaxInstallationWhereInput[]
   OR?: Prisma.AppmaxInstallationWhereInput[]
   NOT?: Prisma.AppmaxInstallationWhereInput | Prisma.AppmaxInstallationWhereInput[]
@@ -221,7 +231,7 @@ export type AppmaxInstallationWhereUniqueInput = Prisma.AtLeast<{
   merchantClientSecret?: Prisma.StringFilter<"AppmaxInstallation"> | string
   createdAt?: Prisma.DateTimeFilter<"AppmaxInstallation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"AppmaxInstallation"> | Date | string
-}, "id" | "externalKey">
+}, "id" | "externalKey" | "externalId">
 
 export type AppmaxInstallationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -229,6 +239,7 @@ export type AppmaxInstallationOrderByWithAggregationInput = {
   externalKey?: Prisma.SortOrder
   merchantClientId?: Prisma.SortOrder
   merchantClientSecret?: Prisma.SortOrder
+  externalId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.AppmaxInstallationCountOrderByAggregateInput
@@ -245,6 +256,7 @@ export type AppmaxInstallationScalarWhereWithAggregatesInput = {
   externalKey?: Prisma.StringWithAggregatesFilter<"AppmaxInstallation"> | string
   merchantClientId?: Prisma.StringWithAggregatesFilter<"AppmaxInstallation"> | string
   merchantClientSecret?: Prisma.StringWithAggregatesFilter<"AppmaxInstallation"> | string
+  externalId?: Prisma.StringNullableWithAggregatesFilter<"AppmaxInstallation"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AppmaxInstallation"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"AppmaxInstallation"> | Date | string
 }
@@ -255,6 +267,7 @@ export type AppmaxInstallationCreateInput = {
   externalKey: string
   merchantClientId: string
   merchantClientSecret: string
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -265,6 +278,7 @@ export type AppmaxInstallationUncheckedCreateInput = {
   externalKey: string
   merchantClientId: string
   merchantClientSecret: string
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -275,6 +289,7 @@ export type AppmaxInstallationUpdateInput = {
   externalKey?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientId?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientSecret?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -285,6 +300,7 @@ export type AppmaxInstallationUncheckedUpdateInput = {
   externalKey?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientId?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientSecret?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -295,6 +311,7 @@ export type AppmaxInstallationCreateManyInput = {
   externalKey: string
   merchantClientId: string
   merchantClientSecret: string
+  externalId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -305,6 +322,7 @@ export type AppmaxInstallationUpdateManyMutationInput = {
   externalKey?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientId?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientSecret?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -315,6 +333,7 @@ export type AppmaxInstallationUncheckedUpdateManyInput = {
   externalKey?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientId?: Prisma.StringFieldUpdateOperationsInput | string
   merchantClientSecret?: Prisma.StringFieldUpdateOperationsInput | string
+  externalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -325,6 +344,7 @@ export type AppmaxInstallationCountOrderByAggregateInput = {
   externalKey?: Prisma.SortOrder
   merchantClientId?: Prisma.SortOrder
   merchantClientSecret?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -335,6 +355,7 @@ export type AppmaxInstallationMaxOrderByAggregateInput = {
   externalKey?: Prisma.SortOrder
   merchantClientId?: Prisma.SortOrder
   merchantClientSecret?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -345,6 +366,7 @@ export type AppmaxInstallationMinOrderByAggregateInput = {
   externalKey?: Prisma.SortOrder
   merchantClientId?: Prisma.SortOrder
   merchantClientSecret?: Prisma.SortOrder
+  externalId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -357,6 +379,7 @@ export type AppmaxInstallationSelect<ExtArgs extends runtime.Types.Extensions.In
   externalKey?: boolean
   merchantClientId?: boolean
   merchantClientSecret?: boolean
+  externalId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appmaxInstallation"]>
@@ -367,6 +390,7 @@ export type AppmaxInstallationSelectCreateManyAndReturn<ExtArgs extends runtime.
   externalKey?: boolean
   merchantClientId?: boolean
   merchantClientSecret?: boolean
+  externalId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appmaxInstallation"]>
@@ -377,6 +401,7 @@ export type AppmaxInstallationSelectUpdateManyAndReturn<ExtArgs extends runtime.
   externalKey?: boolean
   merchantClientId?: boolean
   merchantClientSecret?: boolean
+  externalId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }, ExtArgs["result"]["appmaxInstallation"]>
@@ -387,11 +412,12 @@ export type AppmaxInstallationSelectScalar = {
   externalKey?: boolean
   merchantClientId?: boolean
   merchantClientSecret?: boolean
+  externalId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AppmaxInstallationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appId" | "externalKey" | "merchantClientId" | "merchantClientSecret" | "createdAt" | "updatedAt", ExtArgs["result"]["appmaxInstallation"]>
+export type AppmaxInstallationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appId" | "externalKey" | "merchantClientId" | "merchantClientSecret" | "externalId" | "createdAt" | "updatedAt", ExtArgs["result"]["appmaxInstallation"]>
 
 export type $AppmaxInstallationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "AppmaxInstallation"
@@ -402,6 +428,7 @@ export type $AppmaxInstallationPayload<ExtArgs extends runtime.Types.Extensions.
     externalKey: string
     merchantClientId: string
     merchantClientSecret: string
+    externalId: string | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["appmaxInstallation"]>
@@ -832,6 +859,7 @@ export interface AppmaxInstallationFieldRefs {
   readonly externalKey: Prisma.FieldRef<"AppmaxInstallation", 'String'>
   readonly merchantClientId: Prisma.FieldRef<"AppmaxInstallation", 'String'>
   readonly merchantClientSecret: Prisma.FieldRef<"AppmaxInstallation", 'String'>
+  readonly externalId: Prisma.FieldRef<"AppmaxInstallation", 'String'>
   readonly createdAt: Prisma.FieldRef<"AppmaxInstallation", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"AppmaxInstallation", 'DateTime'>
 }
