@@ -38,9 +38,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const expectedAppId = process.env.APPMAX_APP_ID_NUMERIC;
-    if (!expectedAppId || String(body.app_id) !== String(expectedAppId)) {
-      console.error(`[appmax-callback] app_id incompatível: esperado ${expectedAppId}, recebido ${body.app_id}`);
+    const acceptedAppIds = [process.env.APPMAX_APP_ID_NUMERIC, process.env.APPMAX_APP_ID_UUID]
+      .filter(Boolean)
+      .map(String);
+    if (!acceptedAppIds.length || !acceptedAppIds.includes(String(body.app_id))) {
+      console.error(`[appmax-callback] app_id incompatível: esperado ${acceptedAppIds.join(" ou ")}, recebido ${body.app_id}`);
       return NextResponse.json({ ok: false, error: "app_id inválido." }, { status: 400 });
     }
 
