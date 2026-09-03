@@ -495,7 +495,7 @@ export async function processAppmaxPayment(
     holderName: input.card.holderName,
   });
 
-  const data = await apiPost<{ payment: { pay_reference: string; status: string } }>(
+  const data = await apiPost<{ payment: { pay_reference: string } }>(
     "/v1/payments/credit-card",
     {
       order_id: input.orderId,
@@ -512,10 +512,14 @@ export async function processAppmaxPayment(
     },
   );
 
+  // A resposta do POST /v1/payments/credit-card NÃO inclui `status`.
+  // O status real do pagamento é obtido consultando o pedido.
+  const orderStatus = await getAppmaxOrder(input.orderId).catch(() => null);
+
   return {
     method: "CREDIT_CARD",
     payReference: data.payment.pay_reference,
-    status: data.payment.status,
+    status: orderStatus?.status ?? "",
   };
 }
 
