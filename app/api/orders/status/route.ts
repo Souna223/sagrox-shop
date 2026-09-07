@@ -1,7 +1,12 @@
 import { NextRequest } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getAppmaxOrder } from "@/lib/appmax";
+import { updateOrderStatus } from "@/lib/admin-orders";
+import { sendOrderStatusEmail } from "@/lib/mail";
 import { PAYMENT_STATUS, PAYMENT_METHOD, ORDER_STATUS } from "@/lib/constants";
 import type { PaymentStatus, PaymentMethod, OrderStatus } from "@/generated/prisma/enums";
+
+const APPROVED_STATUSES = new Set(["aprovado", "approved"]);
 
 export async function GET(request: NextRequest) {
   const number = Number(request.nextUrl.searchParams.get("number"));
@@ -12,11 +17,14 @@ export async function GET(request: NextRequest) {
   const order = await prisma.order.findUnique({
     where: { number },
     select: {
+      id: true,
       status: true,
       payments: {
         select: {
+          id: true,
           status: true,
           method: true,
+          gatewayOrderId: true,
           pixQrCode: true,
           pixCode: true,
           boletoUrl: true,
@@ -32,7 +40,30 @@ export async function GET(request: NextRequest) {
     return Response.json({ error: "Pedido não encontrado." }, { status: 404 });
   }
 
-  const payment = order.payments[0];
+  let payment = order.payments[0];
+
+  if (payment && payment.status === "PENDING" && payment.gatewayOrderId) {
+    try {
+      const appmaxOrder = await getAppmaxOrder(Number(payment.gatewayOrderId));
+      if (APPROVED_STATUSES.has(appmaxOrder.status?.toLowerCase())) {
+        await prisma.payment.update({
+          where: { id: payment.id },
+          data: { status: "APPROVED", paidAt: new Date() },
+        });
+        if (order.status === "AWAITING_PAYMENT" || order.status === "PENDING") {
+          await updateOrderStatus({
+            orderId: order.id,
+            status: "PAID",
+            actor: { id: "appmax", name: "AppMax" },
+          }).catch(() => {});
+        }
+        await sendOrderStatusEmail(order.id, "paid");
+        payment = { ...payment, status: "APPROVED" };
+      }
+    } catch {
+      // Appmax API unreachable — continue with DB status
+    }
+  }
 
   return Response.json({
     orderStatus: order.status,
