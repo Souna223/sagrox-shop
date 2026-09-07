@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { serializeAdminOrder } from "@/lib/admin-orders";
 import { OrderStatusControl } from "@/components/admin/order-status-control";
 import { DeleteOrderButton } from "@/components/admin/delete-order-button";
+import { RefundOrderButton } from "@/components/admin/refund-order-button";
 import {
   ORDER_STATUS,
   ORDER_STATUS_STYLES,
@@ -191,7 +192,10 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         trackingUrl={o.trackingUrl}
       />
 
-      <div className="flex justify-end">
+      <div className="flex justify-end gap-3">
+        {o.paymentStatus === "APPROVED" && ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"].includes(o.status) ? (
+          <RefundOrderButton orderId={o.id} orderNumber={o.number} />
+        ) : null}
         <DeleteOrderButton orderId={o.id} orderNumber={o.number} />
       </div>
 

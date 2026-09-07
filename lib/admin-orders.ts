@@ -18,6 +18,7 @@ type StatusUpdateInput = {
   trackingUrl?: string | null;
   actor: { id: string; name?: string | null };
   ip?: string | null;
+  skipGatewayRefund?: boolean;
 };
 
 type StockLine = {
@@ -143,7 +144,7 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
     ip: input.ip,
   });
 
-  if (input.status === "REFUNDED" && appmaxEnabled()) {
+  if (input.status === "REFUNDED" && appmaxEnabled() && !input.skipGatewayRefund) {
     const payment = await prisma.payment.findFirst({ where: { orderId: order.id } });
     if (payment?.gatewayOrderId) {
       requestAppmaxRefund(Number(payment.gatewayOrderId), cents(Number(order.total))).catch((err) => {
@@ -276,4 +277,71 @@ export async function fulfillOrder(input: FulfillOrderInput) {
   await sendOrderStatusEmail(order.id, "shipped");
 
   return saved;
+}
+
+export type RefundOrderInput = {
+  orderId: string;
+  reason?: string | null;
+  actor: { id: string; name?: string | null };
+  ip?: string | null;
+};
+
+export async function refundOrder(input: RefundOrderInput) {
+  const order = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    include: {
+      items: {
+        select: { productId: true, variationId: true, kitId: true, quantity: true, components: true },
+      },
+    },
+  });
+  if (!order) throw new Error("Pedido não encontrado.");
+
+  if (TERMINAL_ORDER_STATUSES.includes(order.status as OrderStatus)) {
+    throw new Error(
+      order.status === "REFUNDED" ? "Pedido já reembolsado." : "Pedido cancelado não pode ser reembolsado.",
+    );
+  }
+  if (!["PAID", "PROCESSING", "DELIVERED", "COMPLETED"].includes(order.status)) {
+    throw new Error("Apenas pedidos pagos podem ser reembolsados.");
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: { orderId: order.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!payment || payment.status !== "APPROVED") {
+    throw new Error("Pagamento não confirmado — reembolso indisponível.");
+  }
+
+  if (appmaxEnabled() && payment.gatewayOrderId) {
+    try {
+      await requestAppmaxRefund(Number(payment.gatewayOrderId), cents(Number(order.total)));
+    } catch (err) {
+      console.error(`[appmax] Falha ao solicitar reembolso do pedido #${order.number}:`, err);
+      throw new Error("Falha ao solicitar reembolso junto ao gateway de pagamento.");
+    }
+  }
+
+  const updated = await updateOrderStatus({
+    orderId: order.id,
+    status: "REFUNDED",
+    cancelledReason: input.reason,
+    actor: input.actor,
+    ip: input.ip,
+    skipGatewayRefund: true,
+  });
+
+  await prisma.refund.create({
+    data: {
+      paymentId: payment.id,
+      orderId: order.id,
+      amount: order.total,
+      reason: input.reason?.trim() || null,
+      status: "COMPLETED",
+    },
+  });
+
+  return updated;
 }
