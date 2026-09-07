@@ -14,6 +14,7 @@ import {
 } from "@/lib/constants";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AccountRefundRequest } from "@/components/storefront/account-refund-request";
 import { getDictionary } from "@/lib/i18n/server";
 import { fmt } from "@/lib/i18n/dictionaries";
 
@@ -69,6 +70,11 @@ export default async function OrderDetailPage({ params }: PageProps) {
         },
       },
       payments: { select: { method: true, status: true, installments: true } },
+      refunds: {
+        select: { status: true },
+        orderBy: { createdAt: "desc" },
+        take: 1,
+      },
     },
   });
 
@@ -226,6 +232,30 @@ export default async function OrderDetailPage({ params }: PageProps) {
           </div>
         </dl>
       </div>
+
+      <AccountRefundRequest
+        orderNumber={data.number}
+        orderStatus={data.status}
+        paymentStatus={data.paymentStatus}
+        refundStatus={data.refunds[0]?.status ?? null}
+        t={{
+          refundRequestButton: t.pages.refundRequestButton,
+          refundRequestTitle: t.pages.refundRequestTitle,
+          refundRequestDescription: t.pages.refundRequestDescription,
+          refundRequestReason: t.pages.refundRequestReason,
+          refundRequestReasonPlaceholder: t.pages.refundRequestReasonPlaceholder,
+          refundRequestSend: t.pages.refundRequestSend,
+          refundRequestSending: t.pages.refundRequestSending,
+          refundRequestError: t.pages.refundRequestError,
+          refundRequestSuccess: t.pages.refundRequestSuccess,
+          refundRequestPending: t.pages.refundRequestPending,
+          refundRequestPendingDescription: t.pages.refundRequestPendingDescription,
+          refundRequestRejected: t.pages.refundRequestRejected,
+          refundRequestRejectedDescription: t.pages.refundRequestRejectedDescription,
+          refundRequestCompleted: t.pages.refundRequestCompleted,
+          refundRequestCompletedDescription: t.pages.refundRequestCompletedDescription,
+        }}
+      />
 
       <div className="flex flex-wrap gap-3">
         <Button render={<Link href="/produtos" />}>{t.account.continueShopping}</Button>

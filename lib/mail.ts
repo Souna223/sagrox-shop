@@ -375,7 +375,7 @@ export function renderWelcomeEmailHtml(input: { name: string }): { subject: stri
   return { subject, html };
 }
 
-export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded";
+export type OrderEmailKind = "created" | "paid" | "shipped" | "cancelled" | "refunded" | "refund-accepted" | "refund-rejected";
 
 export type OrderEmailRecord = {
   id: string;
@@ -406,6 +406,7 @@ export function renderOrderStatusEmailHtml(
       ? (PAYMENT_METHOD[order.paymentMethod as keyof typeof PAYMENT_METHOD] ?? String(order.paymentMethod))
       : "Pagamento";
     const orderUrl = `${SITE_URL}/conta/pedidos/${order.number}`;
+    const trackUrl = `${SITE_URL}/rastrear-pedido`;
     const orderDate = formatDate(order.createdAt);
     const isPix = payment?.method === "PIX";
 
@@ -440,6 +441,8 @@ export function renderOrderStatusEmailHtml(
       shipped: { label: "Enviado", tone: "success" },
       cancelled: { label: "Cancelado", tone: "danger" },
       refunded: { label: "Reembolsado", tone: "success" },
+      "refund-accepted": { label: "Reembolso aprovado", tone: "success" },
+      "refund-rejected": { label: "Solicitação recusada", tone: "danger" },
     };
 
     const status = statusByKind[kind];
@@ -469,6 +472,7 @@ export function renderOrderStatusEmailHtml(
               : ""
           }`,
         cta: { label: "Acompanhar pedido", href: orderUrl },
+        extraLink: { label: "Rastrear pedido", href: trackUrl },
       },
       paid: {
         title: "Pagamento aprovado",
@@ -481,6 +485,7 @@ export function renderOrderStatusEmailHtml(
           ${shippingCard}
           <p style="margin:16px 0 0;font-size:14px;color:#3e4c59">Já estamos separando e preparando o seu pedido para envio. Assim que ele sair da nossa loja, você recebe o código de rastreio por aqui.</p>`,
         cta: { label: "Acompanhar pedido", href: orderUrl },
+        extraLink: { label: "Rastrear pedido", href: trackUrl },
       },
       shipped: {
         title: "Seu pedido foi enviado",
@@ -499,6 +504,7 @@ export function renderOrderStatusEmailHtml(
         cta: order.trackingUrl
           ? { label: "Rastrear pela transportadora", href: order.trackingUrl }
           : { label: "Acompanhar pedido", href: orderUrl },
+        extraLink: { label: "Rastrear pedido", href: trackUrl },
       },
       cancelled: {
         title: "Pedido cancelado",
@@ -526,6 +532,34 @@ export function renderOrderStatusEmailHtml(
           <p style="margin:0;font-size:14px;color:#3e4c59">Se preferir, você pode usar o valor para fazer um novo pedido. Será um prazer atendê-lo novamente!</p>`,
         cta: { label: "Fazer novo pedido", href: SITE_URL },
         extraLink: { label: "Entrar em contato", href: `${SITE_URL}/contato` },
+      },
+      "refund-accepted": {
+        title: "Reembolso aprovado",
+        subject: `Reembolso aprovado — Pedido #${order.number}`,
+        bodyHtml: `
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">Sua solicitação de reembolso do pedido <strong>#${order.number}</strong> foi <strong>aprovada</strong> por nossa equipe.</p>
+          <p style="margin:0 0 16px">Já acionamos a devolução do valor pelo mesmo meio de pagamento utilizado na compra.</p>
+          <p style="margin:0 0 8px">Os prazos para o valor aparecer na sua conta dependem da instituição financeira:</p>
+          ${renderCard("Prazos de reembolso", [
+            { label: "Cartão de crédito", value: "Até 2 faturas" },
+            { label: "Pix", value: "Até 5 dias úteis" },
+            { label: "Boleto", value: "Até 7 dias úteis" },
+          ])}
+          <p style="margin:0;font-size:14px;color:#3e4c59">Você receberá uma confirmação assim que o reembolso for concluído na instituição financeira.</p>`,
+        cta: { label: "Acompanhar pedido", href: orderUrl },
+        extraLink: { label: "Rastrear pedido", href: trackUrl },
+      },
+      "refund-rejected": {
+        title: "Solicitação de reembolso recusada",
+        subject: `Reembolso recusado — Pedido #${order.number}`,
+        bodyHtml: `
+          <p style="margin:0 0 16px">Olá, ${escapeHtml(order.customerName)}!</p>
+          <p style="margin:0 0 16px">Após análise da nossa equipe, a solicitação de reembolso do pedido <strong>#${order.number}</strong> foi <strong>recusada</strong>.</p>
+          <p style="margin:0 0 16px">O status do pedido permanece como estava e nenhum valor foi devolvido.</p>
+          <p style="margin:0;font-size:14px;color:#3e4c59">Se você tiver dúvidas ou quiser mais informações, nossa equipe está à disposição para ajudar. Para isso, basta responder este e-mail ou falar conosco pelo canal de atendimento.</p>`,
+        cta: { label: "Falar conosco", href: `${SITE_URL}/contato` },
+        extraLink: { label: "Acompanhar pedido", href: orderUrl },
       },
     };
 

@@ -116,8 +116,8 @@ export async function POST(request: NextRequest) {
         }).catch((err) => {
           console.error(`[appmax-webhook] Falha ao reembolsar pedido ${payment.order.number}:`, err);
         });
+        await sendOrderStatusEmail(payment.order.id, "refunded");
       }
-      await sendOrderStatusEmail(payment.order.id, "refunded");
       return NextResponse.json({ ok: true });
     }
 

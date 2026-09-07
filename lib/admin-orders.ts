@@ -341,6 +341,11 @@ export async function refundOrder(input: RefundOrderInput) {
 
   await upsertRefundRecord(payment.id, order.id, order.total, input.reason);
 
+  if (order.status === "REFUND_REQUESTED") {
+    await sendOrderStatusEmail(order.id, "refund-accepted");
+  }
+  await sendOrderStatusEmail(order.id, "refunded");
+
   return updated;
 }
 
@@ -466,6 +471,8 @@ export async function rejectRefundRequest(input: RejectRefundInput) {
     where: { id: pending.id },
     data: { status: "REJECTED", reason: input.reason?.trim() || pending.reason },
   });
+
+  await sendOrderStatusEmail(order.id, "refund-rejected");
 
   return updated;
 }
