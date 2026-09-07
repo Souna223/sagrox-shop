@@ -68,6 +68,7 @@ const STATUS_ITEMS = [
   { label: "Enviado", value: "SHIPPED" },
   { label: "Entregue", value: "DELIVERED" },
   { label: "Concluído", value: "COMPLETED" },
+  { label: "Reembolso solicitado", value: "REFUND_REQUESTED" },
   { label: "Cancelado", value: "CANCELLED" },
   { label: "Reembolsado", value: "REFUNDED" },
 ];
@@ -80,6 +81,7 @@ const STATUS_STYLE: Record<string, string> = {
   SHIPPED: "bg-indigo-100 text-indigo-800",
   DELIVERED: "bg-teal-100 text-teal-800",
   COMPLETED: "bg-emerald-100 text-emerald-800",
+  REFUND_REQUESTED: "bg-purple-100 text-purple-800",
   CANCELLED: "bg-red-100 text-red-800",
   REFUNDED: "bg-gray-100 text-gray-800",
 };

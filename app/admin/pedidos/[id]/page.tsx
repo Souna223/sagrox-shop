@@ -7,6 +7,7 @@ import { serializeAdminOrder } from "@/lib/admin-orders";
 import { OrderStatusControl } from "@/components/admin/order-status-control";
 import { DeleteOrderButton } from "@/components/admin/delete-order-button";
 import { RefundOrderButton } from "@/components/admin/refund-order-button";
+import { RefundRequestReview } from "@/components/admin/refund-request-review";
 import {
   ORDER_STATUS,
   ORDER_STATUS_STYLES,
@@ -92,6 +93,13 @@ type OrderJson = {
     createdAt: string;
   }[];
   couponUsages: { coupon: { code: string } }[];
+  refunds: {
+    id: string;
+    status: string;
+    reason: string | null;
+    amount: number;
+    createdAt: string;
+  }[];
 };
 
 function AddressCard({ title, address, icon }: { title: string; address: Record<string, unknown> | null; icon?: React.ReactNode }) {
@@ -147,6 +155,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
       payments: { orderBy: { createdAt: "asc" } },
       shipments: { orderBy: { createdAt: "asc" } },
       couponUsages: { include: { coupon: { select: { code: true } } } },
+      refunds: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -185,6 +194,14 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
         </p>
       </div>
 
+      {o.refunds.some((r) => r.status === "PENDING") ? (
+        <RefundRequestReview
+          orderId={o.id}
+          orderNumber={o.number}
+          reason={o.refunds.find((r) => r.status === "PENDING")?.reason ?? null}
+        />
+      ) : null}
+
       <OrderStatusControl
         orderId={o.id}
         currentStatus={o.status}
@@ -193,7 +210,7 @@ export default async function AdminOrderDetailPage({ params }: PageProps) {
       />
 
       <div className="flex justify-end gap-3">
-        {o.paymentStatus === "APPROVED" && ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"].includes(o.status) ? (
+        {o.paymentStatus === "APPROVED" && ["PAID", "PROCESSING", "DELIVERED", "COMPLETED"].includes(o.status) && !o.refunds.some((r) => r.status === "PENDING") ? (
           <RefundOrderButton orderId={o.id} orderNumber={o.number} />
         ) : null}
         <DeleteOrderButton orderId={o.id} orderNumber={o.number} />

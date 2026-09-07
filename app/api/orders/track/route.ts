@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         createdAt: true,
         shippedAt: true,
         items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true } },
+        refunds: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, reason: true, createdAt: true } },
       },
     });
 
@@ -53,8 +54,10 @@ export async function POST(request: Request) {
       return fail("Pedido não encontrado. Confira o número e o e-mail informados.", 404);
     }
 
+    const refund = order.refunds[0] ?? null;
+
     return ok({
-      number: order.number,
+number: order.number,
       status: order.status,
       statusLabel: ORDER_STATUS[order.status as OrderStatus],
       paymentStatus: order.paymentStatus,
@@ -70,6 +73,14 @@ export async function POST(request: Request) {
       createdAt: order.createdAt.toISOString(),
       shippedAt: order.shippedAt?.toISOString() ?? null,
       total: order.total.toString(),
+      refundRequest: refund
+        ? {
+            id: refund.id,
+            status: refund.status,
+            reason: refund.reason,
+            createdAt: refund.createdAt.toISOString(),
+          }
+        : null,
       items: order.items.map((item) => ({
         name: item.name,
         sku: item.sku,

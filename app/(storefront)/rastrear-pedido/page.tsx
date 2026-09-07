@@ -40,6 +40,20 @@ export default async function TrackOrderPage() {
             trackOrderTotal: t.pages.trackOrderTotal,
             trackOrderDate: t.pages.trackOrderDate,
             trackOrderShipping: t.pages.trackOrderShipping,
+            refundRequestButton: t.pages.refundRequestButton,
+            refundRequestTitle: t.pages.refundRequestTitle,
+            refundRequestDescription: t.pages.refundRequestDescription,
+            refundRequestReason: t.pages.refundRequestReason,
+            refundRequestReasonPlaceholder: t.pages.refundRequestReasonPlaceholder,
+            refundRequestSend: t.pages.refundRequestSend,
+            refundRequestSending: t.pages.refundRequestSending,
+            refundRequestSuccess: t.pages.refundRequestSuccess,
+            refundRequestPending: t.pages.refundRequestPending,
+            refundRequestPendingDescription: t.pages.refundRequestPendingDescription,
+            refundRequestRejected: t.pages.refundRequestRejected,
+            refundRequestRejectedDescription: t.pages.refundRequestRejectedDescription,
+            refundRequestNotFound: t.pages.refundRequestNotFound,
+            refundRequestError: t.pages.refundRequestError,
           }}
         />
       </div>

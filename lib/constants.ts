@@ -22,6 +22,7 @@ export const ORDER_STATUS: Record<OrderStatus, string> = {
   COMPLETED: "Concluído",
   CANCELLED: "Cancelado",
   REFUNDED: "Reembolsado",
+  REFUND_REQUESTED: "Reembolso solicitado",
 };
 
 export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
@@ -34,18 +35,20 @@ export const ORDER_STATUS_STYLES: Record<OrderStatus, string> = {
   COMPLETED: "bg-emerald-100 text-emerald-800 border-emerald-200",
   CANCELLED: "bg-red-100 text-red-800 border-red-200",
   REFUNDED: "bg-gray-100 text-gray-800 border-gray-200",
+  REFUND_REQUESTED: "bg-purple-100 text-purple-800 border-purple-200",
 };
 
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   PENDING: ["AWAITING_PAYMENT", "PAID", "PROCESSING", "CANCELLED"],
   AWAITING_PAYMENT: ["PAID", "PROCESSING", "CANCELLED"],
-  PAID: ["PROCESSING", "SHIPPED", "CANCELLED", "REFUNDED"],
-  PROCESSING: ["SHIPPED", "CANCELLED", "REFUNDED"],
+  PAID: ["PROCESSING", "SHIPPED", "CANCELLED", "REFUNDED", "REFUND_REQUESTED"],
+  PROCESSING: ["SHIPPED", "CANCELLED", "REFUNDED", "REFUND_REQUESTED"],
   SHIPPED: ["DELIVERED", "CANCELLED"],
   DELIVERED: ["COMPLETED", "REFUNDED"],
   COMPLETED: ["REFUNDED"],
   CANCELLED: [],
   REFUNDED: [],
+  REFUND_REQUESTED: ["PAID", "PROCESSING", "CANCELLED", "REFUNDED"],
 };
 
 export const TERMINAL_ORDER_STATUSES: OrderStatus[] = ["CANCELLED", "REFUNDED"];

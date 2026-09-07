@@ -286,6 +286,12 @@ export type RefundOrderInput = {
   ip?: string | null;
 };
 
+const REFUNDABLE_STATUSES = new Set(["PAID", "PROCESSING", "DELIVERED", "COMPLETED", "REFUND_REQUESTED"]);
+
+function statusIsRefundable(status: string): boolean {
+  return REFUNDABLE_STATUSES.has(status);
+}
+
 export async function refundOrder(input: RefundOrderInput) {
   const order = await prisma.order.findUnique({
     where: { id: input.orderId },
@@ -302,7 +308,7 @@ export async function refundOrder(input: RefundOrderInput) {
       order.status === "REFUNDED" ? "Pedido já reembolsado." : "Pedido cancelado não pode ser reembolsado.",
     );
   }
-  if (!["PAID", "PROCESSING", "DELIVERED", "COMPLETED"].includes(order.status)) {
+  if (!statusIsRefundable(order.status)) {
     throw new Error("Apenas pedidos pagos podem ser reembolsados.");
   }
 
@@ -333,14 +339,132 @@ export async function refundOrder(input: RefundOrderInput) {
     skipGatewayRefund: true,
   });
 
+  await upsertRefundRecord(payment.id, order.id, order.total, input.reason);
+
+  return updated;
+}
+
+async function upsertRefundRecord(paymentId: string, orderId: string, amount: unknown, reason?: string | null) {
+  const existing = await prisma.refund.findFirst({
+    where: { orderId, status: "PENDING" },
+    orderBy: { createdAt: "desc" },
+  });
+  if (existing) {
+    await prisma.refund.update({
+      where: { id: existing.id },
+      data: { status: "COMPLETED", gatewayRefundId: existing.gatewayRefundId },
+    });
+    return;
+  }
+  await prisma.refund.create({
+    data: {
+      paymentId,
+      orderId,
+      amount: amount as never,
+      reason: reason?.trim() || null,
+      status: "COMPLETED",
+    },
+  });
+}
+
+export type RequestRefundInput = {
+  orderId: string;
+  reason?: string | null;
+  actor: { id: string; name?: string | null };
+  ip?: string | null;
+};
+
+export async function requestRefund(input: RequestRefundInput) {
+  const order = await prisma.order.findUnique({
+    where: { id: input.orderId },
+    include: {
+      items: {
+        select: { productId: true, variationId: true, kitId: true, quantity: true, components: true },
+      },
+    },
+  });
+  if (!order) throw new Error("Pedido não encontrado.");
+
+  if (TERMINAL_ORDER_STATUSES.includes(order.status as OrderStatus)) {
+    throw new Error(
+      order.status === "REFUNDED" ? "Pedido já reembolsado." : "Pedido cancelado não pode ser reembolsado.",
+    );
+  }
+  if (order.status === "REFUND_REQUESTED") {
+    throw new Error("Já existe uma solicitação de reembolso em análise.");
+  }
+  if (order.status !== "PAID" && order.status !== "PROCESSING") {
+    throw new Error("Apenas pedidos pagos podem solicitar reembolso.");
+  }
+
+  const payment = await prisma.payment.findFirst({
+    where: { orderId: order.id },
+    orderBy: { createdAt: "desc" },
+  });
+
+  if (!payment || payment.status !== "APPROVED") {
+    throw new Error("Pagamento não confirmado — reembolso indisponível.");
+  }
+
+  const existing = await prisma.refund.findFirst({
+    where: { orderId: order.id, status: "PENDING" },
+  });
+  if (existing) {
+    throw new Error("Solicitação de reembolso já enviada.");
+  }
+
+  const updated = await updateOrderStatus({
+    orderId: order.id,
+    status: "REFUND_REQUESTED",
+    cancelledReason: input.reason,
+    actor: input.actor,
+    ip: input.ip,
+  });
+
   await prisma.refund.create({
     data: {
       paymentId: payment.id,
       orderId: order.id,
       amount: order.total,
       reason: input.reason?.trim() || null,
-      status: "COMPLETED",
+      status: "PENDING",
     },
+  });
+
+  return updated;
+}
+
+export type RejectRefundInput = {
+  orderId: string;
+  reason?: string | null;
+  actor: { id: string; name?: string | null };
+  ip?: string | null;
+};
+
+export async function rejectRefundRequest(input: RejectRefundInput) {
+  const order = await prisma.order.findUnique({ where: { id: input.orderId } });
+  if (!order) throw new Error("Pedido não encontrado.");
+  if (order.status !== "REFUND_REQUESTED") {
+    throw new Error("Não há solicitação de reembolso pendente.");
+  }
+
+  const pending = await prisma.refund.findFirst({
+    where: { orderId: order.id, status: "PENDING" },
+    orderBy: { createdAt: "desc" },
+  });
+  if (!pending) throw new Error("Nenhuma solicitação de reembolso pendente encontrada.");
+
+  const updated = await updateOrderStatus({
+    orderId: order.id,
+    status: "PAID",
+    cancelledReason: input.reason,
+    actor: input.actor,
+    ip: input.ip,
+  });
+
+  await prisma.refund.update({
+    where: { id: pending.id },
+    data: { status: "REJECTED", reason: input.reason?.trim() || pending.reason },
   });
 
   return updated;

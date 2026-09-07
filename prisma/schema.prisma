@@ -393,6 +393,7 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
   REFUNDED
+  REFUND_REQUESTED
 }
 
 enum PaymentStatus {
