@@ -69,7 +69,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
           productId: true,
         },
       },
-      payments: { select: { method: true, status: true, installments: true } },
+      payments: { select: { method: true, status: true, installments: true }, orderBy: { createdAt: "desc" } },
       refunds: {
         select: { status: true },
         orderBy: { createdAt: "desc" },
@@ -79,6 +79,8 @@ export default async function OrderDetailPage({ params }: PageProps) {
   });
 
   if (!data) notFound();
+
+  const paymentStatus = data.payments[0]?.status ?? data.paymentStatus;
 
   const address = (data.shippingAddress ?? {}) as {
     street?: string;
@@ -236,7 +238,7 @@ export default async function OrderDetailPage({ params }: PageProps) {
       <AccountRefundRequest
         orderNumber={data.number}
         orderStatus={data.status}
-        paymentStatus={data.paymentStatus}
+        paymentStatus={paymentStatus}
         refundStatus={data.refunds[0]?.status ?? null}
         t={{
           refundRequestButton: t.pages.refundRequestButton,

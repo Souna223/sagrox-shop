@@ -83,12 +83,15 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
   };
 
   if (input.status === "PAID" && !order.paidAt) data.paidAt = now;
+  if (input.status === "PAID") data.paymentStatus = "APPROVED";
   if (input.status === "SHIPPED" && !order.shippedAt) data.shippedAt = now;
   if (input.status === "DELIVERED" && !order.deliveredAt) data.deliveredAt = now;
   if (input.status === "CANCELLED") {
     data.cancelledAt = now;
     data.cancelledReason = input.cancelledReason?.trim() || null;
   }
+  if (input.status === "REFUNDED") data.paymentStatus = "REFUNDED";
+  if (input.status === "CANCELLED") data.paymentStatus = "CANCELLED";
   if (input.trackingCode !== undefined) data.trackingCode = input.trackingCode?.trim() || null;
   if (input.trackingUrl !== undefined) data.trackingUrl = input.trackingUrl?.trim() || null;
 

@@ -173,6 +173,10 @@ export async function processOrderPayment(input: AppmaxCheckoutInput): Promise<v
   });
 
   if (result.status === "aprovado") {
+    await prisma.order.update({
+      where: { id: order.id },
+      data: { paymentStatus: "APPROVED", paidAt: new Date() },
+    });
     await updateOrderStatus({
       orderId: order.id,
       status: "PAID",

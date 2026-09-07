@@ -46,6 +46,7 @@ export async function POST(request: Request) {
         createdAt: true,
         shippedAt: true,
         items: { select: { name: true, sku: true, imageUrl: true, quantity: true, unitPrice: true } },
+        payments: { orderBy: { createdAt: "desc" }, take: 1, select: { status: true } },
         refunds: { orderBy: { createdAt: "desc" }, take: 1, select: { id: true, status: true, reason: true, createdAt: true } },
       },
     });
@@ -55,13 +56,14 @@ export async function POST(request: Request) {
     }
 
     const refund = order.refunds[0] ?? null;
+    const paymentStatus = order.payments[0]?.status ?? order.paymentStatus;
 
     return ok({
 number: order.number,
       status: order.status,
       statusLabel: ORDER_STATUS[order.status as OrderStatus],
-      paymentStatus: order.paymentStatus,
-      paymentStatusLabel: PAYMENT_STATUS[order.paymentStatus as PaymentStatus],
+      paymentStatus,
+      paymentStatusLabel: PAYMENT_STATUS[paymentStatus as PaymentStatus],
       paymentMethod: order.paymentMethod,
       paymentMethodLabel: order.paymentMethod
         ? (PAYMENT_METHOD[order.paymentMethod as PaymentMethod] ?? String(order.paymentMethod))

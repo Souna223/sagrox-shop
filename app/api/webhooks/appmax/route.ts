@@ -88,6 +88,10 @@ export async function POST(request: NextRequest) {
         where: { id: payment.id },
         data: { status: "APPROVED", paidAt: new Date() },
       });
+      await prisma.order.update({
+        where: { id: payment.order.id },
+        data: { paymentStatus: "APPROVED", paidAt: new Date() },
+      });
       if (payment.order.status === "AWAITING_PAYMENT" || payment.order.status === "PENDING") {
         await updateOrderStatus({
           orderId: payment.order.id,
