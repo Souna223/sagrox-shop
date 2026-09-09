@@ -77,6 +77,8 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
     if (itemsRef.current.length > 0) {
       trackClient("BEGIN_CHECKOUT", {
         value: itemsRef.current.reduce((s, i) => s + getCartItemSubtotal(i), 0),
+        contentIds: itemsRef.current.map((i) => i.productId),
+        contents: itemsRef.current.map((i) => ({ id: i.productId, quantity: i.quantity })),
       });
     }
   }, []);
@@ -138,9 +140,13 @@ export function CheckoutForm({ user }: CheckoutFormProps) {
 
   useEffect(() => {
     if (step === "payment") {
-      trackClient("ADD_PAYMENT_INFO", { value: totalRef.current });
+      trackClient("ADD_PAYMENT_INFO", {
+        value: totalRef.current,
+        contentIds: items.map((i) => i.productId),
+        contents: items.map((i) => ({ id: i.productId, quantity: i.quantity })),
+      });
     }
-  }, [step]);
+  }, [step, items]);
 
   const lookupCep = async () => {
     const digits = zip.replace(/\D/g, "");

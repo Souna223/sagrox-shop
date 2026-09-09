@@ -85,6 +85,8 @@ export function trackClient(
     productId?: string | null;
     orderId?: string | null;
     value?: number | null;
+    contentIds?: string[] | null;
+    contents?: { id: string; quantity?: number }[] | null;
     metadata?: Record<string, unknown> | null;
   } = {},
 ): void {
@@ -99,6 +101,8 @@ export function trackClient(
     productId: data.productId ?? null,
     orderId: data.orderId ?? null,
     value: data.value ?? null,
+    contentIds: data.contentIds ?? null,
+    contents: data.contents ?? null,
     metadata: data.metadata ?? null,
   };
 

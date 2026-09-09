@@ -31,6 +31,8 @@ type TrackBody = {
   productId?: string | null;
   orderId?: string | null;
   value?: number | null;
+  contentIds?: string[] | null;
+  contents?: { id: string; quantity?: number }[] | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -89,6 +91,8 @@ export async function POST(request: Request) {
         eventId: newAdEventId(eventType.toLowerCase()),
         value: body.value ?? undefined,
         productId: body.productId ?? null,
+        contentIds: body.contentIds ?? undefined,
+        contents: body.contents ?? undefined,
         pagePath: body.pagePath ?? null,
         user: {
           ip: getClientIp(request),
