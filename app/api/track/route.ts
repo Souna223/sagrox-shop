@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { fail, ok, parseJson, rateLimit, getClientIp, getGeoFromRequest } from "@/lib/api";
 import { recordEvent, updateLiveVisitor } from "@/lib/tracking";
+import { fireAdEvent, newAdEventId } from "@/lib/ads";
 import type { AnalyticsEventType, DeviceType } from "@/generated/prisma/enums";
 
 const VALID_TYPES = new Set<string>([
@@ -71,6 +72,30 @@ export async function POST(request: Request) {
     const userAgent = request.headers.get("user-agent") ?? "";
     const { device, browser, os } = detectDevice(userAgent);
     const geo = await getGeoFromRequest(request);
+
+    const adType =
+      eventType === "VIEW_CONTENT"
+        ? "view_content"
+        : eventType === "ADD_TO_CART"
+          ? "add_to_cart"
+          : eventType === "BEGIN_CHECKOUT"
+            ? "begin_checkout"
+            : eventType === "ADD_PAYMENT_INFO"
+              ? "payment_info"
+              : null;
+
+    if (adType) {
+      fireAdEvent(adType, {
+        eventId: newAdEventId(eventType.toLowerCase()),
+        value: body.value ?? undefined,
+        productId: body.productId ?? null,
+        pagePath: body.pagePath ?? null,
+        user: {
+          ip: getClientIp(request),
+          userAgent,
+        },
+      });
+    }
 
     await recordEvent({
       eventType: eventType as AnalyticsEventType,

@@ -1,12 +1,15 @@
 import Script from "next/script";
+import { getAdsSettings } from "@/lib/ads";
 
-export function AnalyticsScripts() {
+export async function AnalyticsScripts() {
   const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
   const ga4Id = process.env.NEXT_PUBLIC_GA4_ID;
-  const metaPixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-  const tiktokPixelId = process.env.NEXT_PUBLIC_TIKTOK_PIXEL_ID;
   const pinterestPixelId = process.env.NEXT_PUBLIC_PINTEREST_PIXEL_ID;
   const googleAdsId = process.env.NEXT_PUBLIC_GOOGLE_ADS_ID;
+
+  const ads = await getAdsSettings();
+  const metaPixelId = ads.metaPixelId;
+  const tiktokPixelId = ads.tiktokPixelId;
 
   return (
     <>

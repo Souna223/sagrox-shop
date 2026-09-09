@@ -4,6 +4,7 @@ import { serializeRecord } from "@/lib/serialize";
 import { ORDER_STATUS_TRANSITIONS, TERMINAL_ORDER_STATUSES } from "@/lib/constants";
 import { requestAppmaxRefund, appmaxEnabled, cents } from "@/lib/appmax";
 import { sendOrderStatusEmail } from "@/lib/mail";
+import { fireAdEvent, newAdEventId } from "@/lib/ads";
 import type { OrderStatus } from "@/generated/prisma/enums";
 
 export function serializeAdminOrder<T extends Record<string, unknown>>(order: T): T {
@@ -146,6 +147,25 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
     },
     ip: input.ip,
   });
+
+  if (input.status === "PAID" && order.status !== "PAID") {
+    fireAdEvent("purchase", {
+      eventId: newAdEventId(`purchase_${order.number}`),
+      value: Number(order.total),
+      currency: "BRL",
+      contentIds: order.items
+        .map((i) => i.productId ?? i.kitId)
+        .filter((id): id is string => !!id),
+      contents: order.items.map((i) => ({
+        id: i.productId ?? i.kitId ?? "",
+        quantity: i.quantity,
+      })),
+      user: {
+        email: order.email,
+        ip: input.ip,
+      },
+    });
+  }
 
   if (input.status === "REFUNDED" && appmaxEnabled() && !input.skipGatewayRefund) {
     const payment = await prisma.payment.findFirst({ where: { orderId: order.id } });

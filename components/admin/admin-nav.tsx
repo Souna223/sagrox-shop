@@ -18,6 +18,8 @@ import {
   PackageCheck,
   Truck,
   PackagePlus,
+  Target,
+  Music2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -43,6 +45,8 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/cupons", label: "Cupons", icon: TicketPercent },
   { href: "/admin/avaliacoes", label: "Avaliações", icon: Star },
   { href: "/admin/conteudo", label: "Marketing e conteúdo", icon: Megaphone },
+  { href: "/admin/ads-meta", label: "Anúncios Meta", icon: Target },
+  { href: "/admin/ads-tiktok", label: "Anúncios TikTok", icon: Music2 },
   { href: "/admin/auditoria", label: "Auditoria", icon: ScrollText, roles: ["ADMIN"] },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings, roles: ["ADMIN"] },
 ];
