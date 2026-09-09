@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShoppingCart, Zap, Minus, Plus, PackageCheck, ShieldCheck, Truck, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -19,6 +19,18 @@ export function KitDetail({ kit }: { kit: ResolvedKit }) {
   const router = useRouter();
   const { t } = useI18n();
   const [quantity, setQuantity] = useState(1);
+
+  const viewTrackedRef = useRef(false);
+  useEffect(() => {
+    if (viewTrackedRef.current) return;
+    viewTrackedRef.current = true;
+    trackClient("VIEW_CONTENT", {
+      productId: kit.id,
+      value: kit.unitPrice,
+      contentIds: [kit.id],
+      contents: [{ id: kit.id, quantity: 1 }],
+    });
+  }, [kit.id, kit.unitPrice]);
 
   const addItem = useCartStore((s) => s.addItem);
 

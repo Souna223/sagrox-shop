@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Heart,
   ShoppingCart,
@@ -39,6 +39,18 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
   const addItem = useCartStore((s) => s.addItem);
   const wishlist = useWishlistStore((s) => s.items);
   const toggleWishlist = useWishlistStore((s) => s.toggle);
+
+  const viewTrackedRef = useRef(false);
+  useEffect(() => {
+    if (viewTrackedRef.current) return;
+    viewTrackedRef.current = true;
+    trackClient("VIEW_CONTENT", {
+      productId: product.id,
+      value: product.price,
+      contentIds: [product.id],
+      contents: [{ id: product.id, quantity: 1 }],
+    });
+  }, [product.id, product.price]);
 
   const variation = useMemo(
     () => product.variations.find((v) => v.id === selectedVariationId) ?? null,
