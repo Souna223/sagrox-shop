@@ -13,6 +13,8 @@ export type SiteSettings = {
   tiktok: string;
   businessHours: string;
   freeShippingThreshold: number;
+  freeShippingService: string;
+  freeShippingDeliveryDays: number;
   shippingEnabled: boolean;
   appmaxPublicKey: string;
   announcement: string;
@@ -32,6 +34,8 @@ const DEFAULTS: SiteSettings = {
   tiktok: "",
   businessHours: "",
   freeShippingThreshold: 0,
+  freeShippingService: "Frete Grátis",
+  freeShippingDeliveryDays: 5,
   shippingEnabled: true,
   appmaxPublicKey: "",
   announcement: "",
@@ -50,6 +54,7 @@ export async function getSettings(): Promise<SiteSettings> {
       ...DEFAULTS,
       ...map,
       freeShippingThreshold: Number(map.freeShippingThreshold ?? DEFAULTS.freeShippingThreshold),
+      freeShippingDeliveryDays: Number(map.freeShippingDeliveryDays ?? DEFAULTS.freeShippingDeliveryDays),
       shippingEnabled,
     };
   } catch {

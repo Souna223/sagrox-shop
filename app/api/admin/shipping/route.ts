@@ -16,6 +16,8 @@ const bodySchema = z.object({
   methods: z.array(methodSchema).min(0),
   shippingEnabled: z.boolean().optional(),
   freeShippingThreshold: z.coerce.number().min(0).optional(),
+  freeShippingService: z.string().trim().max(80, "Nome muito longo.").optional(),
+  freeShippingDeliveryDays: z.coerce.number().int().min(1, "Prazo inválido.").optional(),
 });
 
 export async function GET() {
@@ -23,13 +25,15 @@ export async function GET() {
     await requireAdmin();
     const [methods, settings] = await Promise.all([
       getShippingMethods(),
-      prisma.setting.findMany({ where: { key: { in: ["shippingEnabled", "freeShippingThreshold"] } } }),
+      prisma.setting.findMany({ where: { key: { in: ["shippingEnabled", "freeShippingThreshold", "freeShippingService", "freeShippingDeliveryDays"] } } }),
     ]);
     const map = Object.fromEntries(settings.map((r) => [r.key, r.value as never]));
     return ok({
       methods,
       shippingEnabled: map.shippingEnabled === "true" || map.shippingEnabled === true,
       freeShippingThreshold: Number(map.freeShippingThreshold ?? 0),
+      freeShippingService: String(map.freeShippingService ?? "Frete Grátis"),
+      freeShippingDeliveryDays: Number(map.freeShippingDeliveryDays ?? 5),
     });
   } catch (error) {
     return handleError(error);
@@ -45,7 +49,7 @@ export async function PUT(request: Request) {
       return fail(parsed.error.issues[0]?.message ?? "Dados inválidos.", 422);
     }
 
-    const { methods, shippingEnabled, freeShippingThreshold } = parsed.data;
+    const { methods, shippingEnabled, freeShippingThreshold, freeShippingService, freeShippingDeliveryDays } = parsed.data;
     await saveShippingMethods(methods as ShippingMethodConfig[]);
 
     if (shippingEnabled !== undefined) {
@@ -60,6 +64,20 @@ export async function PUT(request: Request) {
         where: { key: "freeShippingThreshold" },
         update: { value: String(freeShippingThreshold) },
         create: { key: "freeShippingThreshold", value: String(freeShippingThreshold) },
+      });
+    }
+    if (freeShippingService !== undefined) {
+      await prisma.setting.upsert({
+        where: { key: "freeShippingService" },
+        update: { value: freeShippingService },
+        create: { key: "freeShippingService", value: freeShippingService },
+      });
+    }
+    if (freeShippingDeliveryDays !== undefined) {
+      await prisma.setting.upsert({
+        where: { key: "freeShippingDeliveryDays" },
+        update: { value: String(freeShippingDeliveryDays) },
+        create: { key: "freeShippingDeliveryDays", value: String(freeShippingDeliveryDays) },
       });
     }
 

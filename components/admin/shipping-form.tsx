@@ -22,6 +22,8 @@ type ShippingFormProps = {
   methods: ShippingMethodConfig[];
   shippingEnabled: boolean;
   freeShippingThreshold: number;
+  freeShippingService: string;
+  freeShippingDeliveryDays: number;
 };
 
 function toForm(m: ShippingMethodConfig): MethodForm {
@@ -34,9 +36,17 @@ function toForm(m: ShippingMethodConfig): MethodForm {
   };
 }
 
-export function ShippingForm({ methods, shippingEnabled, freeShippingThreshold }: ShippingFormProps) {
+export function ShippingForm({
+  methods,
+  shippingEnabled,
+  freeShippingThreshold,
+  freeShippingService,
+  freeShippingDeliveryDays,
+}: ShippingFormProps) {
   const [enabled, setEnabled] = useState(shippingEnabled);
   const [threshold, setThreshold] = useState(String(freeShippingThreshold ?? 0));
+  const [freeService, setFreeService] = useState(freeShippingService ?? "Frete Grátis");
+  const [freeDays, setFreeDays] = useState(String(freeShippingDeliveryDays ?? 5));
   const [list, setList] = useState<MethodForm[]>(methods.map(toForm));
   const [saving, setSaving] = useState(false);
 
@@ -73,6 +83,8 @@ export function ShippingForm({ methods, shippingEnabled, freeShippingThreshold }
           })),
           shippingEnabled: enabled,
           freeShippingThreshold: threshold === "" ? 0 : parsePrice(threshold),
+          freeShippingService: freeService.trim() || "Frete Grátis",
+          freeShippingDeliveryDays: Number(freeDays) || 5,
         }),
       });
       const data = (await res.json()) as { ok: boolean; error?: string };
@@ -132,6 +144,27 @@ export function ShippingForm({ methods, shippingEnabled, freeShippingThreshold }
               onChange={(e) => setThreshold(e.target.value.replace(/[^\d,.]/g, ""))}
               placeholder="0 para desativar"
             />
+          </div>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1.5">
+              <Label htmlFor="freeShippingService">Opção de entrega (frete grátis)</Label>
+              <Input
+                id="freeShippingService"
+                value={freeService}
+                onChange={(e) => setFreeService(e.target.value)}
+                placeholder="Ex.: Frete Grátis"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="freeShippingDays">Prazo da opção (dias)</Label>
+              <Input
+                id="freeShippingDays"
+                type="number"
+                min="1"
+                value={freeDays}
+                onChange={(e) => setFreeDays(e.target.value.replace(/\D/g, ""))}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

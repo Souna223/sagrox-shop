@@ -231,7 +231,13 @@ export async function getShippingOptions(cep: string, items: ResolvedCartItem[])
   if (settings.shippingEnabled) {
     const freeEligible = allFreeShipping || (freeThreshold > 0 && subtotal >= freeThreshold);
     if (freeEligible) {
-      options.push({ code: "FREE", service: "Frete Grátis", price: 0, deliveryDays: 5, deliveryBusinessDays: 5 });
+      options.push({
+        code: "FREE",
+        service: settings.freeShippingService,
+        price: 0,
+        deliveryDays: settings.freeShippingDeliveryDays,
+        deliveryBusinessDays: settings.freeShippingDeliveryDays,
+      });
     }
     for (const method of methods) {
       if (!method.active) continue;

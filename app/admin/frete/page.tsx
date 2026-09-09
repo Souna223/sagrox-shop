@@ -18,6 +18,8 @@ export default async function AdminShippingPage() {
       methods={methods}
       shippingEnabled={settings.shippingEnabled}
       freeShippingThreshold={settings.freeShippingThreshold}
+      freeShippingService={settings.freeShippingService}
+      freeShippingDeliveryDays={settings.freeShippingDeliveryDays}
     />
   );
 }
