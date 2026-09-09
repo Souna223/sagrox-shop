@@ -61,7 +61,14 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
     where: { id: input.orderId },
     include: {
       items: {
-        select: { productId: true, variationId: true, kitId: true, quantity: true, components: true },
+        select: {
+          productId: true,
+          variationId: true,
+          kitId: true,
+          quantity: true,
+          unitPrice: true,
+          components: true,
+        },
       },
     },
   });
@@ -159,6 +166,7 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
       contents: order.items.map((i) => ({
         id: i.productId ?? i.kitId ?? "",
         quantity: i.quantity,
+        price: Number(i.unitPrice),
       })),
       user: {
         email: order.email,

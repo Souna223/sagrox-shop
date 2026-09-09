@@ -82,7 +82,7 @@ export type AdEventData = {
   currency?: string;
   productId?: string | null;
   contentIds?: string[];
-  contents?: { id: string; quantity?: number }[];
+  contents?: { id: string; quantity?: number; price?: number }[];
   pagePath?: string | null;
   user?: AdUserData;
 };
@@ -168,12 +168,33 @@ async function sendTikTokEvent(
 ): Promise<void> {
   if (!settings.tiktokAccessToken) return;
 
+  const contentIds = data.contentIds?.filter(Boolean) ?? (data.productId ? [data.productId] : []);
+
+  const contents = data.contents
+    ? data.contents
+        .filter((c) => c.id)
+        .map((c) => ({
+          content_id: c.id,
+          content_type: "product",
+          quantity: c.quantity ?? 1,
+          price: c.price ?? data.value ?? undefined,
+        }))
+    : contentIds.length > 0
+      ? contentIds.map((id) => ({
+          content_id: id,
+          content_type: "product",
+          quantity: 1,
+          price: data.value ?? undefined,
+        }))
+      : undefined;
+
   const properties: Record<string, unknown> = {
     currency: data.currency ?? "BRL",
     value: data.value ?? 0,
-    contents: data.contents,
-    content_id: data.contentIds?.[0] ?? data.productId ?? undefined,
+    content_type: "product",
   };
+  if (contentIds.length > 0) properties.content_ids = contentIds;
+  if (contents && contents.length > 0) properties.contents = contents;
 
   const event: Record<string, unknown> = {
     event: TIKTOK_EVENT_NAMES[type],
