@@ -180,6 +180,7 @@ async function sendTikTokEvent(
     event_id: data.eventId,
     event_time: Math.floor(Date.now() / 1000),
     event_source: "web",
+    event_source_id: settings.tiktokPixelId,
     page: { url: data.pagePath ?? undefined },
     user: {
       em: hashValue(data.user?.email),
