@@ -175,12 +175,10 @@ async function sendTikTokEvent(
     content_id: data.contentIds?.[0] ?? data.productId ?? undefined,
   };
 
-  const payload: Record<string, unknown> = {
+  const event: Record<string, unknown> = {
     event: TIKTOK_EVENT_NAMES[type],
     event_id: data.eventId,
     event_time: Math.floor(Date.now() / 1000),
-    event_source: "web",
-    event_source_id: settings.tiktokPixelId,
     page: { url: data.pagePath ?? undefined },
     user: {
       em: hashValue(data.user?.email),
@@ -190,7 +188,13 @@ async function sendTikTokEvent(
     },
     properties,
   };
-  if (settings.tiktokTestEventCode) payload.test_event_code = settings.tiktokTestEventCode;
+  if (settings.tiktokTestEventCode) event.test_event_code = settings.tiktokTestEventCode;
+
+  const payload = {
+    event_source: "web",
+    event_source_id: settings.tiktokPixelId,
+    data: [event],
+  };
 
   try {
     const response = await fetch("https://business-api.tiktok.com/open_api/v1.3/event/track/", {
