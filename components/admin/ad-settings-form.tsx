@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Save, Eye, EyeOff } from "lucide-react";
+import { Loader2, Save, Eye, EyeOff, BarChart3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -64,10 +65,19 @@ export function AdSettingsForm({ platform, platformLabel, initial }: AdSettingsF
             Configure o rastreamento de anúncios do {platformLabel}.
           </p>
         </div>
-        <Button type="submit" disabled={saving}>
-          {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-          Salvar
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link
+            href={`/admin/ads-${prefix}/analiticas`}
+            className="inline-flex items-center gap-2 rounded-md border border-input bg-background px-4 py-2 text-sm font-medium shadow-sm transition hover:bg-accent hover:text-accent-foreground"
+          >
+            <BarChart3 className="size-4" />
+            Analíticas
+          </Link>
+          <Button type="submit" disabled={saving}>
+            {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+            Salvar
+          </Button>
+        </div>
       </div>
 
       <Card>
