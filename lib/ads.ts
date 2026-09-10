@@ -226,8 +226,11 @@ async function sendTikTokEvent(
       },
       body: JSON.stringify(payload),
     });
-    if (!response.ok) {
-      console.error("[tiktok-events]", await response.text());
+    const raw = await response.text();
+    if (!response.ok || !raw.includes('"code":0')) {
+      console.error(`[tiktok-events] ${type} HTTP ${response.status}:`, raw.slice(0, 500));
+    } else {
+      console.log(`[tiktok-events] ${type} enviado com sucesso:`, raw.slice(0, 200));
     }
   } catch (err) {
     console.error("[tiktok-events] Falha ao enviar evento:", err);
