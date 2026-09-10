@@ -70,7 +70,7 @@ export function KitDetail({ kit }: { kit: ResolvedKit }) {
               src={kit.image}
               alt={kit.name}
               fill
-              className="object-cover"
+              className="object-cover max-sm:object-contain"
               sizes="(max-width: 1024px) 100vw, 50vw"
               unoptimized
             />
