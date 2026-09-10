@@ -62,7 +62,7 @@ export function KitDetail({ kit }: { kit: ResolvedKit }) {
   };
 
   return (
-    <div className="grid gap-10 lg:grid-cols-2">
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-2">
       <div>
         <div className="relative aspect-square overflow-hidden rounded-xl border bg-muted">
           {kit.image ? (
@@ -101,7 +101,7 @@ export function KitDetail({ kit }: { kit: ResolvedKit }) {
           {info.hasDiscount ? (
             <p className="text-sm text-muted-foreground line-through">{formatBRL(info.compareAtPrice)}</p>
           ) : null}
-          <div className="flex items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3">
             <p className="text-4xl font-bold">{formatBRL(kit.unitPrice)}</p>
             {info.hasDiscount ? (
               <Badge variant="secondary">
