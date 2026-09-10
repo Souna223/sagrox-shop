@@ -108,7 +108,7 @@ export function ProductDetail({ product }: { product: ProductDetailData }) {
               src={mainImage}
               alt={product.images.find((i) => i.url === mainImage)?.alt ?? product.name}
               fill
-              className="object-cover max-sm:object-contain"
+              className="object-contain"
               sizes="(max-width: 1024px) 100vw, 50vw"
               unoptimized
             />
