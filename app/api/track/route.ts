@@ -33,6 +33,7 @@ type TrackBody = {
   value?: number | null;
   contentIds?: string[] | null;
   contents?: { id: string; quantity?: number }[] | null;
+  eventId?: string | null;
   metadata?: Record<string, unknown> | null;
 };
 
@@ -88,7 +89,7 @@ export async function POST(request: Request) {
 
     if (adType) {
       fireAdEvent(adType, {
-        eventId: newAdEventId(eventType.toLowerCase()),
+        eventId: body.eventId || newAdEventId(eventType.toLowerCase()),
         value: body.value ?? undefined,
         productId: body.productId ?? null,
         contentIds: body.contentIds ?? undefined,

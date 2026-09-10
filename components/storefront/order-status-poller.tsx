@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Loader2, CheckCircle2, XCircle, Clock } from "lucide-react";
 import { PixBox } from "@/components/storefront/pix-box";
 import { PAYMENT_STATUS, PAYMENT_METHOD } from "@/lib/constants";
+import { fireClientAdEvent } from "@/lib/client-ads";
 import type { PaymentStatus, PaymentMethod, OrderStatus } from "@/generated/prisma/enums";
 
 type StatusData = {
@@ -17,6 +18,9 @@ type StatusData = {
   pixCode: string | null;
   boletoUrl: string | null;
   boletoBarcode: string | null;
+  total?: number;
+  contentIds?: string[] | null;
+  contents?: { id: string; quantity?: number; price?: number }[] | null;
 };
 
 const TERMINAL_STATUSES = new Set(["APPROVED", "CANCELLED", "REFUNDED", "FAILED"]);
@@ -65,6 +69,18 @@ export function OrderStatusPoller({ orderNumber, initial }: Props) {
     data.paymentStatus === "CANCELLED" || data.paymentStatus === "REFUNDED" || data.paymentStatus === "FAILED";
   const isPending = data.paymentStatus === "PENDING";
   const isProcessing = data.paymentStatus === "PROCESSING";
+
+  const purchaseFiredRef = useRef(false);
+  useEffect(() => {
+    if (isApproved && !purchaseFiredRef.current) {
+      purchaseFiredRef.current = true;
+      fireClientAdEvent("PURCHASE", {
+        value: data.total,
+        contentIds: data.contentIds,
+        contents: data.contents,
+      }, `purchase_${orderNumber}`);
+    }
+  }, [isApproved, data.total, data.contentIds, data.contents, orderNumber]);
 
   return (
     <div className="space-y-3">

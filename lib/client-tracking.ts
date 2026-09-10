@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnalyticsEventType } from "@/generated/prisma/enums";
+import { fireClientAdEvent, newClientAdEventId } from "@/lib/client-ads";
 
 const SESSION_KEY = "wbsite.session-id";
 const UTM_KEY = "wbsite.utm";
@@ -92,6 +93,14 @@ export function trackClient(
 ): void {
   if (typeof navigator === "undefined" || typeof fetch === "undefined") return;
 
+  const eventId = newClientAdEventId(eventType.toLowerCase());
+  fireClientAdEvent(eventType, {
+    productId: data.productId,
+    contentIds: data.contentIds,
+    contents: data.contents,
+    value: data.value,
+  }, eventId);
+
   const payload = {
     sessionId: getSessionId(),
     eventType,
@@ -103,6 +112,7 @@ export function trackClient(
     value: data.value ?? null,
     contentIds: data.contentIds ?? null,
     contents: data.contents ?? null,
+    eventId,
     metadata: data.metadata ?? null,
   };
 

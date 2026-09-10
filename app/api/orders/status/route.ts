@@ -19,6 +19,10 @@ export async function GET(request: NextRequest) {
     select: {
       id: true,
       status: true,
+      total: true,
+      items: {
+        select: { id: true, productId: true, kitId: true, quantity: true, unitPrice: true },
+      },
       payments: {
         select: {
           id: true,
@@ -82,5 +86,14 @@ export async function GET(request: NextRequest) {
     pixCode: payment?.pixCode ?? null,
     boletoUrl: payment?.boletoUrl ?? null,
     boletoBarcode: payment?.boletoBarcode ?? null,
+    total: Number(order.total),
+    contentIds: order.items
+      .map((i) => i.productId ?? i.kitId)
+      .filter((id): id is string => !!id),
+    contents: order.items.map((i) => ({
+      id: i.productId ?? i.kitId ?? "",
+      quantity: i.quantity,
+      price: Number(i.unitPrice),
+    })),
   });
 }
