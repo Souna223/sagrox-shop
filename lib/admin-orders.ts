@@ -171,6 +171,8 @@ export async function updateOrderStatus(input: StatusUpdateInput) {
       user: {
         email: order.email,
         ip: input.ip,
+        fbp: order.fbp ?? undefined,
+        fbc: order.fbc ?? undefined,
       },
     });
   }

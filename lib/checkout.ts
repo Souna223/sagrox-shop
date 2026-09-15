@@ -330,6 +330,8 @@ export type CreateOrderInput = {
   utmCampaign?: string | null;
   utmTerm?: string | null;
   utmContent?: string | null;
+  fbp?: string | null;
+  fbc?: string | null;
 };
 
 export type CreatedOrderResult = {
@@ -390,6 +392,8 @@ export async function createOrder(input: CreateOrderInput): Promise<CreatedOrder
         utmCampaign: input.utmCampaign ?? null,
         utmTerm: input.utmTerm ?? null,
         utmContent: input.utmContent ?? null,
+        fbp: input.fbp ?? null,
+        fbc: input.fbc ?? null,
         items: {
           create: items.map((item) => ({
             productId: item.kind === "kit" ? null : item.productId,

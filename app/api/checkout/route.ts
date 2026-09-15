@@ -9,6 +9,17 @@ import { sendOrderStatusEmail } from "@/lib/mail";
 import { prisma } from "@/lib/prisma";
 import type { Prisma } from "@/generated/prisma/client";
 
+function getCookie(header: string | null, name: string): string | null {
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const key = part.slice(0, idx).trim();
+    if (key === name) return part.slice(idx + 1).trim() || null;
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   if (!rateLimit(`checkout:${getClientIp(request)}`, 10, 300)) {
     return fail("Muitas tentativas. Tente novamente em instantes.", 429);
@@ -45,6 +56,8 @@ export async function POST(request: Request) {
       utmCampaign: data.utmCampaign,
       utmTerm: data.utmTerm,
       utmContent: data.utmContent,
+      fbp: getCookie(request.headers.get("cookie"), "_fbp"),
+      fbc: getCookie(request.headers.get("cookie"), "_fbc"),
     });
 
     recordEvent({

@@ -59,6 +59,17 @@ function detectDevice(userAgent: string): { device: DeviceType; browser: string;
   return { device, browser, os };
 }
 
+function getCookie(header: string | null, name: string): string | null {
+  if (!header) return null;
+  for (const part of header.split(";")) {
+    const idx = part.indexOf("=");
+    if (idx === -1) continue;
+    const key = part.slice(0, idx).trim();
+    if (key === name) return part.slice(idx + 1).trim() || null;
+  }
+  return null;
+}
+
 export async function POST(request: Request) {
   if (!rateLimit(`track:${getClientIp(request)}`, 120, 60)) {
     return fail("Muitas requisições.", 429);
@@ -88,6 +99,7 @@ export async function POST(request: Request) {
               : null;
 
     if (adType) {
+      const cookieHeader = request.headers.get("cookie");
       fireAdEvent(adType, {
         eventId: body.eventId || newAdEventId(eventType.toLowerCase()),
         value: body.value ?? undefined,
@@ -98,6 +110,8 @@ export async function POST(request: Request) {
         user: {
           ip: getClientIp(request),
           userAgent,
+          fbp: getCookie(cookieHeader, "_fbp"),
+          fbc: getCookie(cookieHeader, "_fbc"),
         },
       });
     }
