@@ -16,6 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { getDictionary } from "@/lib/i18n/server";
+import { I18nProvider } from "@/lib/i18n/provider";
 
 export const metadata: Metadata = {
   title: "Pré-visualizar produto",
@@ -46,7 +47,8 @@ export default async function AdminProductPreviewPage({ params }: PageProps) {
   const isDraft = relatedProducts.status === "DRAFT";
 
   return (
-    <div className="space-y-6">
+    <I18nProvider>
+      <div className="space-y-6">
       <div className="flex flex-col gap-4 rounded-xl border bg-background p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="min-w-0">
           <h1 className="text-xl font-bold">Pré-visualização da página</h1>
@@ -118,6 +120,7 @@ export default async function AdminProductPreviewPage({ params }: PageProps) {
           ) : null}
         </div>
       </div>
-    </div>
+      </div>
+    </I18nProvider>
   );
 }
