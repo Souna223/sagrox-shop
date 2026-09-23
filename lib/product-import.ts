@@ -1,6 +1,6 @@
 export type ImportedProductData = {
   name: string;
-  price: number;
+  price: number | null;
   compareAtPrice: number | null;
   images: string[];
   description: string;
@@ -199,8 +199,6 @@ export async function importProductFromUrl(rawUrl: string): Promise<ImportedProd
 
   const jsonLdPrice = parsePrice(String(product?.["price"] ?? ""));
   if (price === null) price = jsonLdPrice;
-
-  if (price === null) throw new Error("Não foi possível extrair o preço do produto.");
 
   const images: string[] = [];
   const pushImage = (raw: string) => {

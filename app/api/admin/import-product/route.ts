@@ -5,20 +5,45 @@ import { importProductFromUrl } from "@/lib/product-import";
 import { slugify } from "@/lib/format";
 import { ensureUniqueSlug } from "@/lib/admin-products";
 
+function toNumber(raw: unknown): number | null {
+  if (typeof raw === "number") return Number.isFinite(raw) ? raw : null;
+  if (typeof raw !== "string") return null;
+  const n = Number(raw.replace(/[R$\s]/g, "").replace(",", "."));
+  return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
+}
+
 export async function POST(request: NextRequest) {
   try {
     await requireAdmin();
-    const body = (await request.json()) as { url?: string; sku?: string };
+    const body = (await request.json()) as {
+      url?: string;
+      price?: unknown;
+      compareAtPrice?: unknown;
+    };
     const url = body.url?.trim();
     if (!url) return fail("Informe a URL do produto.", 422);
 
     const data = await importProductFromUrl(url);
 
+    const price = data.price ?? toNumber(body.price);
+    const compareAtPrice = data.compareAtPrice ?? toNumber(body.compareAtPrice);
+
+    if (price === null) {
+      return ok({
+        needsPrice: true,
+        data: {
+          name: data.name,
+          description: data.description,
+          images: data.images,
+          source: data.source,
+        },
+        message: "Não foi possível extrair o preço automaticamente. Informe o preço para continuar.",
+      });
+    }
+
     const name = data.name;
     const slug = await ensureUniqueSlug(slugify(name));
-    const baseSku =
-      body.sku?.trim() ||
-      `IMP-${Date.now().toString(36).toUpperCase()}`;
+    const baseSku = `IMP-${Date.now().toString(36).toUpperCase()}`;
 
     const existingBySlug = await prisma.product.findUnique({ where: { slug } });
     if (existingBySlug) {
@@ -32,8 +57,8 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         sku,
-        price: data.price,
-        compareAtPrice: data.compareAtPrice,
+        price,
+        compareAtPrice,
         description: data.description || null,
         shortDescription: data.description
           ? data.description.replace(/\s+/g, " ").trim().slice(0, 160)
