@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label";
 type ImportResult = {
   ok: boolean;
   needsPrice?: boolean;
+  product?: { id: string; slug: string; name: string; status: string };
   data?: {
-    product?: { id: string; slug: string; name: string; status: string };
     name?: string;
     description?: string;
     images?: string[];
@@ -26,7 +26,8 @@ export function ProductUrlImportForm() {
   const router = useRouter();
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [imported, setImported] = useState<ImportResult["data"] | null>(null);
+  const [imported, setImported] = useState<ImportResult["product"] | null>(null);
+  const [pending, setPending] = useState<NonNullable<ImportResult["data"]> | null>(null);
   const [needsPrice, setNeedsPrice] = useState(false);
   const [price, setPrice] = useState("");
   const [compareAt, setCompareAt] = useState("");
@@ -55,12 +56,14 @@ export function ProductUrlImportForm() {
       }
       if (data.needsPrice && data.data) {
         setNeedsPrice(true);
-        setImported(data.data);
+        setPending(data.data);
+        setImported(null);
         toast.info("Informe o preço para finalizar a importação.");
         return;
       }
       setNeedsPrice(false);
-      setImported(data.data);
+      setPending(null);
+      setImported(data.product ?? null);
       toast.success("Produto importado como rascunho.");
     } catch {
       toast.error("Falha ao importar o produto.");
@@ -88,6 +91,7 @@ export function ProductUrlImportForm() {
             onChange={(e) => {
               setUrl(e.target.value);
               setNeedsPrice(false);
+              setPending(null);
               setImported(null);
             }}
             placeholder="https://www.mercadolivre.com.br/... / https://www.loja.com.br/produto"
@@ -101,20 +105,20 @@ export function ProductUrlImportForm() {
           </Button>
         </div>
 
-        {needsPrice && imported?.images ? (
+        {needsPrice && pending ? (
           <div className="rounded-lg border bg-muted/30 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-              {imported.images[0] ? (
+              {pending.images?.[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
-                  src={imported.images[0]}
+                  src={pending.images[0]}
                   alt=""
                   className="size-16 shrink-0 rounded-lg object-cover"
                 />
               ) : null}
               <div className="min-w-0 flex-1 space-y-3">
                 <div>
-                  <p className="line-clamp-2 text-sm font-medium">{imported.name}</p>
+                  <p className="line-clamp-2 text-sm font-medium">{pending.name}</p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                     <Tag className="size-3" /> Preço não detectado no link. Informe abaixo.
                   </p>
@@ -155,6 +159,7 @@ export function ProductUrlImportForm() {
                     variant="outline"
                     onClick={() => {
                       setNeedsPrice(false);
+                      setPending(null);
                       setImported(null);
                       setPrice("");
                       setCompareAt("");
@@ -168,11 +173,11 @@ export function ProductUrlImportForm() {
           </div>
         ) : null}
 
-        {imported?.product ? (
+        {imported ? (
           <div className="rounded-lg border bg-muted/30 p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium">{imported.product.name}</p>
+                <p className="truncate text-sm font-medium">{imported.name}</p>
                 <p className="text-xs text-muted-foreground">
                   Status:{" "}
                   <span className="font-medium text-amber-600">Rascunho</span> — não aparece na
@@ -182,8 +187,7 @@ export function ProductUrlImportForm() {
               <Button
                 type="button"
                 onClick={() => {
-                  const p = imported?.product;
-                  if (p) router.push(`/admin/produtos/${p.id}/previsualizar`);
+                  if (imported) router.push(`/admin/produtos/${imported.id}/previsualizar`);
                 }}
               >
                 <ExternalLink className="size-4" /> Ver prévia da página
