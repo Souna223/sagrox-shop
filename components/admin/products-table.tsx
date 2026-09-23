@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Loader2, Link2, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { Eye, Loader2, Link2, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -212,6 +212,14 @@ export function ProductsTable({ initial, q, status }: ProductsTableProps) {
                     </TableCell>
                     <TableCell>
                       <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon-sm"
+                          aria-label="Pré-visualizar"
+                          render={<Link href={`/admin/produtos/${product.id}/previsualizar`} />}
+                        >
+                          <Eye className="size-4" />
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon-sm"

@@ -338,6 +338,22 @@ export type ProductDetailData = {
   }[];
 };
 
+const productDetailInclude = {
+  images: { orderBy: { sortOrder: "asc" } },
+  variations: { where: { active: true }, orderBy: { name: "asc" } },
+  quantityPrices: { orderBy: { minQuantity: "asc" } },
+  brand: true,
+  category: { include: { parent: true } },
+  reviews: {
+    where: { status: "APPROVED" },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+    include: { user: { select: { name: true } } },
+  },
+} satisfies Prisma.ProductInclude;
+
+type ProductDetailInclude = Prisma.ProductGetPayload<{ include: typeof productDetailInclude }>;
+
 function decimalToNumber(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   if (typeof value === "number") return value;
@@ -352,22 +368,28 @@ function decimalToNumber(value: unknown): number | null {
 export async function getProductDetail(slug: string): Promise<ProductDetailData | null> {
   const product = await prisma.product.findFirst({
     where: { slug, status: "ACTIVE", visibility: "VISIBLE" },
-    include: {
-      images: { orderBy: { sortOrder: "asc" } },
-      variations: { where: { active: true }, orderBy: { name: "asc" } },
-      quantityPrices: { orderBy: { minQuantity: "asc" } },
-      brand: true,
-      category: { include: { parent: true } },
-      reviews: {
-        where: { status: "APPROVED" },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-        include: { user: { select: { name: true } } },
-      },
-    },
+    include: productDetailInclude,
   });
 
   if (!product) return null;
+
+  return mapProductToDetail(product);
+}
+
+export async function getProductDetailById(id: string): Promise<ProductDetailData | null> {
+  const product = await prisma.product.findFirst({
+    where: { id },
+    include: productDetailInclude,
+  });
+
+  if (!product) return null;
+
+  return mapProductToDetail(product);
+}
+
+function mapProductToDetail(
+  product: ProductDetailInclude
+): ProductDetailData {
 
   const attributes =
     product.attributes && typeof product.attributes === "object"

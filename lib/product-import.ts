@@ -95,11 +95,36 @@ function priceFromOffer(value: unknown): number | null {
 
 function parsePrice(raw: string | null | undefined): number | null {
   if (!raw) return null;
-  const cleaned = String(raw)
-    .replace(/[R$\s]/g, "")
-    .replace(/\./g, "")
-    .replace(",", ".");
-  const n = Number(cleaned);
+  let s = String(raw).replace(/[R$\s]/g, "");
+  s = s.replace(/[^\d.,]/g, "");
+  if (!s) return null;
+
+  const hasComma = s.includes(",");
+  const hasDot = s.includes(".");
+
+  if (hasComma && hasDot) {
+    const commaPos = s.indexOf(",");
+    const dotPos = s.indexOf(".");
+    if (commaPos < dotPos) {
+      // 1,299.90 (international): comma = thousands, dot = decimal
+      s = s.replace(/,/g, "");
+    } else {
+      // 1.299,90 (pt-BR): dot = thousands, comma = decimal
+      s = s.replace(/\./g, "").replace(",", ".");
+    }
+  } else if (hasComma) {
+    // 49,90
+    s = s.replace(",", ".");
+  } else if (hasDot) {
+    const parts = s.split(".");
+    // One dot with exactly 3 trailing digits => thousands separator (1.299)
+    if (parts.length === 2 && parts[1].length === 3) {
+      s = parts.join("");
+    }
+    // else: 32.9 / 32.90 => decimal, keep as-is
+  }
+
+  const n = Number(s);
   return Number.isFinite(n) && n > 0 ? Math.round(n * 100) / 100 : null;
 }
 
